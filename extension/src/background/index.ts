@@ -43,6 +43,7 @@ let settings: ExtensionSettings = {
   homeTabId: null,
   homeWindowId: null,
   enableDoneFocus: true,
+  alwaysFocusOnDone: false,
   doneCountdownMs: 1500,
   doneCooldownMs: 45000,
   distractionDomains: [
@@ -55,11 +56,15 @@ let settings: ExtensionSettings = {
     'twitch.tv',
     'reddit.com',
   ],
+  enabled: true,
 };
 
 let lastDoneFocusTime = 0;
 let currentTaskId: string | null = null;
 let disabledAutoFocusTaskIds = new Set<string>();
+let taskStartedAt: number | null = null;
+let daemonVersion: string | null = null;
+let daemonGitBranch: string | null = null;
 
 // ============================================================
 // Storage
@@ -88,9 +93,20 @@ function connectWebSocket(): void {
   console.log('[BG] Connecting to daemon...');
   ws = new WebSocket(DAEMON_WS_URL);
 
-  ws.onopen = () => {
+  ws.onopen = async () => {
     console.log('[BG] Connected to daemon');
     reconnectAttempts = 0;
+
+    // Fetch daemon health info before broadcasting (so gitBranch is available)
+    try {
+      const res = await fetch('http://127.0.0.1:3000/health');
+      const health = await res.json();
+      daemonVersion = health.version || null;
+      daemonGitBranch = health.gitBranch || null;
+    } catch {
+      // Daemon might not support these fields yet
+    }
+
     broadcastConnectionStatus(true);
   };
 
@@ -133,6 +149,7 @@ function broadcastConnectionStatus(connected: boolean): void {
   chrome.runtime.sendMessage({
     type: 'connection_status',
     connected,
+    gitBranch: daemonGitBranch,
   }).catch(() => {});
 }
 
@@ -143,12 +160,14 @@ function broadcastConnectionStatus(connected: boolean): void {
 async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
   console.log('[BG] Received event:', event.type);
 
-  // Forward to side panel
+  // Forward to side panel (always, regardless of enabled state)
   chrome.runtime.sendMessage(event).catch(() => {});
 
+  // State management always runs — only auto-focus is gated by enabled
   switch (event.type) {
     case 'task.started':
       currentTaskId = event.taskId;
+      taskStartedAt = Date.now();
       break;
 
     case 'task.need_input':
@@ -157,11 +176,13 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
 
     case 'task.done':
       await handleDone(event.taskId, event.summary);
+      taskStartedAt = null;
       currentTaskId = null;
       break;
 
     case 'task.error':
       await showNotification('🔴 Task Failed', event.message);
+      taskStartedAt = null;
       currentTaskId = null;
       break;
   }
@@ -170,6 +191,8 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
 async function handleNeedInput(_taskId: string, question: string): Promise<void> {
   // Always show notification
   await showNotification('🟡 Input Required', question);
+
+  if (!settings.enabled) return;
 
   // Force mode: immediately focus home tab
   if (settings.mode === 'force') {
@@ -180,6 +203,8 @@ async function handleNeedInput(_taskId: string, question: string): Promise<void>
 async function handleDone(taskId: string, summary: string): Promise<void> {
   // Always show notification
   await showNotification('✅ Task Complete', summary);
+
+  if (!settings.enabled) return;
 
   // Check if auto-focus is disabled for this task
   if (disabledAutoFocusTaskIds.has(taskId)) {
@@ -208,11 +233,13 @@ async function handleDone(taskId: string, summary: string): Promise<void> {
     return;
   }
 
-  // Check if currently on distraction site
-  const isDistracted = await checkDistraction();
-  if (!isDistracted) {
-    console.log('[BG] Not on distraction site, skipping auto-focus');
-    return;
+  // Check if currently on distraction site (skip check if alwaysFocusOnDone is enabled)
+  if (!settings.alwaysFocusOnDone) {
+    const isDistracted = await checkDistraction();
+    if (!isDistracted) {
+      console.log('[BG] Not on distraction site, skipping auto-focus');
+      return;
+    }
   }
 
   // Start countdown (handled by side panel)
@@ -299,7 +326,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   (async () => {
     switch (message.type) {
       case 'get_connection_status':
-        sendResponse({ connected: ws?.readyState === WebSocket.OPEN });
+        sendResponse({
+          connected: ws?.readyState === WebSocket.OPEN,
+          version: daemonVersion,
+          gitBranch: daemonGitBranch,
+        });
+        break;
+
+      case 'get_task_status':
+        sendResponse({
+          status: currentTaskId ? 'running' : 'idle',
+          taskId: currentTaskId,
+          startedAt: taskStartedAt,
+        });
         break;
 
       case 'get_settings':

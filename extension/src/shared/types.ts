@@ -26,6 +26,7 @@ export interface Task {
   updatedAt: number;
   logs: TaskLog[];
   summary?: string;
+  image?: string;
   autoFocusDisabled?: boolean;
 }
 
@@ -44,6 +45,8 @@ export interface TaskStartedEvent {
   type: 'task.started';
   taskId: string;
   repoId: string;
+  startedAt: number;
+  hasImage?: boolean;
 }
 
 export interface TaskLogEvent {
@@ -77,12 +80,21 @@ export interface TaskErrorEvent {
   details?: string;
 }
 
+export interface TaskProgressEvent {
+  type: 'task.progress';
+  taskId: string;
+  current: number;
+  total: number;
+  label?: string;
+}
+
 export type DaemonEvent =
   | TaskStartedEvent
   | TaskLogEvent
   | TaskNeedInputEvent
   | TaskDoneEvent
-  | TaskErrorEvent;
+  | TaskErrorEvent
+  | TaskProgressEvent;
 
 // ============================================================
 // Storage Types
@@ -93,9 +105,11 @@ export interface ExtensionSettings {
   homeTabId: number | null;
   homeWindowId: number | null;
   enableDoneFocus: boolean;
+  alwaysFocusOnDone: boolean;
   doneCountdownMs: number;
   doneCooldownMs: number;
   distractionDomains: string[];
+  enabled: boolean;
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -103,6 +117,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   homeTabId: null,
   homeWindowId: null,
   enableDoneFocus: true,
+  alwaysFocusOnDone: false,
   doneCountdownMs: 1500,
   doneCooldownMs: 45000,
   distractionDomains: [
@@ -115,7 +130,8 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
     'twitch.tv',
     'reddit.com',
   ],
-};
+  enabled: true,
+};;
 
 // ============================================================
 // API Types
@@ -143,4 +159,5 @@ export interface ApiResponse {
 export interface HealthResponse {
   ok: boolean;
   version: string;
+  gitBranch: string | null;
 }
