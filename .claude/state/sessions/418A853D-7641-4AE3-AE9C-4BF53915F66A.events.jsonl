@@ -1,0 +1,5 @@
+{"type":"session.start","ts":"2026-01-27T07:24:44Z","state":"initialized","data":{"cc_session_id":"b785cfd9-e56d-4573-b7e7-4edbf8e24930"}}
+{"id":"event-000001","type":"session.start","ts":"2026-01-27T07:24:44Z","state":"initialized"}
+{"id":"event-000002","type":"tool.bash","ts":"2026-01-27T07:25:03Z","state":"initialized","data":{"command":"cat /Users/aocunxiangyilang/kaihatu/FocusFlow/.claude-code-harness-version 2>/dev/null || echo "NOT_FOUND""}}
+{"id":"event-000003","type":"tool.bash","ts":"2026-01-27T07:25:03Z","state":"initialized","data":{"command":"PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/claude-code-harness}" && cat "$PLUGIN_ROOT/VERSION" 2>/dev/null || echo "PLUGIN_NOT_FOUND""}}
+{"id":"event-000004","type":"session.stop","ts":"2026-01-27T07:25:12Z","state":"stopped"}

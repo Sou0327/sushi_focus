@@ -1,0 +1,48 @@
+{
+  "lastCheckedPluginVersion": "2.9.22",
+  "files": {
+    "AGENTS.md": {
+      "templateVersion": "2.9.22",
+      "generatedAt": "2026-01-27",
+      "source": "AGENTS.md.template"
+    },
+    "CLAUDE.md": {
+      "templateVersion": "2.9.22",
+      "generatedAt": "2026-01-27",
+      "source": "existing",
+      "note": "Pre-existing, not overwritten"
+    },
+    "Plans.md": {
+      "templateVersion": "2.9.22",
+      "generatedAt": "2026-01-27",
+      "source": "existing",
+      "note": "Pre-existing, not overwritten"
+    },
+    ".claude/settings.json": {
+      "templateVersion": "2.9.22",
+      "generatedAt": "2026-01-27",
+      "source": "existing",
+      "note": "Pre-existing, not overwritten"
+    },
+    ".claude/rules/test-quality.md": {
+      "templateVersion": "2.9.22",
+      "generatedAt": "2026-01-27",
+      "source": "existing"
+    },
+    ".claude/rules/implementation-quality.md": {
+      "templateVersion": "2.9.22",
+      "generatedAt": "2026-01-27",
+      "source": "existing"
+    },
+    ".claude/memory/decisions.md": {
+      "templateVersion": "2.9.22",
+      "generatedAt": "2026-01-27",
+      "source": "existing"
+    },
+    ".claude/memory/patterns.md": {
+      "templateVersion": "2.9.22",
+      "generatedAt": "2026-01-27",
+      "source": "existing"
+    }
+  }
+}

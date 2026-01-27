@@ -1,0 +1,4 @@
+{"type":"session.start","ts":"2026-01-25T16:48:16Z","state":"initialized","data":{"cc_session_id":"a52fb1eb-712f-4612-837a-523735869a40"}}
+{"id":"event-000001","type":"session.start","ts":"2026-01-25T16:48:16Z","state":"initialized"}
+{"id":"event-000002","type":"tool.bash","ts":"2026-01-25T16:49:13Z","state":"initialized","data":{"command":"ls -la"}}
+{"id":"event-000003","type":"session.stop","ts":"2026-01-25T16:49:58Z","state":"stopped"}

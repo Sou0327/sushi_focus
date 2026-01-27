@@ -1,0 +1,37 @@
+{
+  "session_id": "31D8386A-1BE7-4DF7-B8A4-9927C6DEE8BC",
+  "parent_session_id": null,
+  "state": "stopped",
+  "state_version": 1,
+  "started_at": "2026-01-25T16:56:39Z",
+  "updated_at": "2026-01-25T16:56:53Z",
+  "resume_token": "8B004FBB-32CF-473B-8761-02F0C2D5E543",
+  "event_seq": 2,
+  "last_event_id": "event-000002",
+  "fork_count": 0,
+  "orchestration": {
+    "max_state_retries": 3,
+    "retry_backoff_seconds": 10
+  },
+  "cwd": "/Users/aocunxiangyilang/kaihatu/FocusFlow",
+  "project_name": "FocusFlow",
+  "prompt_seq": 1,
+  "git": {
+    "branch": "(no git)",
+    "uncommitted_changes": 0,
+    "last_commit": "none"
+  },
+  "plans": {
+    "exists": true,
+    "last_modified": 1769354414,
+    "wip_tasks": 0,
+    "todo_tasks": 9,
+    "pending_tasks": 0,
+    "completed_tasks": 0
+  },
+  "changes_this_session": [],
+  "intent": "literal",
+  "ended_at": "2026-01-25T16:56:53Z",
+  "duration_minutes": 540,
+  "memory_logged": true
+}

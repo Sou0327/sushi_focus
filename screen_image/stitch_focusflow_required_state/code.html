@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FocusFlow Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#111318",
+                        "surface-highlight": "#282e39",
+                        "text-secondary": "#9da6b9",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Scrollbar for cleaner dark look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101622;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #282e39;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a4250;
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden">
+<div class="flex h-screen w-full flex-row">
+<!-- Sidebar -->
+<aside class="w-64 shrink-0 border-r border-[#282e39] bg-surface-dark flex flex-col justify-between p-4 hidden md:flex">
+<div class="flex flex-col gap-8">
+<!-- Logo -->
+<div class="px-2">
+<h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-size: 28px;">bolt</span>
+                        FocusFlow
+                    </h1>
+</div>
+<!-- Navigation -->
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-highlight text-white border-l-4 border-primary transition-all" href="#">
+<span class="material-symbols-outlined fill">target</span>
+<span class="text-sm font-medium">Focus Rules</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-highlight hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-white">schedule</span>
+<span class="text-sm font-medium">Timer Config</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-highlight hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-white">block</span>
+<span class="text-sm font-medium">Blocklist</span>
+</a>
+<div class="h-px bg-[#282e39] my-2 mx-2"></div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-highlight hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-white">settings</span>
+<span class="text-sm font-medium">General Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer / Status -->
+<div class="flex flex-col gap-2 p-2">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#1a1f26] border border-[#282e39]">
+<div class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-white">Daemon Active</span>
+<span class="text-[10px] text-text-secondary">v2.4.1 • Localhost:3000</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background-dark relative">
+<!-- Top Bar (Mobile Menu Trigger could go here) -->
+<div class="w-full h-16 border-b border-[#282e39] flex items-center justify-between px-6 md:px-10 shrink-0">
+<div class="flex items-center gap-2 text-text-secondary text-sm">
+<span>Settings</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-white font-medium">Focus Behavior</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-text-secondary hover:text-white text-sm font-medium transition-colors">Reset Defaults</button>
+<button class="bg-primary hover:bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_0_15px_rgba(19,91,236,0.3)]">
+                        Save Changes
+                    </button>
+</div>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto px-6 md:px-10 py-8 pb-20">
+<div class="max-w-[800px] mx-auto flex flex-col gap-10">
+<!-- Page Header -->
+<div class="flex flex-col gap-2">
+<h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Focus Settings</h2>
+<p class="text-text-secondary text-base md:text-lg max-w-2xl">
+                            Configure how FocusFlow manages your environment during deep work sessions. Customize automation triggers and cooldown periods.
+                        </p>
+</div>
+<div class="h-px w-full bg-[#282e39]"></div>
+<!-- Section: Focus Behavior -->
+<section class="flex flex-col gap-5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">psychology</span>
+<h3 class="text-xl font-bold text-white">Focus Behavior</h3>
+</div>
+<div class="flex flex-col gap-3">
+<!-- List Item 1 -->
+<div class="flex items-center gap-4 bg-surface-dark border border-[#282e39] rounded-xl p-4 sm:p-5 justify-between transition-colors hover:border-[#3a4250]">
+<div class="flex items-center gap-4">
+<div class="text-white flex items-center justify-center rounded-lg bg-surface-highlight shrink-0 h-12 w-12">
+<span class="material-symbols-outlined">code</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-white text-base font-medium leading-normal">Auto-return to IDE</p>
+<p class="text-text-secondary text-sm font-normal leading-normal">Automatically switch context back when build succeeds</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[28px] w-[48px] cursor-pointer items-center rounded-full border-none bg-[#282e39] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-full w-[24px] rounded-full bg-white shadow-sm"></div>
+<input checked="" class="invisible absolute peer" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="flex items-center gap-4 bg-surface-dark border border-[#282e39] rounded-xl p-4 sm:p-5 justify-between transition-colors hover:border-[#3a4250]">
+<div class="flex items-center gap-4">
+<div class="text-white flex items-center justify-center rounded-lg bg-surface-highlight shrink-0 h-12 w-12">
+<span class="material-symbols-outlined">smart_toy</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-white text-base font-medium leading-normal">AI Gen Blocking</p>
+<p class="text-text-secondary text-sm font-normal leading-normal">Block distraction sites during active AI generation</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[28px] w-[48px] cursor-pointer items-center rounded-full border-none bg-[#282e39] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-full w-[24px] rounded-full bg-white shadow-sm"></div>
+<input class="invisible absolute peer" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Cooldown & Timing -->
+<section class="flex flex-col gap-5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">hourglass_top</span>
+<h3 class="text-xl font-bold text-white">Cooldown &amp; Timing</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div class="bg-surface-dark border border-[#282e39] rounded-xl p-5 flex flex-col gap-3">
+<label class="text-text-secondary text-sm font-medium uppercase tracking-wide">Return Countdown</label>
+<div class="flex items-center gap-3">
+<input class="bg-surface-highlight text-white text-xl font-bold rounded-lg px-4 py-3 w-full border border-transparent focus:border-primary focus:ring-0 outline-none transition-all placeholder-gray-500" type="number" value="5"/>
+<span class="text-white font-medium">seconds</span>
+</div>
+<p class="text-xs text-text-secondary">Delay before forcing focus back to IDE.</p>
+</div>
+<div class="bg-surface-dark border border-[#282e39] rounded-xl p-5 flex flex-col gap-3">
+<label class="text-text-secondary text-sm font-medium uppercase tracking-wide">Focus Cooldown</label>
+<div class="flex items-center gap-3">
+<input class="bg-surface-highlight text-white text-xl font-bold rounded-lg px-4 py-3 w-full border border-transparent focus:border-primary focus:ring-0 outline-none transition-all placeholder-gray-500" type="number" value="15"/>
+<span class="text-white font-medium">minutes</span>
+</div>
+<p class="text-xs text-text-secondary">Minimum break time between heavy focus sessions.</p>
+</div>
+</div>
+</section>
+<!-- Section: Distraction Domains -->
+<section class="flex flex-col gap-5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">domain_disabled</span>
+<h3 class="text-xl font-bold text-white">Distraction Domains</h3>
+</div>
+<div class="bg-surface-dark border border-[#282e39] rounded-xl p-6 flex flex-col gap-6">
+<div class="flex flex-col md:flex-row gap-3">
+<div class="relative flex-1">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-text-secondary">link</span>
+</div>
+<input class="pl-10 bg-surface-highlight text-white text-base rounded-lg px-4 py-3 w-full border border-transparent focus:border-primary focus:ring-0 outline-none transition-all placeholder-gray-500" placeholder="Add a domain (e.g. twitter.com)..." type="text"/>
+</div>
+<button class="bg-[#282e39] hover:bg-[#3a4250] text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span> Add
+                                </button>
+</div>
+<div class="flex flex-col gap-3">
+<label class="text-xs font-semibold text-text-secondary uppercase tracking-wider">Blocked List</label>
+<div class="flex flex-wrap gap-3">
+<!-- Chip 1 -->
+<div class="group flex items-center gap-2 bg-[#282e39] text-white pl-3 pr-2 py-1.5 rounded-full border border-transparent hover:border-red-500/50 transition-all cursor-default">
+<img alt="YouTube" class="w-4 h-4 rounded-full opacity-80" data-alt="YouTube Favicon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3soZVgK2cOVSEZRfUbSgR5dT_JwRVHWvQNPi3biPSJ6yiUPOScp5FRiQlEO8YUmTWMpWysgP5dpALXJA-6EgZSJX4WdY_-D1oQEuR1vPB_9RiLT-f6KGVEy5s5XzoHwagWewayFmzEwMvNBhRTvDN34K6qtnz0E2XXL9qHMLjvTEMF4sbOPOiUaLVR648LsFXem0xyov98MK9clinmB0RZzuUgwccbDUFM9tZgw2taUYhW-Dsyj_oh4p8cYLwS8kBbGMSlrKqseuH"/>
+<span class="text-sm font-medium">youtube.com</span>
+<button class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Chip 2 -->
+<div class="group flex items-center gap-2 bg-[#282e39] text-white pl-3 pr-2 py-1.5 rounded-full border border-transparent hover:border-red-500/50 transition-all cursor-default">
+<span class="w-4 h-4 rounded-full bg-black flex items-center justify-center text-[10px] font-bold">X</span>
+<span class="text-sm font-medium">x.com</span>
+<button class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Chip 3 -->
+<div class="group flex items-center gap-2 bg-[#282e39] text-white pl-3 pr-2 py-1.5 rounded-full border border-transparent hover:border-red-500/50 transition-all cursor-default">
+<img alt="Reddit" class="w-4 h-4 rounded-full opacity-80" data-alt="Reddit Favicon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC84BSokSjzQRGcrxcu3DH2SlM9egNBwTHfdrb61d9AIdttNuuvvV6VnC3MQiVMJkT8iCUejSA5oWsihx-bpHcx62x7DQIRVX137RV_36EuutdAf9-kVE7og0NLTWMqAFusa4a7Pe72s9dDl6cSufAEvUbrlM9HAvGblJdJu_9SP2mujer2ZQd4YsgBokd31a32Vfd8wqCYxCg0t65G4CBcRma1jpDPTmcfaFQI4GoJftT85Tu-ZoXUf4DITF7E0qT-2oR2VX5KO1Kg"/>
+<span class="text-sm font-medium">reddit.com</span>
+<button class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Chip 4 -->
+<div class="group flex items-center gap-2 bg-[#282e39] text-white pl-3 pr-2 py-1.5 rounded-full border border-transparent hover:border-red-500/50 transition-all cursor-default">
+<img alt="Facebook" class="w-4 h-4 rounded-full opacity-80" data-alt="Facebook Favicon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBa-pre5PSjmIfkzV18CFd7ktVkTMp6noLi_UziGrEW6FLvXbqxgbcA7jg4Y-WNM0EeblTBFkhJn28FuG4H9fMn4ExNMt8FKX9wV6pOnoMA2FhKXxf-6GTd-wTIaFMe9IYBh6DRlSZGct1ruI2_gV09XCjoAXUyD5W4syc4f013_sUkkk8BKwxqYZA5fHToYAHZzJG2pYqpQCpcW6ySP1nqKjZiDXs752VWcHK3HgLJIa71COXfQTwrVNKrANlSGYBvv1YWGesMTrSo"/>
+<span class="text-sm font-medium">facebook.com</span>
+<button class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="h-8"></div> <!-- Spacer -->
+</div>
+</div>
+</main>
+</div>
+</body></html>

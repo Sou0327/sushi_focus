@@ -1,0 +1,6 @@
+{"id":"event-000001","type":"session.start","ts":"2026-01-25T14:32:17Z","state":"initialized"}
+{"id":"event-000002","type":"tool.edit","ts":"2026-01-25T14:33:36Z","state":"initialized","data":{"file_path":"/Users/aocunxiangyilang/kaihatu/FocusFlow/implement_design.md"}}
+{"id":"event-000003","type":"session.stop","ts":"2026-01-25T14:33:50Z","state":"stopped"}
+{"type":"session.resume","ts":"2026-01-25T15:58:00Z","state":"initialized","data":{"cc_session_id":"ee67d2de-cded-4940-a1d8-42ca786f64e7","method":"latest"}}
+{"id":"event-000001","type":"session.start","ts":"2026-01-25T15:58:00Z","state":"initialized"}
+{"id":"event-000002","type":"session.stop","ts":"2026-01-25T15:58:39Z","state":"stopped"}

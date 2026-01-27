@@ -1,0 +1,45 @@
+{
+  "session_id": "EAF657E6-6C52-4456-9C3F-225594AABDA4",
+  "parent_session_id": null,
+  "state": "stopped",
+  "state_version": 1,
+  "started_at": "2026-01-25T17:03:05Z",
+  "updated_at": "2026-01-27T07:13:42Z",
+  "resume_token": "9BE1C801-CDA4-4012-BF92-B7EFDF78868E",
+  "event_seq": 21,
+  "last_event_id": "event-000021",
+  "fork_count": 0,
+  "orchestration": {
+    "max_state_retries": 3,
+    "retry_backoff_seconds": 10
+  },
+  "cwd": "/Users/aocunxiangyilang/kaihatu/FocusFlow",
+  "project_name": "FocusFlow",
+  "prompt_seq": 3,
+  "git": {
+    "branch": "(no git)",
+    "uncommitted_changes": 0,
+    "last_commit": "none"
+  },
+  "plans": {
+    "exists": true,
+    "last_modified": 1769354414,
+    "wip_tasks": 0,
+    "todo_tasks": 9,
+    "pending_tasks": 0,
+    "completed_tasks": 0
+  },
+  "changes_this_session": [
+    {
+      "file": "CLAUDE.md",
+      "action": "Write",
+      "timestamp": "2026-01-27T07:13:34Z",
+      "important": true
+    }
+  ],
+  "intent": "literal",
+  "resumed_at": "2026-01-27T07:09:59Z",
+  "ended_at": "2026-01-27T07:13:42Z",
+  "duration_minutes": 2830,
+  "memory_logged": true
+}
