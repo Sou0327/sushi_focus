@@ -177,28 +177,84 @@ curl -X POST http://127.0.0.1:3000/agent/start \
 
 ## Daemon API
 
-| エンドポイント | 説明 |
-| -------------- | ---- |
-| `GET /health` | ヘルスチェック |
-| `POST /agent/start` | タスク開始 |
-| `POST /agent/log` | ログ出力 |
-| `POST /agent/need-input` | 入力待ち（自動復帰トリガー） |
-| `POST /agent/done` | タスク完了（自動復帰トリガー） |
+### External Agent API（IDE連携用）
 
-### リクエスト形式
+外部エージェント（Claude Code, Cursor等）からイベントを送信するためのエンドポイント。
+
+| エンドポイント | メソッド | 説明 |
+| -------------- | -------- | ---- |
+| `/health` | GET | ヘルスチェック（`{ok, version, gitBranch}`） |
+| `/agent/start` | POST | タスク開始 |
+| `/agent/log` | POST | ログ出力 |
+| `/agent/need-input` | POST | 入力待ち（自動復帰トリガー） |
+| `/agent/done` | POST | タスク完了（自動復帰トリガー） |
+| `/agent/cancel` | POST | タスクキャンセル |
+| `/agent/progress` | POST | 進捗報告 |
+
+#### リクエスト形式
 
 ```typescript
 // POST /agent/start
-{ taskId?: string, prompt: string, repoId?: string }
+{ taskId?: string, prompt: string, repoId?: string, image?: string }
 
 // POST /agent/log
-{ taskId: string, message: string, level?: "info" | "warning" | "error" }
+{ taskId: string, message: string, level?: "info" | "warn" | "error" | "debug" }
 
 // POST /agent/need-input
 { taskId: string, question: string, choices?: { id: string, label: string }[] }
 
 // POST /agent/done
 { taskId: string, summary?: string, filesModified?: number }
+
+// POST /agent/cancel
+{ taskId: string }
+
+// POST /agent/progress
+{ taskId: string, current: number, total: number, label?: string }
+```
+
+### Internal Task API（内部タスク管理）
+
+Daemon内部でタスクを作成・管理するためのエンドポイント。
+
+| エンドポイント | メソッド | 説明 |
+| -------------- | -------- | ---- |
+| `/tasks` | POST | タスク作成（`{repoId, prompt}`） |
+| `/tasks/current` | GET | 現在のタスク取得 |
+| `/tasks/:id/cancel` | POST | タスクキャンセル |
+| `/tasks/:id/choice` | POST | 入力待ちへの選択肢送信（`{choiceId}`） |
+| `/repos` | GET | リポジトリ一覧 |
+
+### Focus Settings API（IDE自動フォーカス設定）
+
+Daemon側でIDEウィンドウに自動フォーカスする機能の制御。`.env` で初期値設定。
+
+| エンドポイント | メソッド | 説明 |
+| -------------- | -------- | ---- |
+| `/focus/settings` | GET | 現在のフォーカス設定取得 |
+| `/focus/settings` | POST | フォーカス設定更新 |
+| `/focus/now` | POST | 手動で即座にIDEにフォーカス |
+
+```bash
+# .env 設定例
+FOCUS_ENABLED=true         # フォーカス機能の有効/無効
+FOCUS_APP=Cursor           # フォーカス対象アプリ（Code, Cursor, Terminal, iTerm）
+FOCUS_ON_NEED_INPUT=true   # need-input時に自動フォーカスするか
+FOCUS_ON_DONE=true         # done時に自動フォーカスするか
+```
+
+### WebSocketイベント型
+
+Daemonが `ws://127.0.0.1:3000/ws` を通じてブロードキャストするイベント。
+
+```typescript
+type DaemonEvent =
+  | { type: 'task.started',    taskId: string, repoId: string, startedAt: number, hasImage?: boolean }
+  | { type: 'task.log',        taskId: string, level: string, message: string }
+  | { type: 'task.need_input', taskId: string, question: string, choices: {id: string, label: string}[] }
+  | { type: 'task.done',       taskId: string, summary: string, meta?: { changedFiles?: number, tests?: string } }
+  | { type: 'task.error',      taskId: string, message: string, details?: string }
+  | { type: 'task.progress',   taskId: string, current: number, total: number, label?: string }
 ```
 
 ## モード設定
