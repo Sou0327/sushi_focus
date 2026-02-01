@@ -49,7 +49,7 @@
       "title": "General Settings",
       "description": "Connection management and system settings.",
       "daemonConnection": "Daemon Connection",
-      "daemonConnectionDesc": "The daemon should be running at http://127.0.0.1:3000",
+      "daemonConnectionDesc": "The daemon should be running at http://127.0.0.1:41593",
       "reconnect": "Reconnect",
       "resetToDefaults": "Reset to Defaults",
       "resetToDefaultsDesc": "Restore all settings to their default values",

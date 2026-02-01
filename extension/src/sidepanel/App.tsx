@@ -8,7 +8,7 @@ import { useTranslation } from '@/i18n/TranslationContext';
 import { useTheme } from '@/theme/useTheme';
 import type { DaemonEvent, TaskLog, TaskStatus, Choice, ExtensionSettings } from '@/shared/types';
 
-const DAEMON_API_URL = 'http://127.0.0.1:3000';
+const DAEMON_API_URL = 'http://127.0.0.1:41593';
 
 interface AppState {
   connected: boolean;

@@ -14,7 +14,7 @@
 #   focusflow-notify.sh need-input --question "Which approach should I use?"
 #   focusflow-notify.sh done --summary "Fixed 3 files"
 
-DAEMON_URL="${FOCUSFLOW_DAEMON_URL:-http://127.0.0.1:3000}"
+DAEMON_URL="${FOCUSFLOW_DAEMON_URL:-http://127.0.0.1:41593}"
 TASK_ID="${FOCUSFLOW_TASK_ID:-task-$(date +%s)}"
 
 event="$1"

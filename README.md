@@ -14,7 +14,7 @@ A Chrome Extension + Local Daemon system for "distraction-aware development." It
 ```
 ┌─────────────────┐     HTTP POST      ┌─────────────────┐    WebSocket    ┌─────────────────┐
 │   Claude Code   │ ───────────────▶ │     Daemon      │ ───────────────▶ │  Chrome Ext     │
-│                 │   /agent/start    │  localhost:3000 │  task.started   │  Side Panel     │
+│                 │   /agent/start    │  localhost:41593 │  task.started   │  Side Panel     │
 │                 │   /agent/log      │                 │  task.log       │  Dashboard      │
 │                 │   /agent/need-input│                │  task.need_input│                 │
 │                 │   /agent/done     │                 │  task.done      │                 │
@@ -61,8 +61,8 @@ You should see:
 ║                    FocusFlow Daemon                        ║
 ║                      v0.1.0                              ║
 ╠═══════════════════════════════════════════════════════════╣
-║  HTTP API: http://127.0.0.1:3000                          ║
-║  WebSocket: ws://127.0.0.1:3000/ws                        ║
+║  HTTP API: http://127.0.0.1:41593                          ║
+║  WebSocket: ws://127.0.0.1:41593/ws                        ║
 ╚═══════════════════════════════════════════════════════════╝
 ```
 
@@ -94,22 +94,22 @@ Send work status from your editor (Claude Code, Cursor, etc.) to the daemon:
 
 ```bash
 # Start task
-curl -X POST http://127.0.0.1:3000/agent/start \
+curl -X POST http://127.0.0.1:41593/agent/start \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","prompt":"Fix authentication bug"}'
 
 # Log output
-curl -X POST http://127.0.0.1:3000/agent/log \
+curl -X POST http://127.0.0.1:41593/agent/log \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","message":"Analyzing codebase..."}'
 
 # Need input (triggers auto-return)
-curl -X POST http://127.0.0.1:3000/agent/need-input \
+curl -X POST http://127.0.0.1:41593/agent/need-input \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","question":"Which approach should I use?"}'
 
 # Task complete (triggers auto-return)
-curl -X POST http://127.0.0.1:3000/agent/done \
+curl -X POST http://127.0.0.1:41593/agent/done \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","summary":"Fixed 3 files"}'
 ```
@@ -143,7 +143,7 @@ curl -X POST http://127.0.0.1:3000/agent/done \
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:3000/agent/log -H 'Content-Type: application/json' -d '{\"taskId\":\"claude\",\"message\":\"Notification\"}' > /dev/null 2>&1 || true"
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' -d '{\"taskId\":\"claude\",\"message\":\"Notification\"}' > /dev/null 2>&1 || true"
           }
         ]
       }
@@ -155,7 +155,7 @@ curl -X POST http://127.0.0.1:3000/agent/done \
 2. Notify task start at session beginning:
 
 ```bash
-curl -X POST http://127.0.0.1:3000/agent/start \
+curl -X POST http://127.0.0.1:41593/agent/start \
   -H "Content-Type: application/json" \
   -d '{"taskId":"claude","prompt":"Claude Code Session"}'
 ```
@@ -242,7 +242,7 @@ FOCUS_ON_DONE=true         # Auto-focus on done
 
 ### WebSocket Event Types
 
-Events broadcast by daemon via `ws://127.0.0.1:3000/ws`.
+Events broadcast by daemon via `ws://127.0.0.1:41593/ws`.
 
 ```typescript
 type DaemonEvent =

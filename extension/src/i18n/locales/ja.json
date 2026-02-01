@@ -49,7 +49,7 @@
       "title": "一般設定",
       "description": "接続管理とシステム設定。",
       "daemonConnection": "デーモン接続",
-      "daemonConnectionDesc": "デーモンは http://127.0.0.1:3000 で実行されている必要があります",
+      "daemonConnectionDesc": "デーモンは http://127.0.0.1:41593 で実行されている必要があります",
       "reconnect": "再接続",
       "resetToDefaults": "デフォルトに戻す",
       "resetToDefaultsDesc": "すべての設定をデフォルト値に復元します",

@@ -125,7 +125,7 @@ export default function App() {
             <span className="text-sm font-medium text-heading">{connected ? t('options.daemon.active') : t('options.daemon.offline')}</span>
           </div>
           <div className="mt-1 text-xs text-text-secondary ml-[18px]">
-            {connected ? `v${daemonVersion || '?.?.?'} · localhost:3000` : t('options.daemon.offlineStatus')}
+            {connected ? `v${daemonVersion || '?.?.?'} · localhost:41593` : t('options.daemon.offlineStatus')}
           </div>
         </div>
       </aside>

@@ -37,7 +37,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 10;
-const DAEMON_WS_URL = 'ws://127.0.0.1:3000/ws';
+const DAEMON_WS_URL = 'ws://127.0.0.1:41593/ws';
 
 let settings: ExtensionSettings = {
   mode: 'normal',
@@ -105,7 +105,7 @@ function connectWebSocket(): void {
 
     // Fetch daemon health info before broadcasting (so gitBranch is available)
     try {
-      const res = await fetch('http://127.0.0.1:3000/health');
+      const res = await fetch('http://127.0.0.1:41593/health');
       const health: unknown = await res.json();
 
       // O.2: Validate Health API response structure

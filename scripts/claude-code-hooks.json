@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:3000/agent/start -H 'Content-Type: application/json' -d '{\"taskId\":\"claude-session\",\"prompt\":\"Claude Code session started\"}' > /dev/null 2>&1 || true"
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/start -H 'Content-Type: application/json' -d '{\"taskId\":\"claude-session\",\"prompt\":\"Claude Code session started\"}' > /dev/null 2>&1 || true"
           }
         ]
       }
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -c '{taskId: \"claude-session\", level: \"debug\", message: (\"Tool: \" + (.tool_name // \"unknown\") + \" completed\")}' | curl -s -X POST http://127.0.0.1:3000/agent/log -H 'Content-Type: application/json' -d @- > /dev/null 2>&1 || true"
+            "command": "jq -c '{taskId: \"claude-session\", level: \"debug\", message: (\"Tool: \" + (.tool_name // \"unknown\") + \" completed\")}' | curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' -d @- > /dev/null 2>&1 || true"
           }
         ]
       }
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -c '{taskId: \"claude-session\", level: \"info\", message: (.message // \"Notification\")}' | curl -s -X POST http://127.0.0.1:3000/agent/log -H 'Content-Type: application/json' -d @- > /dev/null 2>&1 || true"
+            "command": "jq -c '{taskId: \"claude-session\", level: \"info\", message: (.message // \"Notification\")}' | curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' -d @- > /dev/null 2>&1 || true"
           }
         ]
       }
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:3000/agent/done -H 'Content-Type: application/json' -d '{\"taskId\":\"claude-session\",\"summary\":\"Session ended\"}' > /dev/null 2>&1 || true"
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/done -H 'Content-Type: application/json' -d '{\"taskId\":\"claude-session\",\"summary\":\"Session ended\"}' > /dev/null 2>&1 || true"
           }
         ]
       }

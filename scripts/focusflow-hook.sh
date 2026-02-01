@@ -2,7 +2,7 @@
 # FocusFlow Hook Script for Claude Code
 # Usage: focusflow-hook.sh <event> [args...]
 
-DAEMON_URL="http://127.0.0.1:3000"
+DAEMON_URL="http://127.0.0.1:41593"
 SESSION_ID="${CLAUDE_SESSION_ID:-session-$$}"
 
 case "$1" in
