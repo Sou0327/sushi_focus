@@ -38,3 +38,6 @@ extension/dist/
 
 # Claude Code state
 .claude/
+.serena/
+Plans.md
+plans/
