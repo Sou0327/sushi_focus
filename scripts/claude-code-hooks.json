@@ -2,7 +2,17 @@
   "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/hooks.schema.json",
   "hooks": {
     "PreToolUse": [],
-    "PostToolUse": [],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://127.0.0.1:3000/agent/log -H 'Content-Type: application/json' -d '{\"taskId\":\"claude-session\",\"level\":\"debug\",\"message\":\"Tool: '\"$TOOL_NAME\"' completed\"}' > /dev/null 2>&1 || true"
+          }
+        ]
+      }
+    ],
     "Notification": [
       {
         "matcher": ".*",
