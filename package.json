@@ -15,7 +15,8 @@
     "build": "pnpm build:daemon && pnpm build:extension",
     "dev": "concurrently \"pnpm dev:daemon\" \"pnpm dev:extension\"",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

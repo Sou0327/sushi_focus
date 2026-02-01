@@ -1,4 +1,6 @@
-import type { DaemonEvent, ExtensionSettings } from '@/shared/types';
+import type { DaemonEvent, ExtensionSettings, TaskLog } from '@/shared/types';
+import { isDaemonEvent, isHealthResponse } from '@/utils/typeGuards';
+import { isHostOnDistractionDomain } from '@/utils/focusLogic';
 
 // ============================================================
 // Keep-Alive (MV3 Service Worker stays active)
@@ -57,12 +59,17 @@ let settings: ExtensionSettings = {
     'reddit.com',
   ],
   enabled: true,
+  language: 'en',
+  theme: 'dark',
+  logVerbosity: 'normal',
 };
 
 let lastDoneFocusTime = 0;
 let currentTaskId: string | null = null;
 let disabledAutoFocusTaskIds = new Set<string>();
 let taskStartedAt: number | null = null;
+let taskLogs: TaskLog[] = [];
+let taskPrompt: string | null = null;
 let daemonVersion: string | null = null;
 let daemonGitBranch: string | null = null;
 
@@ -100,11 +107,21 @@ function connectWebSocket(): void {
     // Fetch daemon health info before broadcasting (so gitBranch is available)
     try {
       const res = await fetch('http://127.0.0.1:3000/health');
-      const health = await res.json();
-      daemonVersion = health.version || null;
-      daemonGitBranch = health.gitBranch || null;
+      const health: unknown = await res.json();
+
+      // O.2: Validate Health API response structure
+      if (isHealthResponse(health)) {
+        daemonVersion = health.version;
+        daemonGitBranch = health.gitBranch;
+      } else {
+        console.warn('[BG] Invalid health response structure, using defaults');
+        daemonVersion = null;
+        daemonGitBranch = null;
+      }
     } catch {
-      // Daemon might not support these fields yet
+      // Daemon might not support these fields yet, use defaults
+      daemonVersion = null;
+      daemonGitBranch = null;
     }
 
     broadcastConnectionStatus(true);
@@ -122,8 +139,15 @@ function connectWebSocket(): void {
 
   ws.onmessage = (event) => {
     try {
-      const data = JSON.parse(event.data) as DaemonEvent;
-      handleDaemonEvent(data);
+      const parsed: unknown = JSON.parse(event.data);
+
+      // O.1: Validate WebSocket message structure
+      if (!isDaemonEvent(parsed)) {
+        console.warn('[BG] Invalid or unknown daemon event, ignoring:', parsed);
+        return;
+      }
+
+      handleDaemonEvent(parsed);
     } catch (e) {
       console.error('[BG] Failed to parse message:', e);
     }
@@ -160,6 +184,19 @@ function broadcastConnectionStatus(connected: boolean): void {
 async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
   console.log('[BG] Received event:', event.type);
 
+  // Filter task.log by verbosity before forwarding
+  if (event.type === 'task.log') {
+    const verbosity = settings.logVerbosity ?? 'normal';
+    const shouldLog =
+      verbosity === 'verbose' ||
+      (verbosity === 'normal' && event.level !== 'debug') ||
+      (verbosity === 'minimal' && (event.level === 'info' || event.level === 'error'));
+
+    if (!shouldLog) {
+      return;
+    }
+  }
+
   // Forward to side panel (always, regardless of enabled state)
   chrome.runtime.sendMessage(event).catch(() => {});
 
@@ -168,6 +205,12 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
     case 'task.started':
       currentTaskId = event.taskId;
       taskStartedAt = Date.now();
+      taskLogs = [];
+      taskPrompt = (event as any).prompt || null;
+      break;
+
+    case 'task.log':
+      taskLogs.push({ level: event.level, message: event.message, ts: Date.now() });
       break;
 
     case 'task.need_input':
@@ -178,12 +221,16 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
       await handleDone(event.taskId, event.summary);
       taskStartedAt = null;
       currentTaskId = null;
+      taskLogs = [];
+      taskPrompt = null;
       break;
 
     case 'task.error':
       await showNotification('🔴 Task Failed', event.message);
       taskStartedAt = null;
       currentTaskId = null;
+      taskLogs = [];
+      taskPrompt = null;
       break;
   }
 }
@@ -257,12 +304,9 @@ async function checkDistraction(): Promise<boolean> {
     if (!tab?.url) return false;
 
     const url = new URL(tab.url);
-    const hostname = url.hostname.toLowerCase();
+    const hostname = url.hostname;
 
-    return settings.distractionDomains.some(domain => {
-      const d = domain.toLowerCase();
-      return hostname === d || hostname.endsWith('.' + d);
-    });
+    return isHostOnDistractionDomain(hostname, settings.distractionDomains);
   } catch {
     return false;
   }
@@ -338,6 +382,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           status: currentTaskId ? 'running' : 'idle',
           taskId: currentTaskId,
           startedAt: taskStartedAt,
+          prompt: taskPrompt,
+          logs: taskLogs,
         });
         break;
 
