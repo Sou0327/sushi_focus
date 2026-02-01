@@ -1,0 +1,147 @@
+{
+  "common": {
+    "focusFlow": "FocusFlow",
+    "loading": "Loading...",
+    "settings": "Settings",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "add": "Add",
+    "seconds": "seconds",
+    "minutes": "minutes"
+  },
+  "nav": {
+    "focusRules": "Focus Rules",
+    "timerConfig": "Timer Config",
+    "blocklist": "Blocklist",
+    "generalSettings": "General Settings"
+  },
+  "options": {
+    "resetDefaults": "Reset Defaults",
+    "focus": {
+      "title": "Focus Settings",
+      "description": "Configure how FocusFlow manages your environment during deep work sessions. Customize automation triggers and cooldown periods.",
+      "behaviorTitle": "Focus Behavior",
+      "autoReturn": "Auto-return to IDE",
+      "autoReturnDesc": "Automatically switch context back when build succeeds",
+      "alwaysReturn": "Always return on completion",
+      "alwaysReturnDesc": "Return to Home tab even when not on a distraction site",
+      "aiBlocking": "AI Gen Blocking",
+      "aiBlockingDesc": "Block distraction sites during active AI generation"
+    },
+    "timer": {
+      "title": "Cooldown & Timing",
+      "description": "Configure countdown and cooldown durations for focus sessions.",
+      "sectionTitle": "Cooldown & Timing",
+      "returnCountdown": "Return Countdown",
+      "returnCountdownDesc": "Delay before forcing focus back to IDE.",
+      "focusCooldown": "Focus Cooldown",
+      "focusCooldownDesc": "Minimum break time between heavy focus sessions."
+    },
+    "blocklist": {
+      "title": "Distraction Domains",
+      "description": "Manage the list of websites that trigger auto-return when tasks complete.",
+      "sectionTitle": "Distraction Domains",
+      "placeholder": "Add a domain (e.g. twitter.com)...",
+      "blockedList": "Blocked List",
+      "empty": "No distraction domains configured"
+    },
+    "general": {
+      "title": "General Settings",
+      "description": "Connection management and system settings.",
+      "daemonConnection": "Daemon Connection",
+      "daemonConnectionDesc": "The daemon should be running at http://127.0.0.1:3000",
+      "reconnect": "Reconnect",
+      "resetToDefaults": "Reset to Defaults",
+      "resetToDefaultsDesc": "Restore all settings to their default values",
+      "resetSettings": "Reset Settings",
+      "language": "Language",
+      "languageDesc": "Choose the display language",
+      "theme": "Theme",
+      "themeDesc": "Choose the color theme",
+      "logVerbosity": "Log Verbosity",
+      "logVerbosityDesc": "Control how much detail is shown in the side panel terminal",
+      "logLevel": {
+        "minimal": "Minimal",
+        "normal": "Normal",
+        "verbose": "Verbose"
+      }
+    },
+    "daemon": {
+      "active": "Daemon Active",
+      "offline": "Daemon Offline",
+      "offlineStatus": "Offline"
+    }
+  },
+  "popup": {
+    "active": "Active",
+    "paused": "Paused",
+    "operatingMode": "Operating Mode",
+    "modes": {
+      "quiet": "Quiet",
+      "normal": "Normal",
+      "force": "Force"
+    },
+    "status": "Status",
+    "agentPrefix": "Agent:",
+    "activeTask": "Active Task",
+    "activeTaskFallback": "Active Task",
+    "elapsedMinutes": "{mins}m {secs}s",
+    "elapsedSeconds": "{secs}s",
+    "taskComplete": "Task Complete",
+    "taskError": "Task Error",
+    "noActiveTask": "No active task",
+    "daemonConnected": "Daemon connected",
+    "daemonOffline": "Daemon offline",
+    "quickActions": "Quick Actions",
+    "openSidePanel": "Open Side Panel",
+    "setTabAsHome": "Set Tab as Home"
+  },
+  "sidepanel": {
+    "clearHomeTab": "Clear Home Tab",
+    "setCurrentTabAsHome": "Set current tab as Home"
+  },
+  "header": {
+    "connected": "CONNECTED",
+    "offline": "OFFLINE",
+    "daemonName": "FocusFlow Daemon"
+  },
+  "taskInput": {
+    "placeholder": "Describe task or select preset...",
+    "attachImage": "Attach image",
+    "presets": {
+      "fixBug": "Fix Bug",
+      "runTests": "Run Tests",
+      "refactor": "Refactor",
+      "fixBugTemplate": "Investigate and fix the bug: ",
+      "runTestsTemplate": "Run the test suite and report results",
+      "refactorTemplate": "Refactor the following code for better maintainability: "
+    }
+  },
+  "terminal": {
+    "title": "Terminal Output",
+    "ready": "Ready to focus",
+    "readyHint": "Waiting for events from IDE"
+  },
+  "actionRequired": {
+    "title": "Action Required",
+    "cancelTask": "Cancel Task",
+    "sessionProgress": "Session Progress",
+    "paused": "Paused"
+  },
+  "taskComplete": {
+    "title": "Task Complete!",
+    "returningToHome": "Returning to Home tab in",
+    "stayHere": "Stay Here (Cancel)",
+    "pressEscToCancel": "Press",
+    "escKey": "Esc",
+    "toCancel": "to cancel"
+  },
+  "theme": {
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "language": {
+    "en": "English",
+    "ja": "Japanese"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "common": {
+    "focusFlow": "FocusFlow",
+    "loading": "読み込み中...",
+    "settings": "設定",
+    "saving": "保存中...",
+    "saved": "保存済み",
+    "add": "追加",
+    "seconds": "秒",
+    "minutes": "分"
+  },
+  "nav": {
+    "focusRules": "フォーカスルール",
+    "timerConfig": "タイマー設定",
+    "blocklist": "ブロックリスト",
+    "generalSettings": "一般設定"
+  },
+  "options": {
+    "resetDefaults": "デフォルトに戻す",
+    "focus": {
+      "title": "フォーカス設定",
+      "description": "ディープワークセッション中の環境管理を設定します。自動化トリガーとクールダウン期間をカスタマイズできます。",
+      "behaviorTitle": "フォーカス動作",
+      "autoReturn": "IDE への自動復帰",
+      "autoReturnDesc": "ビルド成功時に自動的にコンテキストを切り替えます",
+      "alwaysReturn": "完了時に常に復帰",
+      "alwaysReturnDesc": "気が散るサイトにいなくてもホームタブに戻ります",
+      "aiBlocking": "AI 生成中のブロック",
+      "aiBlockingDesc": "AI 生成中に気が散るサイトをブロックします"
+    },
+    "timer": {
+      "title": "クールダウンとタイミング",
+      "description": "フォーカスセッションのカウントダウンとクールダウン時間を設定します。",
+      "sectionTitle": "クールダウンとタイミング",
+      "returnCountdown": "復帰カウントダウン",
+      "returnCountdownDesc": "IDE にフォーカスを戻すまでの遅延時間。",
+      "focusCooldown": "フォーカスクールダウン",
+      "focusCooldownDesc": "集中セッション間の最小休憩時間。"
+    },
+    "blocklist": {
+      "title": "気が散るドメイン",
+      "description": "タスク完了時に自動復帰をトリガーするウェブサイトのリストを管理します。",
+      "sectionTitle": "気が散るドメイン",
+      "placeholder": "ドメインを追加 (例: twitter.com)...",
+      "blockedList": "ブロックリスト",
+      "empty": "気が散るドメインは設定されていません"
+    },
+    "general": {
+      "title": "一般設定",
+      "description": "接続管理とシステム設定。",
+      "daemonConnection": "デーモン接続",
+      "daemonConnectionDesc": "デーモンは http://127.0.0.1:3000 で実行されている必要があります",
+      "reconnect": "再接続",
+      "resetToDefaults": "デフォルトに戻す",
+      "resetToDefaultsDesc": "すべての設定をデフォルト値に復元します",
+      "resetSettings": "設定をリセット",
+      "language": "言語",
+      "languageDesc": "表示言語を選択",
+      "theme": "テーマ",
+      "themeDesc": "カラーテーマを選択",
+      "logVerbosity": "ログ詳細度",
+      "logVerbosityDesc": "サイドパネルのターミナルに表示するログの詳細レベルを設定",
+      "logLevel": {
+        "minimal": "最小",
+        "normal": "通常",
+        "verbose": "詳細"
+      }
+    },
+    "daemon": {
+      "active": "デーモン稼働中",
+      "offline": "デーモンオフライン",
+      "offlineStatus": "オフライン"
+    }
+  },
+  "popup": {
+    "active": "有効",
+    "paused": "一時停止",
+    "operatingMode": "動作モード",
+    "modes": {
+      "quiet": "静か",
+      "normal": "通常",
+      "force": "強制"
+    },
+    "status": "ステータス",
+    "agentPrefix": "エージェント:",
+    "activeTask": "タスク実行中",
+    "activeTaskFallback": "実行中タスク",
+    "elapsedMinutes": "{mins}分{secs}秒",
+    "elapsedSeconds": "{secs}秒",
+    "taskComplete": "タスク完了",
+    "taskError": "タスクエラー",
+    "noActiveTask": "アクティブなタスクなし",
+    "daemonConnected": "デーモン接続中",
+    "daemonOffline": "デーモンオフライン",
+    "quickActions": "クイックアクション",
+    "openSidePanel": "サイドパネルを開く",
+    "setTabAsHome": "このタブをホームに設定"
+  },
+  "sidepanel": {
+    "clearHomeTab": "ホームタブをクリア",
+    "setCurrentTabAsHome": "現在のタブをホームに設定"
+  },
+  "header": {
+    "connected": "接続中",
+    "offline": "オフライン",
+    "daemonName": "FocusFlow デーモン"
+  },
+  "taskInput": {
+    "placeholder": "タスクを記述するかプリセットを選択...",
+    "attachImage": "画像を添付",
+    "presets": {
+      "fixBug": "バグ修正",
+      "runTests": "テスト実行",
+      "refactor": "リファクタリング",
+      "fixBugTemplate": "バグを調査して修正してください: ",
+      "runTestsTemplate": "テストスイートを実行して結果を報告してください",
+      "refactorTemplate": "以下のコードを保守性向上のためリファクタリングしてください: "
+    }
+  },
+  "terminal": {
+    "title": "ターミナル出力",
+    "ready": "フォーカス準備完了",
+    "readyHint": "IDE からのイベントを待機中"
+  },
+  "actionRequired": {
+    "title": "アクションが必要です",
+    "cancelTask": "タスクをキャンセル",
+    "sessionProgress": "セッション進捗",
+    "paused": "一時停止中"
+  },
+  "taskComplete": {
+    "title": "タスク完了！",
+    "returningToHome": "ホームタブに戻ります",
+    "stayHere": "ここに留まる（キャンセル）",
+    "pressEscToCancel": "",
+    "escKey": "Esc",
+    "toCancel": "でキャンセル"
+  },
+  "theme": {
+    "dark": "ダーク",
+    "light": "ライト"
+  },
+  "language": {
+    "en": "English",
+    "ja": "日本語"
+  }
+}
