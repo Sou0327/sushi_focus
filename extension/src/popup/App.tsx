@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { useTheme } from '@/theme/useTheme';
-import type { FocusMode, TaskStatus, ExtensionSettings, Theme } from '@/shared/types';
+import type { TaskStatus, ExtensionSettings, Theme } from '@/shared/types';
 
 function formatElapsed(t: (key: string) => string, startedAt: number): string {
   const seconds = Math.floor((Date.now() - startedAt) / 1000);
@@ -13,13 +13,11 @@ function formatElapsed(t: (key: string) => string, startedAt: number): string {
   return t('popup.elapsedSeconds').replace('{secs}', String(secs));
 }
 
-const MODES: FocusMode[] = ['quiet', 'normal', 'force'];
-
 export default function App() {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   const [connected, setConnected] = useState(false);
-  const [settings, setSettings] = useState<ExtensionSettings | null>(null);
+  const [_settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [taskStatus, setTaskStatus] = useState<TaskStatus>('idle');
   const [taskName, setTaskName] = useState<string | null>(null);
   const [taskElapsed, setTaskElapsed] = useState<string | null>(null);
@@ -49,13 +47,13 @@ export default function App() {
       }
     });
 
-    const handleMessage = (message: any) => {
+    const handleMessage = (message: Record<string, unknown>) => {
       if (message.type === 'connection_status') {
-        setConnected(message.connected);
+        setConnected(message.connected as boolean);
       } else if (message.type === 'task.started') {
         setTaskStatus('running');
-        setTaskName(message.prompt || null);
-        setTaskStartedAt(message.startedAt || Date.now());
+        setTaskName((message.prompt as string) || null);
+        setTaskStartedAt((message.startedAt as number) || Date.now());
       } else if (message.type === 'task.need_input') {
         setTaskStatus('waiting_input');
       } else if (message.type === 'task.done') {
@@ -83,7 +81,6 @@ export default function App() {
 
   useEffect(() => {
     if (!taskStartedAt || (taskStatus !== 'running' && taskStatus !== 'waiting_input')) {
-      setTaskElapsed(null);
       return;
     }
 
@@ -93,14 +90,11 @@ export default function App() {
 
     updateElapsed();
     const interval = setInterval(updateElapsed, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      setTaskElapsed(null);
+    };
   }, [taskStartedAt, taskStatus, t]);
-
-  const handleModeChange = (mode: FocusMode) => {
-    if (!settings) return;
-    setSettings({ ...settings, mode });
-    chrome.runtime.sendMessage({ type: 'update_settings', settings: { mode } });
-  };
 
   const toggleEnabled = () => {
     const newEnabled = !enabled;
@@ -122,19 +116,13 @@ export default function App() {
     });
   };
 
-  const setTabAsHome = () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-      if (tab?.id) {
-        chrome.runtime.sendMessage({ type: 'set_home_tab', tabId: tab.id });
-      }
-    });
-  };
+  // setTabAsHome - hidden, kept for future use
+  // const setTabAsHome = () => { ... };
 
   const openOptions = () => {
     chrome.runtime.openOptionsPage();
   };
 
-  const currentMode = settings?.mode || 'force';
   const isRunning = taskStatus === 'running' || taskStatus === 'waiting_input';
 
   return (
@@ -179,32 +167,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Operating Mode */}
-      <div className="px-4 pb-3">
-        <div className="text-[10px] text-muted uppercase tracking-wider font-medium mb-2">
-          {t('popup.operatingMode')}
-        </div>
-        <div className="flex bg-focus-surface rounded-lg p-0.5 border border-focus-border">
-          {MODES.map((mode) => {
-            const isActive = currentMode === mode;
-            return (
-              <button
-                key={mode}
-                onClick={() => handleModeChange(mode)}
-                className={`
-                  flex-1 py-1.5 text-sm font-medium rounded-md transition-all duration-200
-                  ${isActive
-                    ? 'bg-focus-primary text-white shadow-sm'
-                    : 'text-muted hover:text-heading'
-                  }
-                `}
-              >
-                {t(`popup.modes.${mode}`)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* Operating Mode - removed (simplified to single option in settings) */}
 
       {/* Status */}
       <div className="px-4 pb-3">
@@ -275,7 +238,8 @@ export default function App() {
             </span>
           </button>
 
-          <button
+          {/* Home Tab button hidden - IDE auto-focus is simpler */}
+          {/* <button
             onClick={setTabAsHome}
             className="flex items-center justify-between w-full bg-focus-surface border border-focus-border rounded-xl px-3 py-2.5 hover:bg-surface-highlight transition-colors group"
           >
@@ -290,7 +254,7 @@ export default function App() {
             <span className="material-symbols-outlined text-dim text-base">
               chevron_right
             </span>
-          </button>
+          </button> */}
         </div>
       </div>
 

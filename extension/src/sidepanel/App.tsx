@@ -25,7 +25,7 @@ interface AppState {
 }
 
 export default function App() {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation(); // Reserved for future use
   useTheme();
   const [state, setState] = useState<AppState>({
     connected: false,
@@ -83,12 +83,12 @@ export default function App() {
 
   // Listen for messages from background
   useEffect(() => {
-    const handleMessage = (message: any) => {
+    const handleMessage = (message: DaemonEvent | Record<string, unknown>) => {
       if (message.type === 'connection_status') {
         setState(s => ({
           ...s,
-          connected: message.connected,
-          gitBranch: message.gitBranch ?? s.gitBranch,
+          connected: message.connected as boolean,
+          gitBranch: (message.gitBranch as string | null) ?? s.gitBranch,
         }));
         return;
       }
@@ -97,9 +97,9 @@ export default function App() {
         setState(s => ({
           ...s,
           doneCountdown: {
-            taskId: message.taskId,
-            summary: message.summary,
-            ms: message.countdownMs,
+            taskId: message.taskId as string,
+            summary: message.summary as string,
+            ms: message.countdownMs as number,
           },
         }));
         return;
@@ -119,7 +119,7 @@ export default function App() {
 
       switch (event.type) {
         case 'task.started': {
-          const prompt = (event as any).prompt || 'External task';
+          const prompt = (event as DaemonEvent & { prompt?: string }).prompt || 'External task';
           setState(s => ({
             ...s,
             taskStatus: 'running',
@@ -152,7 +152,7 @@ export default function App() {
         case 'task.progress':
           setState(s => ({
             ...s,
-            progress: { current: event.current, total: event.total, label: (event as any).label },
+            progress: { current: event.current, total: event.total, label: event.label },
           }));
           break;
 
@@ -266,25 +266,9 @@ export default function App() {
     }
   };
 
-  const handleSetHomeTab = async () => {
-    chrome.runtime.sendMessage({ type: 'set_home_tab' }, (response) => {
-      if (response?.ok) {
-        setState(s => ({
-          ...s,
-          settings: s.settings ? { ...s.settings, homeTabId: response.tabId } : null,
-        }));
-      }
-    });
-  };
-
-  const handleClearHomeTab = async () => {
-    chrome.runtime.sendMessage({ type: 'clear_home_tab' }, () => {
-      setState(s => ({
-        ...s,
-        settings: s.settings ? { ...s.settings, homeTabId: null, homeWindowId: null } : null,
-      }));
-    });
-  };
+  // Home tab handlers - hidden, kept for future use
+  // const handleSetHomeTab = async () => { ... };
+  // const handleClearHomeTab = async () => { ... };
 
   const handleDoneCountdownComplete = () => {
     if (state.doneCountdown) {
@@ -344,8 +328,8 @@ export default function App() {
         <div ref={logsEndRef} />
       </div>
 
-      {/* Footer: Set Home Tab */}
-      <div className="px-4 pb-4">
+      {/* Footer: Home Tab button hidden - IDE auto-focus is simpler */}
+      {/* <div className="px-4 pb-4">
         <button
           onClick={state.settings?.homeTabId ? handleClearHomeTab : handleSetHomeTab}
           className="w-full py-3 border border-dashed border-focus-border rounded-xl text-text-secondary text-sm font-medium flex items-center justify-center gap-2 hover:border-focus-primary hover:text-focus-primary transition-colors"
@@ -353,7 +337,7 @@ export default function App() {
           <span className="material-symbols-outlined text-lg">home_app_logo</span>
           {state.settings?.homeTabId ? t('sidepanel.clearHomeTab') : t('sidepanel.setCurrentTabAsHome')}
         </button>
-      </div>
+      </div> */}
 
       {/* Action Required Modal */}
       {state.taskStatus === 'waiting_input' && state.inputQuestion && (

@@ -4,14 +4,13 @@ import { useTranslation } from '@/i18n/TranslationContext';
 import { useTheme } from '@/theme/useTheme';
 import type { ExtensionSettings, Language, LogVerbosity, Theme } from '@/shared/types';
 
-type SettingsSection = 'focus' | 'timer' | 'blocklist' | 'general';
+type SettingsSection = 'focus' | 'timer' | 'general';
 
 export default function App() {
   const { t, language, setLanguage } = useTranslation();
   const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [activeSection, setActiveSection] = useState<SettingsSection>('focus');
-  const [newDomain, setNewDomain] = useState('');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [daemonVersion, setDaemonVersion] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
@@ -19,7 +18,6 @@ export default function App() {
   const NAV_ITEMS: { id: SettingsSection; label: string; icon: string }[] = [
     { id: 'focus', label: t('nav.focusRules'), icon: 'psychology' },
     { id: 'timer', label: t('nav.timerConfig'), icon: 'hourglass_top' },
-    { id: 'blocklist', label: t('nav.blocklist'), icon: 'domain_disabled' },
     { id: 'general', label: t('nav.generalSettings'), icon: 'settings' },
   ];
 
@@ -50,14 +48,14 @@ export default function App() {
 
   const resetDefaults = () => {
     saveSettings({
-      mode: 'force',
+      mode: 'normal',
       homeTabId: null,
       homeWindowId: null,
       enableDoneFocus: true,
       doneCountdownMs: 1500,
       doneCooldownMs: 45000,
       distractionDomains: ['netflix.com', 'tiktok.com', 'youtube.com', 'x.com', 'twitter.com', 'instagram.com', 'twitch.tv', 'reddit.com'],
-      alwaysFocusOnDone: false,
+      alwaysFocusOnDone: true,
       enabled: true,
       language: 'en',
       theme: 'dark',
@@ -65,22 +63,6 @@ export default function App() {
     });
     setLanguage('en');
     setTheme('dark');
-  };
-
-  const addDomain = () => {
-    if (!settings || !newDomain.trim()) return;
-    const domain = newDomain.trim().toLowerCase();
-    if (settings.distractionDomains.includes(domain)) {
-      setNewDomain('');
-      return;
-    }
-    saveSettings({ distractionDomains: [...settings.distractionDomains, domain] });
-    setNewDomain('');
-  };
-
-  const removeDomain = (domain: string) => {
-    if (!settings) return;
-    saveSettings({ distractionDomains: settings.distractionDomains.filter(d => d !== domain) });
   };
 
   const handleLanguageChange = (lang: Language) => {
@@ -204,22 +186,7 @@ export default function App() {
                   </h2>
 
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-focus-surface border border-focus-border rounded-xl p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-focus-bg rounded-lg flex items-center justify-center">
-                          <span className="material-symbols-outlined text-focus-primary">smart_toy</span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-heading">{t('options.focus.aiBlocking')}</div>
-                          <div className="text-xs text-text-secondary">{t('options.focus.aiBlockingDesc')}</div>
-                        </div>
-                      </div>
-                      <ToggleSwitch
-                        checked={settings.mode === 'force'}
-                        onChange={(checked) => saveSettings({ mode: checked ? 'force' : 'normal' })}
-                      />
-                    </div>
-
+                    {/* タスク完了時の IDE 復帰 */}
                     <div className="flex items-center justify-between bg-focus-surface border border-focus-border rounded-xl p-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-focus-bg rounded-lg flex items-center justify-center">
@@ -233,24 +200,6 @@ export default function App() {
                       <ToggleSwitch
                         checked={settings.enableDoneFocus}
                         onChange={(checked) => saveSettings({ enableDoneFocus: checked })}
-                        disabled={settings.mode !== 'force'}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between bg-focus-surface border border-focus-border rounded-xl p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-focus-bg rounded-lg flex items-center justify-center">
-                          <span className="material-symbols-outlined text-focus-primary">public</span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-heading">{t('options.focus.alwaysReturn')}</div>
-                          <div className="text-xs text-text-secondary">{t('options.focus.alwaysReturnDesc')}</div>
-                        </div>
-                      </div>
-                      <ToggleSwitch
-                        checked={settings.alwaysFocusOnDone}
-                        onChange={(checked) => saveSettings({ alwaysFocusOnDone: checked })}
-                        disabled={!settings.enableDoneFocus || settings.mode !== 'force'}
                       />
                     </div>
                   </div>
@@ -308,79 +257,6 @@ export default function App() {
                       <p className="text-xs text-text-secondary mt-2">{t('options.timer.focusCooldownDesc')}</p>
                     </div>
                   </div>
-                </div>
-              </>
-            )}
-
-            {activeSection === 'blocklist' && (
-              <>
-                <h1 className="text-2xl font-bold text-heading mb-2">{t('options.blocklist.title')}</h1>
-                <p className="text-text-secondary mb-8">
-                  {t('options.blocklist.description')}
-                </p>
-
-                <div className="mb-8">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-heading mb-4">
-                    <span className="material-symbols-outlined text-focus-primary">domain_disabled</span>
-                    {t('options.blocklist.sectionTitle')}
-                  </h2>
-
-                  <div className="flex gap-2 mb-6">
-                    <div className="flex-1 relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-lg">link</span>
-                      <input
-                        type="text"
-                        value={newDomain}
-                        onChange={(e) => setNewDomain(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && addDomain()}
-                        placeholder={t('options.blocklist.placeholder')}
-                        className="w-full bg-focus-surface border border-focus-border rounded-xl pl-10 pr-4 py-3 text-sm placeholder-muted focus:outline-none focus:ring-2 focus:ring-focus-primary"
-                      />
-                    </div>
-                    <button
-                      onClick={addDomain}
-                      className="flex items-center gap-1.5 px-5 py-3 bg-focus-primary text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg">add</span>
-                      {t('common.add')}
-                    </button>
-                  </div>
-
-                  {settings.distractionDomains.length > 0 && (
-                    <>
-                      <div className="text-[10px] font-semibold tracking-widest uppercase text-text-secondary mb-3">
-                        {t('options.blocklist.blockedList')}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {settings.distractionDomains.map((domain) => (
-                          <div
-                            key={domain}
-                            className="group flex items-center gap-2 bg-focus-surface border border-focus-border rounded-full px-3 py-1.5 hover:border-red-500/50 transition-colors"
-                          >
-                            <span
-                              className="w-4 h-4 rounded-sm flex items-center justify-center text-[10px] font-bold text-white bg-focus-primary"
-                              aria-hidden="true"
-                            >
-                              {domain.charAt(0).toUpperCase()}
-                            </span>
-                            <span className="text-sm text-subtle">{domain}</span>
-                            <button
-                              onClick={() => removeDomain(domain)}
-                              className="text-muted hover:text-red-400 transition-colors ml-0.5"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {settings.distractionDomains.length === 0 && (
-                    <div className="text-text-secondary text-center py-8">
-                      {t('options.blocklist.empty')}
-                    </div>
-                  )}
                 </div>
               </>
             )}

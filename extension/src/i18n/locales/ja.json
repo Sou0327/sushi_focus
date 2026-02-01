@@ -21,12 +21,12 @@
       "title": "フォーカス設定",
       "description": "ディープワークセッション中の環境管理を設定します。自動化トリガーとクールダウン期間をカスタマイズできます。",
       "behaviorTitle": "フォーカス動作",
-      "autoReturn": "IDE への自動復帰",
-      "autoReturnDesc": "ビルド成功時に自動的にコンテキストを切り替えます",
-      "alwaysReturn": "完了時に常に復帰",
-      "alwaysReturnDesc": "気が散るサイトにいなくてもホームタブに戻ります",
-      "aiBlocking": "AI 生成中のブロック",
-      "aiBlockingDesc": "AI 生成中に気が散るサイトをブロックします"
+      "autoReturn": "タスク完了時の IDE 復帰",
+      "autoReturnDesc": "タスク完了時に自動的に IDE にフォーカスを戻します",
+      "alwaysReturn": "常に IDE に復帰",
+      "alwaysReturnDesc": "気が散るサイトにいなくても IDE に復帰します",
+      "aiBlocking": "AI 生成中の強制復帰",
+      "aiBlockingDesc": "AI 生成中に気が散るサイトにいる場合、IDE に強制復帰します"
     },
     "timer": {
       "title": "クールダウンとタイミング",
@@ -130,7 +130,7 @@
   },
   "taskComplete": {
     "title": "タスク完了！",
-    "returningToHome": "ホームタブに戻ります",
+    "returningToIde": "IDE に戻ります",
     "stayHere": "ここに留まる（キャンセル）",
     "pressEscToCancel": "",
     "escKey": "Esc",

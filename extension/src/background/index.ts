@@ -1,6 +1,5 @@
 import type { DaemonEvent, ExtensionSettings, TaskLog } from '@/shared/types';
 import { isDaemonEvent, isHealthResponse } from '@/utils/typeGuards';
-import { isHostOnDistractionDomain } from '@/utils/focusLogic';
 
 // ============================================================
 // Keep-Alive (MV3 Service Worker stays active)
@@ -41,11 +40,11 @@ const MAX_RECONNECT_ATTEMPTS = 10;
 const DAEMON_WS_URL = 'ws://127.0.0.1:3000/ws';
 
 let settings: ExtensionSettings = {
-  mode: 'force',
+  mode: 'normal',
   homeTabId: null,
   homeWindowId: null,
   enableDoneFocus: true,
-  alwaysFocusOnDone: false,
+  alwaysFocusOnDone: true,
   doneCountdownMs: 1500,
   doneCooldownMs: 45000,
   distractionDomains: [
@@ -66,7 +65,7 @@ let settings: ExtensionSettings = {
 
 let lastDoneFocusTime = 0;
 let currentTaskId: string | null = null;
-let disabledAutoFocusTaskIds = new Set<string>();
+const disabledAutoFocusTaskIds = new Set<string>();
 let taskStartedAt: number | null = null;
 let taskLogs: TaskLog[] = [];
 let taskPrompt: string | null = null;
@@ -206,7 +205,7 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
       currentTaskId = event.taskId;
       taskStartedAt = Date.now();
       taskLogs = [];
-      taskPrompt = (event as any).prompt || null;
+      taskPrompt = (event as DaemonEvent & { prompt?: string }).prompt || null;
       break;
 
     case 'task.log':
@@ -239,12 +238,8 @@ async function handleNeedInput(_taskId: string, question: string): Promise<void>
   // Always show notification
   await showNotification('🟡 Input Required', question);
 
-  if (!settings.enabled) return;
-
-  // Force mode: immediately focus home tab
-  if (settings.mode === 'force') {
-    await focusHomeTab();
-  }
+  // Input required notification only - no auto-focus
+  // User will see the notification and return when ready
 }
 
 async function handleDone(taskId: string, summary: string): Promise<void> {
@@ -256,12 +251,6 @@ async function handleDone(taskId: string, summary: string): Promise<void> {
   // Check if auto-focus is disabled for this task
   if (disabledAutoFocusTaskIds.has(taskId)) {
     console.log('[BG] Auto-focus disabled for this task');
-    return;
-  }
-
-  // Check mode
-  if (settings.mode !== 'force') {
-    console.log('[BG] Not in force mode, skipping auto-focus');
     return;
   }
 
@@ -280,15 +269,6 @@ async function handleDone(taskId: string, summary: string): Promise<void> {
     return;
   }
 
-  // Check if currently on distraction site (skip check if alwaysFocusOnDone is enabled)
-  if (!settings.alwaysFocusOnDone) {
-    const isDistracted = await checkDistraction();
-    if (!isDistracted) {
-      console.log('[BG] Not on distraction site, skipping auto-focus');
-      return;
-    }
-  }
-
   // Start countdown (handled by side panel)
   chrome.runtime.sendMessage({
     type: 'start_done_countdown',
@@ -296,20 +276,6 @@ async function handleDone(taskId: string, summary: string): Promise<void> {
     summary,
     countdownMs: settings.doneCountdownMs,
   }).catch(() => {});
-}
-
-async function checkDistraction(): Promise<boolean> {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.url) return false;
-
-    const url = new URL(tab.url);
-    const hostname = url.hostname;
-
-    return isHostOnDistractionDomain(hostname, settings.distractionDomains);
-  } catch {
-    return false;
-  }
 }
 
 // ============================================================
@@ -397,7 +363,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         sendResponse({ ok: true });
         break;
 
-      case 'set_home_tab':
+      case 'set_home_tab': {
         const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
         if (currentTab?.id && currentTab?.windowId) {
           settings.homeTabId = currentTab.id;
@@ -408,6 +374,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           sendResponse({ ok: false, error: 'No active tab' });
         }
         break;
+      }
 
       case 'clear_home_tab':
         settings.homeTabId = null;

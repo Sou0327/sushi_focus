@@ -120,11 +120,11 @@ export interface ExtensionSettings {
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
-  mode: 'force',
+  mode: 'normal',
   homeTabId: null,
   homeWindowId: null,
   enableDoneFocus: true,
-  alwaysFocusOnDone: false,
+  alwaysFocusOnDone: true,
   doneCountdownMs: 1500,
   doneCooldownMs: 45000,
   distractionDomains: [

@@ -109,7 +109,7 @@ export function TaskCompleteModal({
           <h2 id={titleId} className="text-2xl font-bold text-heading mb-2">{t('taskComplete.title')}</h2>
           <p className="text-text-secondary mb-1">{summary}</p>
           <p className="text-text-secondary text-sm" aria-live="polite">
-            {t('taskComplete.returningToHome')}{' '}
+            {t('taskComplete.returningToIde')}{' '}
             <span className="font-mono font-bold text-heading text-lg">
               {(remaining / 1000).toFixed(1)}s
             </span>

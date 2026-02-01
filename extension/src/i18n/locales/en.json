@@ -21,12 +21,12 @@
       "title": "Focus Settings",
       "description": "Configure how FocusFlow manages your environment during deep work sessions. Customize automation triggers and cooldown periods.",
       "behaviorTitle": "Focus Behavior",
-      "autoReturn": "Auto-return to IDE",
-      "autoReturnDesc": "Automatically switch context back when build succeeds",
-      "alwaysReturn": "Always return on completion",
-      "alwaysReturnDesc": "Return to Home tab even when not on a distraction site",
-      "aiBlocking": "AI Gen Blocking",
-      "aiBlockingDesc": "Block distraction sites during active AI generation"
+      "autoReturn": "Auto-return to IDE on completion",
+      "autoReturnDesc": "Automatically focus IDE when task completes",
+      "alwaysReturn": "Always return to IDE",
+      "alwaysReturnDesc": "Return to IDE even when not on a distraction site",
+      "aiBlocking": "Force return during AI gen",
+      "aiBlockingDesc": "Force return to IDE when on distraction sites during AI generation"
     },
     "timer": {
       "title": "Cooldown & Timing",
@@ -130,7 +130,7 @@
   },
   "taskComplete": {
     "title": "Task Complete!",
-    "returningToHome": "Returning to Home tab in",
+    "returningToIde": "Returning to IDE in",
     "stayHere": "Stay Here (Cancel)",
     "pressEscToCancel": "Press",
     "escKey": "Esc",
