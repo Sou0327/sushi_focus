@@ -6,14 +6,16 @@
 [English](README.md)
 
 Chrome拡張 + ローカルDaemon による「ながら開発OS」。
-エディタでAIエージェント（Claude Code, Cursor等）が作業する間、別サイト閲覧を許容しつつ、入力が必要な瞬間・完了時に自動で開発タブへ復帰させる。
+エディタでAIエージェントが作業する間、別サイト閲覧を許容しつつ、入力が必要な瞬間・完了時に自動で開発タブへ復帰させる。
+
+> **Note**: 現在は **Claude Code** のみ対応しています。Cursor等の他のAIエージェントは今後対応予定です。
 
 ## アーキテクチャ
 
 ```
 ┌─────────────────┐     HTTP POST      ┌─────────────────┐    WebSocket    ┌─────────────────┐
 │   Claude Code   │ ───────────────▶ │     Daemon      │ ───────────────▶ │  Chrome拡張     │
-│   Cursor 等     │   /agent/start    │  localhost:3000 │  task.started   │  Side Panel     │
+│                 │   /agent/start    │  localhost:3000 │  task.started   │  Side Panel     │
 │                 │   /agent/log      │                 │  task.log       │  監視ダッシュボード │
 │                 │   /agent/need-input│                │  task.need_input│                 │
 │                 │   /agent/done     │                 │  task.done      │                 │

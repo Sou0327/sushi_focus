@@ -5,14 +5,16 @@
 
 [日本語](README.ja.md)
 
-A Chrome Extension + Local Daemon system for "distraction-aware development." It monitors AI agent (Claude Code, Cursor, etc.) work status and automatically returns browser focus to your development tab when input is required or tasks complete.
+A Chrome Extension + Local Daemon system for "distraction-aware development." It monitors AI agent work status and automatically returns browser focus to your development tab when input is required or tasks complete.
+
+> **Note**: Currently supports **Claude Code** only. Cursor and other AI agent support is planned for future releases.
 
 ## Architecture
 
 ```
 ┌─────────────────┐     HTTP POST      ┌─────────────────┐    WebSocket    ┌─────────────────┐
 │   Claude Code   │ ───────────────▶ │     Daemon      │ ───────────────▶ │  Chrome Ext     │
-│   Cursor etc.   │   /agent/start    │  localhost:3000 │  task.started   │  Side Panel     │
+│                 │   /agent/start    │  localhost:3000 │  task.started   │  Side Panel     │
 │                 │   /agent/log      │                 │  task.log       │  Dashboard      │
 │                 │   /agent/need-input│                │  task.need_input│                 │
 │                 │   /agent/done     │                 │  task.done      │                 │
