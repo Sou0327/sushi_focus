@@ -25,6 +25,7 @@ const VERSION = '0.1.0';
 
 // N.1: Allowed target applications (whitelist)
 const ALLOWED_TARGET_APPS = new Set([
+  'Antigravity',
   'Cursor',
   'VSCode',
   'VS Code',
@@ -643,8 +644,10 @@ app.post('/focus/now', (_req, res) => {
 // Start Server
 // ============================================================
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`
+// Skip server startup during tests (Vitest sets VITEST env var)
+if (!process.env.VITEST) {
+  server.listen(PORT, '127.0.0.1', () => {
+    console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                    FocusFlow Daemon                        ║
 ║                      v${VERSION}                              ║
@@ -652,8 +655,9 @@ server.listen(PORT, '127.0.0.1', () => {
 ║  HTTP API: http://127.0.0.1:${PORT}                          ║
 ║  WebSocket: ws://127.0.0.1:${PORT}/ws                        ║
 ╚═══════════════════════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
 
 // Export for testing
 export { app };
