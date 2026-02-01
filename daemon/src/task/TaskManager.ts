@@ -16,6 +16,7 @@ export class TaskManager {
   private currentTask: Task | null = null;
   private broadcast: BroadcastFn;
   private pendingInputResolve: ((choiceId: string) => void) | null = null;
+  private cancelledTaskIds = new Set<string>();
 
   constructor(broadcast: BroadcastFn) {
     this.broadcast = broadcast;
@@ -43,6 +44,7 @@ export class TaskManager {
       type: 'task.started',
       taskId,
       repoId,
+      startedAt: Date.now(),
     };
     this.broadcast(startEvent);
 
@@ -57,6 +59,9 @@ export class TaskManager {
       return false;
     }
 
+    // Mark as cancelled so running async tasks (e.g. demo) stop
+    this.cancelledTaskIds.add(taskId);
+
     this.updateStatus('error');
 
     const errorEvent: TaskErrorEvent = {
@@ -66,7 +71,43 @@ export class TaskManager {
     };
     this.broadcast(errorEvent);
 
+    // Resolve pending input to unblock waitForInput
+    if (this.pendingInputResolve) {
+      this.pendingInputResolve('__cancelled__');
+      this.pendingInputResolve = null;
+    }
+
     this.currentTask = null;
+    return true;
+  }
+
+  cancelExternalTask(taskId: string): boolean {
+    // Mark as cancelled so running async tasks (e.g. demo) stop
+    this.cancelledTaskIds.add(taskId);
+
+    const errorEvent: TaskErrorEvent = {
+      type: 'task.error',
+      taskId,
+      message: 'Task cancelled by user',
+    };
+    this.broadcast(errorEvent);
+
+    // Also cancel internal task if it matches
+    if (this.currentTask && this.currentTask.id === taskId) {
+      this.updateStatus('error');
+      // Resolve pending input to unblock waitForInput
+      if (this.pendingInputResolve) {
+        this.pendingInputResolve('__cancelled__');
+        this.pendingInputResolve = null;
+      }
+      this.currentTask = null;
+      // Keep taskId in cancelledTaskIds — runDemoTask's finally block
+      // will clean it up after the async task detects cancellation.
+    } else {
+      // Pure external task: no runDemoTask running, safe to clean up immediately.
+      this.cancelledTaskIds.delete(taskId);
+    }
+
     return true;
   }
 
@@ -130,20 +171,28 @@ export class TaskManager {
     });
   }
 
+  private isCancelled(taskId: string): boolean {
+    return this.cancelledTaskIds.has(taskId);
+  }
+
   private async runDemoTask(taskId: string, prompt: string): Promise<void> {
     // Demo task simulation
     try {
       this.log(taskId, 'info', `Starting task: "${prompt}"`);
       await this.delay(500);
+      if (this.isCancelled(taskId)) return;
 
       this.log(taskId, 'info', 'Analyzing codebase...');
       await this.delay(1000);
+      if (this.isCancelled(taskId)) return;
 
       this.log(taskId, 'info', 'Found 3 files to modify');
       await this.delay(800);
+      if (this.isCancelled(taskId)) return;
 
       this.log(taskId, 'info', 'Generating changes...');
       await this.delay(1500);
+      if (this.isCancelled(taskId)) return;
 
       // Simulate need_input
       this.log(taskId, 'info', 'Changes ready for review');
@@ -154,20 +203,25 @@ export class TaskManager {
         { id: 'modify', label: 'Modify & Retry' },
       ]);
 
+      if (this.isCancelled(taskId) || choice === '__cancelled__') return;
+
       this.updateStatus('running');
 
       if (choice === 'apply') {
         this.log(taskId, 'info', 'Applying changes...');
         await this.delay(1000);
+        if (this.isCancelled(taskId)) return;
         this.log(taskId, 'info', 'Changes applied successfully');
       } else if (choice === 'skip') {
         this.log(taskId, 'info', 'Changes skipped');
       } else {
         this.log(taskId, 'info', 'Regenerating with modifications...');
         await this.delay(1000);
+        if (this.isCancelled(taskId)) return;
       }
 
       await this.delay(500);
+      if (this.isCancelled(taskId)) return;
 
       // Complete
       this.updateStatus('done');
@@ -186,6 +240,8 @@ export class TaskManager {
       this.currentTask = null;
 
     } catch (error) {
+      if (this.isCancelled(taskId)) return;
+
       this.updateStatus('error');
 
       const errorEvent: TaskErrorEvent = {
@@ -196,6 +252,8 @@ export class TaskManager {
       this.broadcast(errorEvent);
 
       this.currentTask = null;
+    } finally {
+      this.cancelledTaskIds.delete(taskId);
     }
   }
 

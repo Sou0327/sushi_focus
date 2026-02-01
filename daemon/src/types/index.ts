@@ -24,6 +24,7 @@ export interface Task {
   updatedAt: number;
   logs: TaskLog[];
   summary?: string;
+  image?: string;
   process?: import('child_process').ChildProcess;
 }
 
@@ -42,6 +43,8 @@ export interface TaskStartedEvent {
   type: 'task.started';
   taskId: string;
   repoId: string;
+  startedAt: number;
+  hasImage?: boolean;
 }
 
 export interface TaskLogEvent {
@@ -75,12 +78,21 @@ export interface TaskErrorEvent {
   details?: string;
 }
 
+export interface TaskProgressEvent {
+  type: 'task.progress';
+  taskId: string;
+  current: number;
+  total: number;
+  label?: string;
+}
+
 export type DaemonEvent =
   | TaskStartedEvent
   | TaskLogEvent
   | TaskNeedInputEvent
   | TaskDoneEvent
-  | TaskErrorEvent;
+  | TaskErrorEvent
+  | TaskProgressEvent;
 
 // ============================================================
 // API Types
@@ -108,4 +120,5 @@ export interface ApiResponse {
 export interface HealthResponse {
   ok: boolean;
   version: string;
+  gitBranch: string | null;
 }
