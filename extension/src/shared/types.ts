@@ -100,6 +100,10 @@ export type DaemonEvent =
 // Storage Types
 // ============================================================
 
+export type Language = 'en' | 'ja';
+export type Theme = 'dark' | 'light';
+export type LogVerbosity = 'minimal' | 'normal' | 'verbose';
+
 export interface ExtensionSettings {
   mode: FocusMode;
   homeTabId: number | null;
@@ -110,6 +114,9 @@ export interface ExtensionSettings {
   doneCooldownMs: number;
   distractionDomains: string[];
   enabled: boolean;
+  language: Language;
+  theme: Theme;
+  logVerbosity: LogVerbosity;
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -131,7 +138,10 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
     'reddit.com',
   ],
   enabled: true,
-};;
+  language: 'en',
+  theme: 'dark',
+  logVerbosity: 'normal',
+};
 
 // ============================================================
 // API Types

@@ -1,23 +1,27 @@
 import { useState, useEffect } from 'react';
 import { ToggleSwitch } from '@/shared/components/ToggleSwitch';
-import type { ExtensionSettings } from '@/shared/types';
+import { useTranslation } from '@/i18n/TranslationContext';
+import { useTheme } from '@/theme/useTheme';
+import type { ExtensionSettings, Language, LogVerbosity, Theme } from '@/shared/types';
 
 type SettingsSection = 'focus' | 'timer' | 'blocklist' | 'general';
 
-const NAV_ITEMS: { id: SettingsSection; label: string; icon: string }[] = [
-  { id: 'focus', label: 'Focus Rules', icon: 'psychology' },
-  { id: 'timer', label: 'Timer Config', icon: 'hourglass_top' },
-  { id: 'blocklist', label: 'Blocklist', icon: 'domain_disabled' },
-  { id: 'general', label: 'General Settings', icon: 'settings' },
-];
-
 export default function App() {
+  const { t, language, setLanguage } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [activeSection, setActiveSection] = useState<SettingsSection>('focus');
   const [newDomain, setNewDomain] = useState('');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [daemonVersion, setDaemonVersion] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+
+  const NAV_ITEMS: { id: SettingsSection; label: string; icon: string }[] = [
+    { id: 'focus', label: t('nav.focusRules'), icon: 'psychology' },
+    { id: 'timer', label: t('nav.timerConfig'), icon: 'hourglass_top' },
+    { id: 'blocklist', label: t('nav.blocklist'), icon: 'domain_disabled' },
+    { id: 'general', label: t('nav.generalSettings'), icon: 'settings' },
+  ];
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: 'get_settings' }, (response) => {
@@ -55,7 +59,12 @@ export default function App() {
       distractionDomains: ['netflix.com', 'tiktok.com', 'youtube.com', 'x.com', 'twitter.com', 'instagram.com', 'twitch.tv', 'reddit.com'],
       alwaysFocusOnDone: false,
       enabled: true,
+      language: 'en',
+      theme: 'dark',
+      logVerbosity: 'normal',
     });
+    setLanguage('en');
+    setTheme('dark');
   };
 
   const addDomain = () => {
@@ -74,22 +83,32 @@ export default function App() {
     saveSettings({ distractionDomains: settings.distractionDomains.filter(d => d !== domain) });
   };
 
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    saveSettings({ language: lang });
+  };
+
+  const handleThemeChange = (newTheme: Theme) => {
+    setTheme(newTheme);
+    saveSettings({ theme: newTheme });
+  };
+
   if (!settings) {
     return (
-      <div className="h-screen bg-background-dark text-gray-100 flex items-center justify-center">
-        <div className="text-text-secondary">Loading...</div>
+      <div className="h-screen bg-focus-bg flex items-center justify-center">
+        <div className="text-text-secondary">{t('common.loading')}</div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-background-dark text-gray-100">
+    <div className="flex h-screen bg-focus-bg">
       {/* Sidebar */}
       <aside className="w-[264px] flex-shrink-0 bg-focus-bg border-r border-focus-border flex flex-col">
         <div className="p-6">
           <div className="flex items-center gap-2.5">
             <span className="material-symbols-outlined text-focus-primary text-2xl">bolt</span>
-            <span className="text-lg font-bold text-white font-display">FocusFlow</span>
+            <span className="text-lg font-bold text-heading font-display">{t('common.focusFlow')}</span>
           </div>
         </div>
 
@@ -102,8 +121,8 @@ export default function App() {
                 onClick={() => setActiveSection(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm transition-colors mb-1 ${
                   isActive
-                    ? 'bg-surface-highlight text-white border-l-4 border-focus-primary pl-2'
-                    : 'text-text-secondary hover:bg-focus-surface hover:text-white'
+                    ? 'bg-surface-highlight text-heading border-l-4 border-focus-primary pl-2'
+                    : 'text-text-secondary hover:bg-focus-surface hover:text-heading'
                 }`}
               >
                 <span className={`material-symbols-outlined text-lg ${isActive ? 'text-focus-primary' : ''}`}>
@@ -121,10 +140,10 @@ export default function App() {
               {connected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-focus-success opacity-75" />}
               <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${connected ? 'bg-focus-success' : 'bg-focus-error'}`} />
             </span>
-            <span className="text-sm font-medium text-white">{connected ? 'Daemon Active' : 'Daemon Offline'}</span>
+            <span className="text-sm font-medium text-heading">{connected ? t('options.daemon.active') : t('options.daemon.offline')}</span>
           </div>
           <div className="mt-1 text-xs text-text-secondary ml-[18px]">
-            {connected ? `v${daemonVersion || '?.?.?'} · localhost:3000` : 'Offline'}
+            {connected ? `v${daemonVersion || '?.?.?'} · localhost:3000` : t('options.daemon.offlineStatus')}
           </div>
         </div>
       </aside>
@@ -134,34 +153,34 @@ export default function App() {
         {/* Top Bar */}
         <header className="flex items-center justify-between px-8 py-4 border-b border-focus-border">
           <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <span>Settings</span>
-            <span className="text-gray-600">{'>'}</span>
-            <span className="text-white font-medium">
+            <span>{t('common.settings')}</span>
+            <span className="text-dim">{'>'}</span>
+            <span className="text-heading font-medium">
               {NAV_ITEMS.find(i => i.id === activeSection)?.label}
             </span>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={resetDefaults}
-              className="text-sm text-text-secondary hover:text-white transition-colors"
+              className="text-sm text-text-secondary hover:text-heading transition-colors"
             >
-              Reset Defaults
+              {t('options.resetDefaults')}
             </button>
             <button
               disabled
               className={`px-4 py-2 text-sm font-medium rounded-lg cursor-default flex items-center gap-1.5 transition-colors ${
-                saveState === 'saved' ? 'bg-focus-success/20 text-focus-success' : 'bg-focus-primary/50 text-white/70'
+                saveState === 'saved' ? 'bg-focus-success/20 text-focus-success' : 'bg-focus-primary/50 text-heading/70'
               }`}
             >
               {saveState === 'saving' ? (
                 <>
                   <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
                 <>
                   <span className="material-symbols-outlined text-base">check</span>
-                  Saved
+                  {t('common.saved')}
                 </>
               )}
             </button>
@@ -173,31 +192,48 @@ export default function App() {
           <div className="max-w-[800px] mx-auto">
             {activeSection === 'focus' && (
               <>
-                <h1 className="text-2xl font-bold text-white mb-2">Focus Settings</h1>
+                <h1 className="text-2xl font-bold text-heading mb-2">{t('options.focus.title')}</h1>
                 <p className="text-text-secondary mb-8">
-                  Configure how FocusFlow manages your environment during deep work sessions. Customize automation triggers and cooldown periods.
+                  {t('options.focus.description')}
                 </p>
 
                 <div className="mb-8">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-heading mb-4">
                     <span className="material-symbols-outlined text-focus-primary">psychology</span>
-                    Focus Behavior
+                    {t('options.focus.behaviorTitle')}
                   </h2>
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between bg-focus-surface border border-focus-border rounded-xl p-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-focus-bg rounded-lg flex items-center justify-center">
+                          <span className="material-symbols-outlined text-focus-primary">smart_toy</span>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-heading">{t('options.focus.aiBlocking')}</div>
+                          <div className="text-xs text-text-secondary">{t('options.focus.aiBlockingDesc')}</div>
+                        </div>
+                      </div>
+                      <ToggleSwitch
+                        checked={settings.mode === 'force'}
+                        onChange={(checked) => saveSettings({ mode: checked ? 'force' : 'normal' })}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between bg-focus-surface border border-focus-border rounded-xl p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-focus-bg rounded-lg flex items-center justify-center">
                           <span className="material-symbols-outlined text-focus-primary">code</span>
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-white">Auto-return to IDE</div>
-                          <div className="text-xs text-text-secondary">Automatically switch context back when build succeeds</div>
+                          <div className="text-sm font-medium text-heading">{t('options.focus.autoReturn')}</div>
+                          <div className="text-xs text-text-secondary">{t('options.focus.autoReturnDesc')}</div>
                         </div>
                       </div>
                       <ToggleSwitch
                         checked={settings.enableDoneFocus}
                         onChange={(checked) => saveSettings({ enableDoneFocus: checked })}
+                        disabled={settings.mode !== 'force'}
                       />
                     </div>
 
@@ -207,30 +243,14 @@ export default function App() {
                           <span className="material-symbols-outlined text-focus-primary">public</span>
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-white">Always return on completion</div>
-                          <div className="text-xs text-text-secondary">Return to Home tab even when not on a distraction site</div>
+                          <div className="text-sm font-medium text-heading">{t('options.focus.alwaysReturn')}</div>
+                          <div className="text-xs text-text-secondary">{t('options.focus.alwaysReturnDesc')}</div>
                         </div>
                       </div>
                       <ToggleSwitch
                         checked={settings.alwaysFocusOnDone}
                         onChange={(checked) => saveSettings({ alwaysFocusOnDone: checked })}
-                        disabled={!settings.enableDoneFocus}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between bg-focus-surface border border-focus-border rounded-xl p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-focus-bg rounded-lg flex items-center justify-center">
-                          <span className="material-symbols-outlined text-focus-primary">smart_toy</span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-white">AI Gen Blocking</div>
-                          <div className="text-xs text-text-secondary">Block distraction sites during active AI generation</div>
-                        </div>
-                      </div>
-                      <ToggleSwitch
-                        checked={settings.mode === 'force'}
-                        onChange={(checked) => saveSettings({ mode: checked ? 'force' : 'normal' })}
+                        disabled={!settings.enableDoneFocus || settings.mode !== 'force'}
                       />
                     </div>
                   </div>
@@ -240,21 +260,21 @@ export default function App() {
 
             {activeSection === 'timer' && (
               <>
-                <h1 className="text-2xl font-bold text-white mb-2">Cooldown &amp; Timing</h1>
+                <h1 className="text-2xl font-bold text-heading mb-2">{t('options.timer.title')}</h1>
                 <p className="text-text-secondary mb-8">
-                  Configure countdown and cooldown durations for focus sessions.
+                  {t('options.timer.description')}
                 </p>
 
                 <div className="mb-8">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-heading mb-4">
                     <span className="material-symbols-outlined text-focus-primary">hourglass_top</span>
-                    Cooldown &amp; Timing
+                    {t('options.timer.sectionTitle')}
                   </h2>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
                       <div className="text-[10px] font-semibold tracking-widest uppercase text-text-secondary mb-3">
-                        Return Countdown
+                        {t('options.timer.returnCountdown')}
                       </div>
                       <div className="flex items-center gap-3">
                         <input
@@ -263,16 +283,16 @@ export default function App() {
                           onChange={(e) => saveSettings({ doneCountdownMs: Number(e.target.value) * 1000 })}
                           min={1}
                           max={30}
-                          className="w-full bg-focus-bg border border-focus-border rounded-lg px-4 py-3 text-2xl font-bold text-white text-center focus:outline-none focus:ring-2 focus:ring-focus-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          className="w-full bg-focus-bg border border-focus-border rounded-lg px-4 py-3 text-2xl font-bold text-heading text-center focus:outline-none focus:ring-2 focus:ring-focus-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
-                        <span className="text-text-secondary text-sm shrink-0">seconds</span>
+                        <span className="text-text-secondary text-sm shrink-0">{t('common.seconds')}</span>
                       </div>
-                      <p className="text-xs text-text-secondary mt-2">Delay before forcing focus back to IDE.</p>
+                      <p className="text-xs text-text-secondary mt-2">{t('options.timer.returnCountdownDesc')}</p>
                     </div>
 
                     <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
                       <div className="text-[10px] font-semibold tracking-widest uppercase text-text-secondary mb-3">
-                        Focus Cooldown
+                        {t('options.timer.focusCooldown')}
                       </div>
                       <div className="flex items-center gap-3">
                         <input
@@ -281,11 +301,11 @@ export default function App() {
                           onChange={(e) => saveSettings({ doneCooldownMs: Number(e.target.value) * 60000 })}
                           min={1}
                           max={60}
-                          className="w-full bg-focus-bg border border-focus-border rounded-lg px-4 py-3 text-2xl font-bold text-white text-center focus:outline-none focus:ring-2 focus:ring-focus-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          className="w-full bg-focus-bg border border-focus-border rounded-lg px-4 py-3 text-2xl font-bold text-heading text-center focus:outline-none focus:ring-2 focus:ring-focus-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
-                        <span className="text-text-secondary text-sm shrink-0">minutes</span>
+                        <span className="text-text-secondary text-sm shrink-0">{t('common.minutes')}</span>
                       </div>
-                      <p className="text-xs text-text-secondary mt-2">Minimum break time between heavy focus sessions.</p>
+                      <p className="text-xs text-text-secondary mt-2">{t('options.timer.focusCooldownDesc')}</p>
                     </div>
                   </div>
                 </div>
@@ -294,15 +314,15 @@ export default function App() {
 
             {activeSection === 'blocklist' && (
               <>
-                <h1 className="text-2xl font-bold text-white mb-2">Distraction Domains</h1>
+                <h1 className="text-2xl font-bold text-heading mb-2">{t('options.blocklist.title')}</h1>
                 <p className="text-text-secondary mb-8">
-                  Manage the list of websites that trigger auto-return when tasks complete.
+                  {t('options.blocklist.description')}
                 </p>
 
                 <div className="mb-8">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-heading mb-4">
                     <span className="material-symbols-outlined text-focus-primary">domain_disabled</span>
-                    Distraction Domains
+                    {t('options.blocklist.sectionTitle')}
                   </h2>
 
                   <div className="flex gap-2 mb-6">
@@ -313,8 +333,8 @@ export default function App() {
                         value={newDomain}
                         onChange={(e) => setNewDomain(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addDomain()}
-                        placeholder="Add a domain (e.g. twitter.com)..."
-                        className="w-full bg-focus-surface border border-focus-border rounded-xl pl-10 pr-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-focus-primary"
+                        placeholder={t('options.blocklist.placeholder')}
+                        className="w-full bg-focus-surface border border-focus-border rounded-xl pl-10 pr-4 py-3 text-sm placeholder-muted focus:outline-none focus:ring-2 focus:ring-focus-primary"
                       />
                     </div>
                     <button
@@ -322,14 +342,14 @@ export default function App() {
                       className="flex items-center gap-1.5 px-5 py-3 bg-focus-primary text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors"
                     >
                       <span className="material-symbols-outlined text-lg">add</span>
-                      Add
+                      {t('common.add')}
                     </button>
                   </div>
 
                   {settings.distractionDomains.length > 0 && (
                     <>
                       <div className="text-[10px] font-semibold tracking-widest uppercase text-text-secondary mb-3">
-                        Blocked List
+                        {t('options.blocklist.blockedList')}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {settings.distractionDomains.map((domain) => (
@@ -337,16 +357,16 @@ export default function App() {
                             key={domain}
                             className="group flex items-center gap-2 bg-focus-surface border border-focus-border rounded-full px-3 py-1.5 hover:border-red-500/50 transition-colors"
                           >
-                            <img
-                              src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
-                              alt=""
-                              className="w-4 h-4 rounded-sm"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            />
-                            <span className="text-sm text-gray-300">{domain}</span>
+                            <span
+                              className="w-4 h-4 rounded-sm flex items-center justify-center text-[10px] font-bold text-white bg-focus-primary"
+                              aria-hidden="true"
+                            >
+                              {domain.charAt(0).toUpperCase()}
+                            </span>
+                            <span className="text-sm text-subtle">{domain}</span>
                             <button
                               onClick={() => removeDomain(domain)}
-                              className="text-gray-500 hover:text-red-400 transition-colors ml-0.5"
+                              className="text-muted hover:text-red-400 transition-colors ml-0.5"
                             >
                               ×
                             </button>
@@ -358,7 +378,7 @@ export default function App() {
 
                   {settings.distractionDomains.length === 0 && (
                     <div className="text-text-secondary text-center py-8">
-                      No distraction domains configured
+                      {t('options.blocklist.empty')}
                     </div>
                   )}
                 </div>
@@ -367,37 +387,109 @@ export default function App() {
 
             {activeSection === 'general' && (
               <>
-                <h1 className="text-2xl font-bold text-white mb-2">General Settings</h1>
+                <h1 className="text-2xl font-bold text-heading mb-2">{t('options.general.title')}</h1>
                 <p className="text-text-secondary mb-8">
-                  Connection management and system settings.
+                  {t('options.general.description')}
                 </p>
 
                 <div className="space-y-4">
+                  {/* Language Selector */}
                   <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                    <div className="font-medium text-white mb-1">Daemon Connection</div>
+                    <div className="font-medium text-heading mb-1">{t('options.general.language')}</div>
                     <div className="text-sm text-text-secondary mb-3">
-                      The daemon should be running at http://127.0.0.1:3000
+                      {t('options.general.languageDesc')}
+                    </div>
+                    <div className="flex gap-2">
+                      {(['en', 'ja'] as Language[]).map((lang) => (
+                        <button
+                          key={lang}
+                          onClick={() => handleLanguageChange(lang)}
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            language === lang
+                              ? 'bg-focus-primary text-white'
+                              : 'bg-focus-bg border border-focus-border text-subtle hover:text-heading hover:border-focus-primary'
+                          }`}
+                        >
+                          {t(`language.${lang}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Theme Selector */}
+                  <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
+                    <div className="font-medium text-heading mb-1">{t('options.general.theme')}</div>
+                    <div className="text-sm text-text-secondary mb-3">
+                      {t('options.general.themeDesc')}
+                    </div>
+                    <div className="flex gap-2">
+                      {(['dark', 'light'] as Theme[]).map((th) => (
+                        <button
+                          key={th}
+                          onClick={() => handleThemeChange(th)}
+                          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            theme === th
+                              ? 'bg-focus-primary text-white'
+                              : 'bg-focus-bg border border-focus-border text-subtle hover:text-heading hover:border-focus-primary'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-base">
+                            {th === 'dark' ? 'dark_mode' : 'light_mode'}
+                          </span>
+                          {t(`theme.${th}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Log Verbosity */}
+                  <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
+                    <div className="font-medium text-heading mb-1">{t('options.general.logVerbosity')}</div>
+                    <div className="text-sm text-text-secondary mb-3">
+                      {t('options.general.logVerbosityDesc')}
+                    </div>
+                    <div className="flex gap-2">
+                      {(['minimal', 'normal', 'verbose'] as LogVerbosity[]).map((level) => (
+                        <button
+                          key={level}
+                          onClick={() => saveSettings({ logVerbosity: level })}
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            settings.logVerbosity === level
+                              ? 'bg-focus-primary text-white'
+                              : 'bg-focus-bg border border-focus-border text-subtle hover:text-heading hover:border-focus-primary'
+                          }`}
+                        >
+                          {t(`options.general.logLevel.${level}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
+                    <div className="font-medium text-heading mb-1">{t('options.general.daemonConnection')}</div>
+                    <div className="text-sm text-text-secondary mb-3">
+                      {t('options.general.daemonConnectionDesc')}
                     </div>
                     <button
                       onClick={() => chrome.runtime.sendMessage({ type: 'reconnect' })}
-                      className="flex items-center gap-2 px-4 py-2 bg-focus-bg border border-focus-border rounded-lg text-sm text-gray-300 hover:text-white hover:border-focus-primary transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-focus-bg border border-focus-border rounded-lg text-sm text-subtle hover:text-heading hover:border-focus-primary transition-colors"
                     >
                       <span className="material-symbols-outlined text-lg">refresh</span>
-                      Reconnect
+                      {t('options.general.reconnect')}
                     </button>
                   </div>
 
                   <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                    <div className="font-medium text-white mb-1">Reset to Defaults</div>
+                    <div className="font-medium text-heading mb-1">{t('options.general.resetToDefaults')}</div>
                     <div className="text-sm text-text-secondary mb-3">
-                      Restore all settings to their default values
+                      {t('options.general.resetToDefaultsDesc')}
                     </div>
                     <button
                       onClick={resetDefaults}
                       className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400 hover:bg-red-500/20 transition-colors"
                     >
                       <span className="material-symbols-outlined text-lg">restart_alt</span>
-                      Reset Settings
+                      {t('options.general.resetSettings')}
                     </button>
                   </div>
                 </div>

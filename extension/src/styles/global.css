@@ -2,19 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --focus-primary: #3B82F6;
+/* Dark theme (default) */
+.dark {
+  --focus-primary: #135bec;
   --focus-secondary: #1E40AF;
   --focus-success: #10B981;
   --focus-warning: #F59E0B;
   --focus-error: #EF4444;
-  --focus-bg: #0F172A;
-  --focus-surface: #1E293B;
-  --focus-border: #334155;
+  --focus-bg: #111318;
+  --focus-surface: #1a1d23;
+  --focus-border: #282e39;
+  --surface-highlight: #282e39;
+  --text-secondary: #9da6b9;
+  --terminal-bg: #0d0f12;
+  --text-primary: #f3f4f6;
+  --text-heading: #ffffff;
+  --text-subtle: #d1d5db;
+  --text-muted: #6b7280;
+  --text-dim: #4b5563;
+  --scrollbar-bg: #111318;
+  --scrollbar-thumb: #282e39;
+}
+
+/* Light theme */
+:root:not(.dark) {
+  --focus-primary: #135bec;
+  --focus-secondary: #1E40AF;
+  --focus-success: #10B981;
+  --focus-warning: #F59E0B;
+  --focus-error: #EF4444;
+  --focus-bg: #f9fafb;
+  --focus-surface: #ffffff;
+  --focus-border: #e5e7eb;
+  --surface-highlight: #f3f4f6;
+  --text-secondary: #6b7280;
+  --terminal-bg: #f3f4f6;
+  --text-primary: #111827;
+  --text-heading: #111827;
+  --text-subtle: #4b5563;
+  --text-muted: #9ca3af;
+  --text-dim: #d1d5db;
+  --scrollbar-bg: #f9fafb;
+  --scrollbar-thumb: #d1d5db;
 }
 
 body {
-  @apply bg-focus-bg text-gray-100 font-sans antialiased;
+  @apply bg-focus-bg font-display antialiased;
+  color: var(--text-primary);
   min-width: 320px;
 }
 
@@ -25,11 +59,12 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-focus-bg;
+  background: var(--scrollbar-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-focus-border rounded-full;
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -42,7 +77,7 @@ body {
 }
 
 .log-entry.info {
-  @apply text-gray-300;
+  color: var(--text-primary);
 }
 
 .log-entry.warn {
@@ -89,12 +124,13 @@ body {
 
 /* Card component */
 .card {
-  @apply bg-focus-surface border border-focus-border rounded-lg p-4;
+  @apply bg-focus-surface border border-focus-border rounded-xl p-4;
 }
 
 /* Button variants */
 .btn {
-  @apply px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-focus-bg;
+  @apply px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  --tw-ring-offset-color: var(--focus-bg);
 }
 
 .btn-primary {
@@ -102,7 +138,8 @@ body {
 }
 
 .btn-secondary {
-  @apply btn bg-focus-surface text-gray-200 border border-focus-border hover:bg-gray-700 focus:ring-gray-500;
+  @apply btn bg-focus-surface border border-focus-border hover:bg-gray-700 focus:ring-gray-500;
+  color: var(--text-primary);
 }
 
 .btn-success {
@@ -119,7 +156,8 @@ body {
 
 /* Input styles */
 .input {
-  @apply w-full px-3 py-2 bg-focus-bg border border-focus-border rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-focus-primary focus:border-transparent;
+  @apply w-full px-3 py-2 bg-focus-bg border border-focus-border rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-focus-primary focus:border-transparent;
+  color: var(--text-primary);
 }
 
 /* Countdown animation */

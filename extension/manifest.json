@@ -15,6 +15,9 @@
     "http://127.0.0.1:*/*",
     "http://localhost:*/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
+  },
   "background": {
     "service_worker": "src/background/index.ts",
     "type": "module"

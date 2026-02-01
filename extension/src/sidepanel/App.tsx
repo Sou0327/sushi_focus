@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
+// import { TaskInput } from './components/TaskInput'; // Reserved for future IDE integration
 import { TerminalOutput } from './components/TerminalOutput';
 import { ActionRequiredModal } from './components/ActionRequiredModal';
 import { TaskCompleteModal } from './components/TaskCompleteModal';
+import { useTranslation } from '@/i18n/TranslationContext';
+import { useTheme } from '@/theme/useTheme';
 import type { DaemonEvent, TaskLog, TaskStatus, Choice, ExtensionSettings } from '@/shared/types';
 
 const DAEMON_API_URL = 'http://127.0.0.1:3000';
@@ -17,9 +20,13 @@ interface AppState {
   inputChoices: Choice[];
   doneCountdown: { taskId: string; summary: string; ms: number } | null;
   settings: ExtensionSettings | null;
+  progress: { current: number; total: number; label?: string } | null;
+  gitBranch: string | null;
 }
 
 export default function App() {
+  const { t } = useTranslation();
+  useTheme();
   const [state, setState] = useState<AppState>({
     connected: false,
     taskStatus: 'idle',
@@ -30,6 +37,8 @@ export default function App() {
     inputChoices: [],
     doneCountdown: null,
     settings: null,
+    progress: null,
+    gitBranch: null,
   });
 
   const logsEndRef = useRef<HTMLDivElement>(null);
@@ -38,8 +47,12 @@ export default function App() {
   useEffect(() => {
     // Check connection status
     chrome.runtime.sendMessage({ type: 'get_connection_status' }, (response) => {
-      if (response?.connected !== undefined) {
-        setState(s => ({ ...s, connected: response.connected }));
+      if (response) {
+        setState(s => ({
+          ...s,
+          connected: response.connected ?? false,
+          gitBranch: response.gitBranch ?? null,
+        }));
       }
     });
 
@@ -49,13 +62,34 @@ export default function App() {
         setState(s => ({ ...s, settings: response.settings }));
       }
     });
+
+    // Restore task state (logs buffered while side panel was closed)
+    chrome.runtime.sendMessage({ type: 'get_task_status' }, (response) => {
+      if (response?.taskId) {
+        const prompt = response.prompt || 'External task';
+        const restoredLogs = response.logs?.length
+          ? response.logs
+          : [{ level: 'info' as const, message: `▶ ${prompt}`, ts: Date.now() }];
+        setState(s => ({
+          ...s,
+          taskStatus: response.status === 'running' ? 'running' : s.taskStatus,
+          taskId: response.taskId,
+          taskPrompt: prompt,
+          logs: restoredLogs,
+        }));
+      }
+    });
   }, []);
 
   // Listen for messages from background
   useEffect(() => {
     const handleMessage = (message: any) => {
       if (message.type === 'connection_status') {
-        setState(s => ({ ...s, connected: message.connected }));
+        setState(s => ({
+          ...s,
+          connected: message.connected,
+          gitBranch: message.gitBranch ?? s.gitBranch,
+        }));
         return;
       }
 
@@ -84,17 +118,20 @@ export default function App() {
       const event = message as DaemonEvent;
 
       switch (event.type) {
-        case 'task.started':
+        case 'task.started': {
+          const prompt = (event as any).prompt || 'External task';
           setState(s => ({
             ...s,
             taskStatus: 'running',
             taskId: event.taskId,
-            taskPrompt: (event as any).prompt || 'External task',
-            logs: [],
+            taskPrompt: prompt,
+            logs: [{ level: 'info', message: `▶ ${prompt}`, ts: Date.now() }],
             inputQuestion: null,
             inputChoices: [],
+            progress: null,
           }));
           break;
+        }
 
         case 'task.log':
           setState(s => ({
@@ -109,6 +146,13 @@ export default function App() {
             taskStatus: 'waiting_input',
             inputQuestion: event.question,
             inputChoices: event.choices,
+          }));
+          break;
+
+        case 'task.progress':
+          setState(s => ({
+            ...s,
+            progress: { current: event.current, total: event.total, label: (event as any).label },
           }));
           break;
 
@@ -127,6 +171,7 @@ export default function App() {
               taskPrompt: null,
               inputQuestion: null,
               inputChoices: [],
+              progress: null,
             }));
           }, 3000);
           break;
@@ -138,7 +183,7 @@ export default function App() {
             logs: [...s.logs, { level: 'error', message: `❌ ${event.message}`, ts: Date.now() }],
           }));
           setTimeout(() => {
-            setState(s => ({ ...s, taskStatus: 'idle', taskId: null, taskPrompt: null }));
+            setState(s => ({ ...s, taskStatus: 'idle', taskId: null, taskPrompt: null, progress: null }));
           }, 3000);
           break;
       }
@@ -148,10 +193,57 @@ export default function App() {
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, []);
 
+  // Poll task status as fallback (sendMessage from SW may not reach side panel reliably)
+  useEffect(() => {
+    if (state.taskStatus !== 'running' && state.taskStatus !== 'waiting_input') return;
+
+    const interval = setInterval(() => {
+      chrome.runtime.sendMessage({ type: 'get_task_status' }, (response) => {
+        if (chrome.runtime.lastError) return;
+        if (!response?.taskId) {
+          // Task ended while we weren't notified
+          setState(s => s.taskId ? ({
+            ...s,
+            taskStatus: 'idle',
+            taskId: null,
+            taskPrompt: null,
+            progress: null,
+          }) : s);
+          return;
+        }
+        // Sync logs from buffer if we have fewer
+        if (response.logs && response.logs.length > 0) {
+          setState(s => {
+            // Background buffer has authoritative log count (excluding our synthetic ▶ line)
+            const bgCount = response.logs.length;
+            const localReal = s.logs.filter((l: TaskLog) => !l.message.startsWith('▶')).length;
+            if (bgCount > localReal) {
+              // Prepend ▶ line, then use background buffer
+              const prompt = response.prompt || s.taskPrompt || 'External task';
+              return {
+                ...s,
+                logs: [
+                  { level: 'info' as const, message: `▶ ${prompt}`, ts: s.logs[0]?.ts || Date.now() },
+                  ...response.logs,
+                ],
+              };
+            }
+            return s;
+          });
+        }
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [state.taskStatus]);
+
   // Auto-scroll logs
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state.logs]);
+
+  // handleRunTask — reserved for future IDE integration
+  // const handleRunTask = async (prompt: string, image?: string) => { ... };
 
   const handleChoice = async (choiceId: string) => {
     if (!state.taskId) return;
@@ -214,69 +306,53 @@ export default function App() {
     setState(s => ({ ...s, doneCountdown: null }));
   };
 
+  const handleCancelTask = async () => {
+    if (!state.taskId) return;
+
+    try {
+      await fetch(`${DAEMON_API_URL}/agent/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: state.taskId }),
+      });
+
+      setState(s => ({
+        ...s,
+        taskStatus: 'idle',
+        taskId: null,
+        taskPrompt: null,
+        inputQuestion: null,
+        inputChoices: [],
+        progress: null,
+      }));
+    } catch (error) {
+      console.error('Failed to cancel task:', error);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-focus-bg">
       <Header
         connected={state.connected}
-        taskStatus={state.taskStatus}
-        homeTabSet={!!state.settings?.homeTabId}
-        onSetHomeTab={handleSetHomeTab}
-        onClearHomeTab={handleClearHomeTab}
+        gitBranch={state.gitBranch}
       />
 
+      {/* TaskInput hidden — reserved for future IDE integration */}
+
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Status Monitor Panel */}
-        <div className="p-4 border-b border-gray-800">
-          {state.taskStatus === 'idle' && !state.taskPrompt && (
-            <div className="text-center text-gray-500 py-8">
-              <div className="text-4xl mb-2">👀</div>
-              <p className="text-sm">Waiting for agent activity...</p>
-              <p className="text-xs mt-2 text-gray-600">
-                Claude Code や Cursor でタスクを実行すると<br/>
-                ここに状態が表示されます
-              </p>
-            </div>
-          )}
-
-          {state.taskStatus === 'running' && state.taskPrompt && (
-            <div className="bg-blue-900/30 rounded-lg p-3 border border-blue-700/50">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <span className="text-blue-400 text-sm font-medium">Running</span>
-              </div>
-              <p className="text-white text-sm truncate">{state.taskPrompt}</p>
-            </div>
-          )}
-
-          {state.taskStatus === 'waiting_input' && (
-            <div className="bg-yellow-900/30 rounded-lg p-3 border border-yellow-700/50">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                <span className="text-yellow-400 text-sm font-medium">Input Required</span>
-              </div>
-              <p className="text-white text-sm">{state.inputQuestion}</p>
-            </div>
-          )}
-
-          {state.taskStatus === 'done' && (
-            <div className="bg-green-900/30 rounded-lg p-3 border border-green-700/50">
-              <div className="flex items-center gap-2">
-                <span className="text-green-400 text-sm font-medium">✓ Completed</span>
-              </div>
-            </div>
-          )}
-
-          {state.taskStatus === 'error' && (
-            <div className="bg-red-900/30 rounded-lg p-3 border border-red-700/50">
-              <div className="flex items-center gap-2">
-                <span className="text-red-400 text-sm font-medium">✕ Error</span>
-              </div>
-            </div>
-          )}
-        </div>
-
         <TerminalOutput logs={state.logs} />
         <div ref={logsEndRef} />
+      </div>
+
+      {/* Footer: Set Home Tab */}
+      <div className="px-4 pb-4">
+        <button
+          onClick={state.settings?.homeTabId ? handleClearHomeTab : handleSetHomeTab}
+          className="w-full py-3 border border-dashed border-focus-border rounded-xl text-text-secondary text-sm font-medium flex items-center justify-center gap-2 hover:border-focus-primary hover:text-focus-primary transition-colors"
+        >
+          <span className="material-symbols-outlined text-lg">home_app_logo</span>
+          {state.settings?.homeTabId ? t('sidepanel.clearHomeTab') : t('sidepanel.setCurrentTabAsHome')}
+        </button>
       </div>
 
       {/* Action Required Modal */}
@@ -285,6 +361,8 @@ export default function App() {
           question={state.inputQuestion}
           choices={state.inputChoices}
           onChoice={handleChoice}
+          onCancel={handleCancelTask}
+          progress={state.progress}
         />
       )}
 
