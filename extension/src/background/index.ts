@@ -238,8 +238,10 @@ async function handleNeedInput(_taskId: string, question: string): Promise<void>
   // Always show notification
   await showNotification('🟡 Input Required', question);
 
-  // Input required notification only - no auto-focus
-  // User will see the notification and return when ready
+  if (!settings.enabled) return;
+
+  // Focus IDE when input is required (always, not gated by enableDoneFocus)
+  await focusHomeTab();
 }
 
 async function handleDone(taskId: string, summary: string): Promise<void> {
