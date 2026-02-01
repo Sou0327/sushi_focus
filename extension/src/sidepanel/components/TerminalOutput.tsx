@@ -1,5 +1,7 @@
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/i18n/TranslationContext';
 import type { TaskLog } from '@/shared/types';
+import { isAIMessage, isUserPrompt, isSuccessMessage } from '@/utils/logMessageUtils';
 
 interface TerminalOutputProps {
   logs: TaskLog[];
@@ -33,16 +35,25 @@ function getLogStyle(level: string, message: string) {
   }
 }
 
-function isAIMessage(message: string): boolean {
-  return message.includes('[AI]') || message.includes('Analyzing') || message.includes('Identified');
-}
-
-function isSuccessMessage(message: string): boolean {
-  return message.includes('passed') || message.includes('success') || message.startsWith('✅');
-}
-
 export function TerminalOutput({ logs }: TerminalOutputProps) {
   const { t } = useTranslation();
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Update current time every second for the blinking cursor timestamp
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-scroll to bottom when logs change
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   if (logs.length === 0) {
     return (
@@ -75,10 +86,11 @@ export function TerminalOutput({ logs }: TerminalOutputProps) {
           <span className="w-3 h-3 rounded-full bg-green-500/60" />
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-3">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-3">
         {logs.map((log, index) => {
           const style = getLogStyle(log.level, log.message);
           const ai = isAIMessage(log.message);
+          const user = isUserPrompt(log.message);
           const success = isSuccessMessage(log.message);
 
           if (style.isCommand) {
@@ -87,6 +99,21 @@ export function TerminalOutput({ logs }: TerminalOutputProps) {
                 <span className="text-dim select-none shrink-0">[{formatTime(log.ts)}]</span>
                 <div className="flex-1">
                   <span className="text-heading font-medium">{log.message}</span>
+                </div>
+              </div>
+            );
+          }
+
+          if (user) {
+            return (
+              <div key={index} className="group py-1 hover:bg-white/5 rounded px-2 -mx-2 transition-colors">
+                <div className="flex gap-3">
+                  <span className="text-dim select-none shrink-0">[{formatTime(log.ts)}]</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-emerald-400 text-sm">person</span>
+                    <span className="text-emerald-400 font-bold text-xs">USER</span>
+                    <span className="text-emerald-300 ml-1">{log.message.replace('[USER] ', '')}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -126,7 +153,7 @@ export function TerminalOutput({ logs }: TerminalOutputProps) {
         })}
         {/* Blinking cursor */}
         <div className="flex gap-3 py-1 px-2 -mx-2">
-          <span className="text-dim select-none shrink-0">[{formatTime(Date.now())}]</span>
+          <span className="text-dim select-none shrink-0">[{formatTime(currentTime)}]</span>
           <span className="w-2 h-4 bg-focus-primary animate-cursor-blink" />
         </div>
       </div>
