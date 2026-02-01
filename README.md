@@ -82,14 +82,6 @@ You should see:
 
 Or click the Side Panel icon (📋) in Chrome and select FocusFlow.
 
-### Step 6: Set Home Tab
-
-1. Open the tab you use for development (VSCode, terminal, etc.)
-2. Click "**Set as Home**" in the Side Panel
-3. This tab is now your "home tab"
-
-> Home tab = the tab you automatically return to when input is needed or tasks complete
-
 ## Usage
 
 ### Sending Events from Your Agent
@@ -169,13 +161,13 @@ curl -X POST http://127.0.0.1:3000/agent/start \
 ### Input Required (need_input)
 
 - When agent sends `/agent/need-input`, a modal appears
-- In Force mode, automatically returns to home tab
+- Automatically returns focus to IDE
 
 ### Task Complete (done)
 
 - When browsing distraction sites (YouTube, etc.) and `/agent/done` arrives:
   1. 1.5-second countdown displays
-  2. Automatically returns to home tab unless "Cancel" is pressed
+  2. Automatically returns focus to IDE unless "Cancel" is pressed
 - When on development sites, only shows notification (no auto-return)
 
 ## Daemon API
