@@ -35,3 +35,6 @@ coverage/
 
 # Chrome extension unpacked
 extension/dist/
+
+# Claude Code state
+.claude/
