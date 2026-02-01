@@ -1,54 +1,58 @@
-# FocusFlow 🎯
+# FocusFlow
 
-Chrome拡張 + ローカルDaemon による「ながら開発OS」。
-エディタでAIエージェント（Claude Code, Cursor等）が作業する間、別サイト閲覧を許容しつつ、入力が必要な瞬間・完了時に自動で開発タブへ復帰させる。
+[![CI](https://github.com/Sou0327/focus_flow/actions/workflows/ci.yml/badge.svg)](https://github.com/Sou0327/focus_flow/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## アーキテクチャ
+[日本語](README.ja.md)
+
+A Chrome Extension + Local Daemon system for "distraction-aware development." It monitors AI agent (Claude Code, Cursor, etc.) work status and automatically returns browser focus to your development tab when input is required or tasks complete.
+
+## Architecture
 
 ```
 ┌─────────────────┐     HTTP POST      ┌─────────────────┐    WebSocket    ┌─────────────────┐
-│   Claude Code   │ ───────────────▶ │     Daemon      │ ───────────────▶ │  Chrome拡張     │
-│   Cursor 等     │   /agent/start    │  localhost:3000 │  task.started   │  Side Panel     │
-│                 │   /agent/log      │                 │  task.log       │  監視ダッシュボード │
+│   Claude Code   │ ───────────────▶ │     Daemon      │ ───────────────▶ │  Chrome Ext     │
+│   Cursor etc.   │   /agent/start    │  localhost:3000 │  task.started   │  Side Panel     │
+│                 │   /agent/log      │                 │  task.log       │  Dashboard      │
 │                 │   /agent/need-input│                │  task.need_input│                 │
 │                 │   /agent/done     │                 │  task.done      │                 │
 └─────────────────┘                   └─────────────────┘                 └─────────────────┘
 ```
 
-**エディタで作業 → Daemonに通知 → 拡張が状態表示＆自動復帰**
+**Editor work → Daemon notification → Extension shows status & auto-returns focus**
 
-## 前提条件
+## Prerequisites
 
-- **Node.js** 20以上
-- **pnpm** 9以上（なければ `npm install -g pnpm` でインストール）
-- **Google Chrome** ブラウザ
+- **Node.js** 20+
+- **pnpm** 9+ (install with `npm install -g pnpm`)
+- **Google Chrome** browser
 
-## クイックスタート
+## Quick Start
 
-### Step 1: 依存関係のインストール
+### Step 1: Install Dependencies
 
 ```bash
 cd FocusFlow
 pnpm install
 ```
 
-### Step 2: ビルド
+### Step 2: Build
 
 ```bash
-# Daemon（ローカルサーバー）をビルド
+# Build daemon (local server)
 pnpm build:daemon
 
-# Chrome拡張をビルド
+# Build Chrome extension
 pnpm build:extension
 ```
 
-### Step 3: Daemonを起動
+### Step 3: Start Daemon
 
 ```bash
 pnpm dev:daemon
 ```
 
-以下のメッセージが表示されれば成功：
+You should see:
 
 ```text
 ╔═══════════════════════════════════════════════════════════╗
@@ -60,82 +64,81 @@ pnpm dev:daemon
 ╚═══════════════════════════════════════════════════════════╝
 ```
 
-> **注意**: Daemonは別ターミナルで起動したままにしておいてください。
+> **Note**: Keep the daemon running in a separate terminal.
 
-### Step 4: Chrome拡張をインストール
+### Step 4: Install Chrome Extension
 
-1. Chromeで `chrome://extensions` を開く
-2. 右上の「**デベロッパーモード**」をONにする
-3. 「**パッケージ化されていない拡張機能を読み込む**」をクリック
-4. `FocusFlow/extension/dist` フォルダを選択
-5. FocusFlowアイコンが追加されていることを確認
+1. Open `chrome://extensions` in Chrome
+2. Enable "**Developer mode**" (top right)
+3. Click "**Load unpacked**"
+4. Select the `FocusFlow/extension/dist` folder
+5. Verify the FocusFlow icon appears in your toolbar
 
-### Step 5: Side Panelを開く
+### Step 5: Open Side Panel
 
-1. Chromeのツールバーで FocusFlow アイコンをクリック
-2. ポップアップが表示される
-3. 「**Open Panel**」ボタンをクリック
-4. 右側にSide Panelが開く
+1. Click the FocusFlow icon in Chrome toolbar
+2. Click "**Open Panel**" in the popup
+3. Side Panel opens on the right
 
-または、Chrome右上の「サイドパネル」アイコン（📋）から FocusFlow を選択。
+Or click the Side Panel icon (📋) in Chrome and select FocusFlow.
 
-### Step 6: ホームタブを設定
+### Step 6: Set Home Tab
 
-1. 開発で使うタブ（VSCode、ターミナルなど）を開く
-2. Side Panelの「**Set as Home**」ボタンをクリック
-3. このタブが「ホームタブ」として登録される
+1. Open the tab you use for development (VSCode, terminal, etc.)
+2. Click "**Set as Home**" in the Side Panel
+3. This tab is now your "home tab"
 
-> ホームタブ = 入力待ち/完了時に自動で戻ってくるタブ
+> Home tab = the tab you automatically return to when input is needed or tasks complete
 
-## 使い方
+## Usage
 
-### エージェントからDaemonに通知
+### Sending Events from Your Agent
 
-エディタ（Claude Code, Cursor等）の作業状況をDaemonに送信すると、拡張機能に表示されます。
+Send work status from your editor (Claude Code, Cursor, etc.) to the daemon:
 
-#### curl で直接送信
+#### Using curl
 
 ```bash
-# タスク開始
+# Start task
 curl -X POST http://127.0.0.1:3000/agent/start \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","prompt":"Fix authentication bug"}'
 
-# ログ出力
+# Log output
 curl -X POST http://127.0.0.1:3000/agent/log \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","message":"Analyzing codebase..."}'
 
-# 入力待ち（自動復帰トリガー）
+# Need input (triggers auto-return)
 curl -X POST http://127.0.0.1:3000/agent/need-input \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","question":"Which approach should I use?"}'
 
-# タスク完了（自動復帰トリガー）
+# Task complete (triggers auto-return)
 curl -X POST http://127.0.0.1:3000/agent/done \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","summary":"Fixed 3 files"}'
 ```
 
-#### スクリプトを使用
+#### Using the Script
 
 ```bash
-# タスク開始
+# Start task
 ./scripts/focusflow-notify.sh start --prompt "Fix authentication bug"
 
-# ログ出力
+# Log output
 ./scripts/focusflow-notify.sh log --message "Analyzing codebase..."
 
-# 入力待ち
+# Need input
 ./scripts/focusflow-notify.sh need-input --question "Which approach?"
 
-# 完了
+# Complete
 ./scripts/focusflow-notify.sh done --summary "Fixed 3 files"
 ```
 
-### Claude Code との連携
+### Claude Code Integration
 
-1. `~/.claude/settings.json` にhooksを追加:
+1. Add hooks to `~/.claude/settings.json`:
 
 ```json
 {
@@ -155,7 +158,7 @@ curl -X POST http://127.0.0.1:3000/agent/done \
 }
 ```
 
-2. セッション開始時にタスク開始を通知:
+2. Notify task start at session beginning:
 
 ```bash
 curl -X POST http://127.0.0.1:3000/agent/start \
@@ -163,35 +166,35 @@ curl -X POST http://127.0.0.1:3000/agent/start \
   -d '{"taskId":"claude","prompt":"Claude Code Session"}'
 ```
 
-### 入力が必要な場合（need_input）
+### Input Required (need_input)
 
-- エージェントが `/agent/need-input` を送信すると、モーダルが表示される
-- Forceモードの場合、自動でホームタブに戻る
+- When agent sends `/agent/need-input`, a modal appears
+- In Force mode, automatically returns to home tab
 
-### タスク完了時（done）
+### Task Complete (done)
 
-- 脱線サイト（YouTube等）を見ている時に `/agent/done` が来ると：
-  1. 1.5秒のカウントダウンが表示される
-  2. 「Cancel」を押さなければ自動でホームタブに戻る
-- 開発サイトを見ている時は通知のみ（自動復帰なし）
+- When browsing distraction sites (YouTube, etc.) and `/agent/done` arrives:
+  1. 1.5-second countdown displays
+  2. Automatically returns to home tab unless "Cancel" is pressed
+- When on development sites, only shows notification (no auto-return)
 
 ## Daemon API
 
-### External Agent API（IDE連携用）
+### External Agent API (for IDE Integration)
 
-外部エージェント（Claude Code, Cursor等）からイベントを送信するためのエンドポイント。
+Endpoints for external agents (Claude Code, Cursor, etc.) to send events.
 
-| エンドポイント | メソッド | 説明 |
-| -------------- | -------- | ---- |
-| `/health` | GET | ヘルスチェック（`{ok, version, gitBranch}`） |
-| `/agent/start` | POST | タスク開始 |
-| `/agent/log` | POST | ログ出力 |
-| `/agent/need-input` | POST | 入力待ち（自動復帰トリガー） |
-| `/agent/done` | POST | タスク完了（自動復帰トリガー） |
-| `/agent/cancel` | POST | タスクキャンセル |
-| `/agent/progress` | POST | 進捗報告 |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/health` | GET | Health check (`{ok, version, gitBranch}`) |
+| `/agent/start` | POST | Start task |
+| `/agent/log` | POST | Log output |
+| `/agent/need-input` | POST | Need input (triggers auto-return) |
+| `/agent/done` | POST | Task complete (triggers auto-return) |
+| `/agent/cancel` | POST | Cancel task |
+| `/agent/progress` | POST | Report progress |
 
-#### リクエスト形式
+#### Request Format
 
 ```typescript
 // POST /agent/start
@@ -213,39 +216,39 @@ curl -X POST http://127.0.0.1:3000/agent/start \
 { taskId: string, current: number, total: number, label?: string }
 ```
 
-### Internal Task API（内部タスク管理）
+### Internal Task API
 
-Daemon内部でタスクを作成・管理するためのエンドポイント。
+Endpoints for internal task management.
 
-| エンドポイント | メソッド | 説明 |
-| -------------- | -------- | ---- |
-| `/tasks` | POST | タスク作成（`{repoId, prompt}`） |
-| `/tasks/current` | GET | 現在のタスク取得 |
-| `/tasks/:id/cancel` | POST | タスクキャンセル |
-| `/tasks/:id/choice` | POST | 入力待ちへの選択肢送信（`{choiceId}`） |
-| `/repos` | GET | リポジトリ一覧 |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/tasks` | POST | Create task (`{repoId, prompt}`) |
+| `/tasks/current` | GET | Get current task |
+| `/tasks/:id/cancel` | POST | Cancel task |
+| `/tasks/:id/choice` | POST | Send choice for input (`{choiceId}`) |
+| `/repos` | GET | List repositories |
 
-### Focus Settings API（IDE自動フォーカス設定）
+### Focus Settings API
 
-Daemon側でIDEウィンドウに自動フォーカスする機能の制御。`.env` で初期値設定。
+Control auto-focus to IDE window. Set initial values in `.env`.
 
-| エンドポイント | メソッド | 説明 |
-| -------------- | -------- | ---- |
-| `/focus/settings` | GET | 現在のフォーカス設定取得 |
-| `/focus/settings` | POST | フォーカス設定更新 |
-| `/focus/now` | POST | 手動で即座にIDEにフォーカス |
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/focus/settings` | GET | Get current focus settings |
+| `/focus/settings` | POST | Update focus settings |
+| `/focus/now` | POST | Manually focus IDE immediately |
 
 ```bash
-# .env 設定例
-FOCUS_ENABLED=true         # フォーカス機能の有効/無効
-FOCUS_APP=Cursor           # フォーカス対象アプリ（Code, Cursor, Terminal, iTerm）
-FOCUS_ON_NEED_INPUT=true   # need-input時に自動フォーカスするか
-FOCUS_ON_DONE=true         # done時に自動フォーカスするか
+# .env example
+FOCUS_ENABLED=true         # Enable/disable focus feature
+FOCUS_APP=Cursor           # Target app (Code, Cursor, Terminal, iTerm)
+FOCUS_ON_NEED_INPUT=true   # Auto-focus on need-input
+FOCUS_ON_DONE=true         # Auto-focus on done
 ```
 
-### WebSocketイベント型
+### WebSocket Event Types
 
-Daemonが `ws://127.0.0.1:3000/ws` を通じてブロードキャストするイベント。
+Events broadcast by daemon via `ws://127.0.0.1:3000/ws`.
 
 ```typescript
 type DaemonEvent =
@@ -257,89 +260,69 @@ type DaemonEvent =
   | { type: 'task.progress',   taskId: string, current: number, total: number, label?: string }
 ```
 
-## モード設定
+## Troubleshooting
 
-ポップアップまたはOptionsで切り替え可能：
+### "Offline" Status Displayed
 
-| モード | 動作 |
-| ------ | ---- |
-| **Quiet** | 通知のみ（自動復帰なし） |
-| **Normal** | 通知 + Side Panel強調（自動復帰なし） |
-| **Force** | 通知 + 自動復帰（推奨） |
-
-## 脱線ドメイン
-
-以下のサイトを閲覧中にタスクが完了すると、自動復帰が発動します：
-
-- netflix.com
-- tiktok.com
-- youtube.com
-- x.com / twitter.com
-- instagram.com
-- twitch.tv
-- reddit.com
-
-Options画面（⚙️ Settings）から追加・削除可能。
-
-## トラブルシューティング
-
-### 「Offline」と表示される
-
-Daemonが起動していない可能性があります：
+Daemon may not be running:
 
 ```bash
-# Daemonを起動
+# Start daemon
 pnpm dev:daemon
 ```
 
-### Side Panelが開かない
+### Side Panel Won't Open
 
-1. `chrome://extensions` で拡張を再読み込み
-2. Chromeを再起動
+1. Reload extension at `chrome://extensions`
+2. Restart Chrome
 
-### ビルドエラーが出る
+### Build Errors
 
 ```bash
-# node_modulesを削除して再インストール
+# Remove node_modules and reinstall
 rm -rf node_modules extension/node_modules daemon/node_modules
 pnpm install
 pnpm build
 ```
 
-## 開発者向け
+## Development
 
-### 開発モード
+### Development Mode
 
 ```bash
-# Daemon（ホットリロード）
+# Daemon (hot reload)
 pnpm dev:daemon
 
-# 拡張の変更後は手動リロード
-# chrome://extensions で FocusFlow の🔄ボタンをクリック
+# After extension changes, manually reload
+# Click the 🔄 button on FocusFlow at chrome://extensions
 ```
 
-### プロジェクト構造
+### Project Structure
 
 ```text
 FocusFlow/
-├── extension/          # Chrome拡張 (MV3)
+├── extension/          # Chrome Extension (MV3)
 │   ├── src/
 │   │   ├── background/ # Service Worker
-│   │   ├── sidepanel/  # 監視ダッシュボード
-│   │   ├── popup/      # モード切替
-│   │   ├── options/    # 設定画面
-│   │   └── shared/     # 共有型定義
-│   └── dist/           # ビルド出力
-├── daemon/             # ローカル常駐サーバー
+│   │   ├── sidepanel/  # Dashboard
+│   │   ├── popup/      # Mode switcher
+│   │   ├── options/    # Settings page
+│   │   └── shared/     # Shared type definitions
+│   └── dist/           # Build output
+├── daemon/             # Local server
 │   └── src/
 │       ├── server/     # Express + WebSocket
-│       └── task/       # タスク管理
-├── scripts/            # 連携スクリプト
-│   ├── focusflow-notify.sh    # 通知スクリプト
-│   └── claude-code-hooks.json # Claude Code hooks例
-└── package.json        # ワークスペース設定
+│       └── task/       # Task management
+├── scripts/            # Integration scripts
+│   ├── focusflow-notify.sh    # Notification script
+│   └── claude-code-hooks.json # Claude Code hooks example
+└── package.json        # Workspace config
 ```
 
-## ライセンス
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+
+## License
 
 MIT
