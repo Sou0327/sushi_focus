@@ -58,7 +58,27 @@ Claude Code/Cursor  →  POST /agent/*  →  Daemon (Express+WS)  →  Chrome Ex
 
 ### Scripts (`scripts/`)
 - `focusflow-notify.sh` — CLI for sending events to daemon
-- `claude-code-hooks.json` — Example Claude Code hooks config
+- `claude-code-hooks.json` — Example Claude Code hooks config (reference only)
+
+### Claude Code Hooks
+FocusFlow uses Claude Code hooks to detect session events.
+
+**Important**: Hooks must be defined in `.claude/settings.local.json`, NOT in `~/.claude/hooks.json` or `scripts/claude-code-hooks.json`.
+
+```json
+// .claude/settings.local.json
+{
+  "hooks": {
+    "SessionStart": [...],      // Session started
+    "UserPromptSubmit": [...],  // User sent a prompt
+    "PostToolUse": [...],       // Tool execution completed
+    "Stop": [...],              // Session ended
+    "PreCompact": [...]         // Before context compaction
+  }
+}
+```
+
+Hooks use `jq` to parse stdin JSON and `curl` to send events to daemon.
 
 ## Coding Principles
 
