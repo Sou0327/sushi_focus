@@ -1,5 +1,5 @@
 {
-  "name": "suchi-focus",
+  "name": "sushi-focus",
   "version": "0.1.0",
   "private": true,
   "description": "Chrome extension + local daemon for distraction-aware development 🍣",
@@ -8,10 +8,10 @@
     "daemon"
   ],
   "scripts": {
-    "dev:extension": "pnpm --filter suchi-focus-extension dev",
-    "dev:daemon": "pnpm --filter suchi-focus-daemon dev",
-    "build:extension": "pnpm --filter suchi-focus-extension build",
-    "build:daemon": "pnpm --filter suchi-focus-daemon build",
+    "dev:extension": "pnpm --filter sushi-focus-extension dev",
+    "dev:daemon": "pnpm --filter sushi-focus-daemon dev",
+    "build:extension": "pnpm --filter sushi-focus-extension build",
+    "build:daemon": "pnpm --filter sushi-focus-daemon build",
     "build": "pnpm build:daemon && pnpm build:extension",
     "dev": "concurrently \"pnpm dev:daemon\" \"pnpm dev:extension\"",
     "lint": "pnpm -r lint",
