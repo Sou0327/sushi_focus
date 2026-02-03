@@ -1,144 +1,144 @@
 {
   "common": {
-    "focusFlow": "FocusFlow",
-    "loading": "Loading...",
-    "settings": "Settings",
-    "saving": "Saving...",
-    "saved": "Saved",
-    "add": "Add",
+    "focusFlow": "Sushi Focus 🍣",
+    "loading": "Rolling sushi...",
+    "settings": "Menu",
+    "saving": "Plating...",
+    "saved": "Served!",
+    "add": "Order",
     "seconds": "seconds",
     "minutes": "minutes"
   },
   "nav": {
-    "focusRules": "Focus Rules",
-    "timerConfig": "Timer Config",
-    "blocklist": "Blocklist",
-    "generalSettings": "General Settings"
+    "focusRules": "Chef's Rules",
+    "timerConfig": "Kitchen Timer",
+    "blocklist": "No-Go Fish",
+    "generalSettings": "House Rules"
   },
   "options": {
-    "resetDefaults": "Reset Defaults",
+    "resetDefaults": "Reset Menu",
     "focus": {
       "title": "Focus Settings",
-      "description": "Configure how FocusFlow manages your environment during deep work sessions. Customize automation triggers and cooldown periods.",
-      "behaviorTitle": "Focus Behavior",
+      "description": "Configure how Sushi Focus manages your omakase experience. Customize when the chef calls you back to the counter.",
+      "behaviorTitle": "Omakase Style",
       "autoReturn": "Auto-return to IDE on completion",
-      "autoReturnDesc": "Automatically focus IDE when task completes",
+      "autoReturnDesc": "Chef calls you back when your dish is ready",
       "alwaysReturn": "Always return to IDE",
-      "alwaysReturnDesc": "Return to IDE even when not on a distraction site",
+      "alwaysReturnDesc": "Chef insists you stay at the counter",
       "aiBlocking": "Force return during AI gen",
-      "aiBlockingDesc": "Force return to IDE when on distraction sites during AI generation"
+      "aiBlockingDesc": "No wandering while the rice is cooking"
     },
     "timer": {
-      "title": "Cooldown & Timing",
+      "title": "Kitchen Timing",
       "description": "Configure countdown and cooldown durations for focus sessions.",
-      "sectionTitle": "Cooldown & Timing",
+      "sectionTitle": "Kitchen Timing",
       "returnCountdown": "Return Countdown",
-      "returnCountdownDesc": "Delay before forcing focus back to IDE.",
-      "focusCooldown": "Focus Cooldown",
-      "focusCooldownDesc": "Minimum break time between heavy focus sessions."
+      "returnCountdownDesc": "Time before chef calls you back.",
+      "focusCooldown": "Palate Cleanser",
+      "focusCooldownDesc": "Minimum break between intense focus sessions."
     },
     "blocklist": {
-      "title": "Distraction Domains",
-      "description": "Manage the list of websites that trigger auto-return when tasks complete.",
-      "sectionTitle": "Distraction Domains",
+      "title": "No-Go Fish List",
+      "description": "Domains that trigger auto-return. These are the places you shouldn't wander to during service.",
+      "sectionTitle": "Banned from the Bar",
       "placeholder": "Add a domain (e.g. twitter.com)...",
-      "blockedList": "Blocked List",
-      "empty": "No distraction domains configured"
+      "blockedList": "86'd List",
+      "empty": "No domains banned yet"
     },
     "general": {
-      "title": "General Settings",
+      "title": "House Rules",
       "description": "Connection management and system settings.",
-      "daemonConnection": "Daemon Connection",
-      "daemonConnectionDesc": "The daemon should be running at http://127.0.0.1:41593",
-      "reconnect": "Reconnect",
-      "resetToDefaults": "Reset to Defaults",
-      "resetToDefaultsDesc": "Restore all settings to their default values",
-      "resetSettings": "Reset Settings",
+      "daemonConnection": "Kitchen Connection",
+      "daemonConnectionDesc": "The itamae should be working at http://127.0.0.1:41593",
+      "reconnect": "Call Chef",
+      "resetToDefaults": "Reset Menu",
+      "resetToDefaultsDesc": "Restore all settings to house defaults",
+      "resetSettings": "Fresh Start",
       "language": "Language",
       "languageDesc": "Choose the display language",
-      "theme": "Theme",
-      "themeDesc": "Choose the color theme",
-      "logVerbosity": "Log Verbosity",
-      "logVerbosityDesc": "Control how much detail is shown in the side panel terminal",
+      "theme": "Ambiance",
+      "themeDesc": "Set the mood",
+      "logVerbosity": "Kitchen Chatter",
+      "logVerbosityDesc": "How much detail from the kitchen",
       "logLevel": {
-        "minimal": "Minimal",
-        "normal": "Normal",
-        "verbose": "Verbose"
+        "minimal": "Zen",
+        "normal": "Regular",
+        "verbose": "Lively"
       }
     },
     "daemon": {
-      "active": "Daemon Active",
-      "offline": "Daemon Offline",
-      "offlineStatus": "Offline"
+      "active": "Chef's In!",
+      "offline": "Kitchen Closed",
+      "offlineStatus": "Closed"
     }
   },
   "popup": {
-    "active": "Active",
-    "paused": "Paused",
-    "operatingMode": "Operating Mode",
+    "active": "Fresh 🍣",
+    "paused": "On Ice 🧊",
+    "operatingMode": "Service Style",
     "modes": {
-      "quiet": "Quiet",
-      "normal": "Normal",
-      "force": "Force"
+      "quiet": "Omakase",
+      "normal": "Regular",
+      "force": "Wasabi Max 🔥"
     },
     "status": "Status",
-    "agentPrefix": "Agent:",
-    "activeTask": "Active Task",
-    "activeTaskFallback": "Active Task",
+    "agentPrefix": "Chef:",
+    "activeTask": "Now Preparing",
+    "activeTaskFallback": "Preparing...",
     "elapsedMinutes": "{mins}m {secs}s",
     "elapsedSeconds": "{secs}s",
-    "taskComplete": "Task Complete",
-    "taskError": "Task Error",
-    "noActiveTask": "No active task",
-    "daemonConnected": "Daemon connected",
-    "daemonOffline": "Daemon offline",
-    "quickActions": "Quick Actions",
-    "openSidePanel": "Open Side Panel",
-    "setTabAsHome": "Set Tab as Home"
+    "taskComplete": "Served!",
+    "taskError": "Dropped the Plate",
+    "noActiveTask": "Kitchen idle",
+    "daemonConnected": "Chef's in!",
+    "daemonOffline": "Kitchen closed",
+    "quickActions": "Quick Orders",
+    "openSidePanel": "View Kitchen",
+    "setTabAsHome": "Set as Counter Seat"
   },
   "sidepanel": {
-    "clearHomeTab": "Clear Home Tab",
-    "setCurrentTabAsHome": "Set current tab as Home"
+    "clearHomeTab": "Leave Counter",
+    "setCurrentTabAsHome": "Sit at Counter"
   },
   "header": {
-    "connected": "CONNECTED",
-    "offline": "OFFLINE",
-    "daemonName": "FocusFlow Daemon"
+    "connected": "OPEN",
+    "offline": "CLOSED",
+    "daemonName": "Itamae (Master Chef)"
   },
   "taskInput": {
-    "placeholder": "Describe task or select preset...",
-    "attachImage": "Attach image",
+    "placeholder": "Place your order or pick a preset...",
+    "attachImage": "Show the chef",
     "presets": {
       "fixBug": "Fix Bug",
-      "runTests": "Run Tests",
-      "refactor": "Refactor",
+      "runTests": "Quality Check",
+      "refactor": "Fresh Cut",
       "fixBugTemplate": "Investigate and fix the bug: ",
       "runTestsTemplate": "Run the test suite and report results",
-      "refactorTemplate": "Refactor the following code for better maintainability: "
+      "refactorTemplate": "Refactor this for better quality: "
     }
   },
   "terminal": {
-    "title": "Terminal Output",
-    "ready": "Ready to focus",
-    "readyHint": "Waiting for events from IDE"
+    "title": "Kitchen View",
+    "ready": "Rice is warm 🍚",
+    "readyHint": "Waiting for orders from IDE"
   },
   "actionRequired": {
-    "title": "Action Required",
-    "cancelTask": "Cancel Task",
-    "sessionProgress": "Session Progress",
-    "paused": "Paused"
+    "title": "Chef Needs You!",
+    "cancelTask": "Send it Back",
+    "sessionProgress": "Course Progress",
+    "paused": "On Hold"
   },
   "taskComplete": {
-    "title": "Task Complete!",
-    "returningToIde": "Returning to IDE in",
-    "stayHere": "Stay Here (Cancel)",
+    "title": "Omakase Complete! 🎉",
+    "returningToIde": "Back to counter in",
+    "stayHere": "Stay (Cancel)",
     "pressEscToCancel": "Press",
     "escKey": "Esc",
     "toCancel": "to cancel"
   },
   "theme": {
-    "dark": "Dark",
-    "light": "Light"
+    "dark": "Soy Sauce 🫘",
+    "light": "Rice 🍚"
   },
   "language": {
     "en": "English",

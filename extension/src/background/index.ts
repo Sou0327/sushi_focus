@@ -5,7 +5,7 @@ import { isDaemonEvent, isHealthResponse } from '@/utils/typeGuards';
 // Keep-Alive (MV3 Service Worker stays active)
 // ============================================================
 
-const KEEP_ALIVE_ALARM = 'focusflow-keepalive';
+const KEEP_ALIVE_ALARM = 'sushi-focus-keepalive';
 const KEEP_ALIVE_INTERVAL_MINUTES = 0.4; // 24 seconds
 
 async function setupKeepAlive(): Promise<void> {

@@ -1,6 +1,6 @@
 #!/bin/bash
-# FocusFlow Notification Script
-# Usage: focusflow-notify.sh <event> [options]
+# Sushi Focus Notification Script
+# Usage: sushi-focus-notify.sh <event> [options]
 #
 # Events:
 #   start   - Task started
@@ -9,13 +9,13 @@
 #   done    - Task completed (triggers auto-focus from distraction sites)
 #
 # Examples:
-#   focusflow-notify.sh start --prompt "Fix authentication bug"
-#   focusflow-notify.sh log --message "Analyzing codebase..."
-#   focusflow-notify.sh need-input --question "Which approach should I use?"
-#   focusflow-notify.sh done --summary "Fixed 3 files"
+#   sushi-focus-notify.sh start --prompt "Fix authentication bug"
+#   sushi-focus-notify.sh log --message "Analyzing codebase..."
+#   sushi-focus-notify.sh need-input --question "Which approach should I use?"
+#   sushi-focus-notify.sh done --summary "Fixed 3 files"
 
-DAEMON_URL="${FOCUSFLOW_DAEMON_URL:-http://127.0.0.1:41593}"
-TASK_ID="${FOCUSFLOW_TASK_ID:-task-$(date +%s)}"
+DAEMON_URL="${SUSHI_FOCUS_DAEMON_URL:-http://127.0.0.1:41593}"
+TASK_ID="${SUSHI_FOCUS_TASK_ID:-task-$(date +%s)}"
 
 event="$1"
 shift
@@ -59,7 +59,7 @@ case "$event" in
       -H "Content-Type: application/json" \
       -d "{\"taskId\":\"${TASK_ID}\",\"prompt\":\"${prompt:-Task started}\"}" \
       > /dev/null
-    echo "FocusFlow: Task started (${TASK_ID})"
+    echo "Sushi Focus: Task started (${TASK_ID})"
     echo "${TASK_ID}"
     ;;
   log)
@@ -73,17 +73,17 @@ case "$event" in
       -H "Content-Type: application/json" \
       -d "{\"taskId\":\"${TASK_ID}\",\"question\":\"${question:-Input required}\"}" \
       > /dev/null
-    echo "FocusFlow: Input required"
+    echo "Sushi Focus: Input required"
     ;;
   done)
     curl -s -X POST "${DAEMON_URL}/agent/done" \
       -H "Content-Type: application/json" \
       -d "{\"taskId\":\"${TASK_ID}\",\"summary\":\"${summary:-Task completed}\"}" \
       > /dev/null
-    echo "FocusFlow: Task completed"
+    echo "Sushi Focus: Task completed"
     ;;
   *)
-    echo "Usage: focusflow-notify.sh <start|log|need-input|done> [options]"
+    echo "Usage: sushi-focus-notify.sh <start|log|need-input|done> [options]"
     exit 1
     ;;
 esac

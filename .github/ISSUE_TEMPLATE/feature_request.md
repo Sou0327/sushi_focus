@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest an idea for FocusFlow
+about: Suggest an idea for Sushi Focus
 title: '[Feature] '
 labels: enhancement
 assignees: ''

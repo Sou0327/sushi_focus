@@ -1,6 +1,6 @@
-# Contributing to FocusFlow
+# Contributing to SushiFocus
 
-Thank you for your interest in contributing to FocusFlow! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to SushiFocus! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
@@ -18,8 +18,8 @@ Please be respectful and constructive in all interactions. We welcome contributo
 
 1. **Fork and clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/FocusFlow.git
-   cd FocusFlow
+   git clone https://github.com/YOUR_USERNAME/SushiFocus.git
+   cd SushiFocus
    ```
 
 2. **Install dependencies**
@@ -45,7 +45,7 @@ Please be respectful and constructive in all interactions. We welcome contributo
 ### Project Structure
 
 ```
-FocusFlow/
+SushiFocus/
 ├── daemon/           # Node.js daemon (Express + WebSocket)
 │   └── src/
 │       └── server/   # API endpoints and WebSocket handler

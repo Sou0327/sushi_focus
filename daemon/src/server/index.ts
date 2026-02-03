@@ -64,7 +64,7 @@ function parseAllowedOrigins(): (string | RegExp)[] {
 const ALLOWED_ORIGINS = parseAllowedOrigins();
 
 // N.3: Authentication secret (optional)
-const AUTH_SECRET = process.env.FOCUSFLOW_SECRET || null;
+const AUTH_SECRET = process.env.SUSHI_FOCUS_SECRET || null;
 
 // O.3: Input validation limits
 const MAX_PROMPT_LENGTH = 10000;
@@ -144,7 +144,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// N.3: Authentication middleware (optional, enabled when FOCUSFLOW_SECRET is set)
+// N.3: Authentication middleware (optional, enabled when SUSHI_FOCUS_SECRET is set)
 // Routes called by external tools (Claude Code hooks) require auth.
 // Routes called only by the extension are exempt (trusted local origin).
 const AUTH_EXEMPT_ROUTES = ['/health', '/repos', '/agent/cancel'];
@@ -183,7 +183,7 @@ const server = createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws' });
 
 // Q.3: WebSocket connection limit
-const MAX_WS_CONNECTIONS = parseInt(process.env.FOCUSFLOW_MAX_WS_CONNECTIONS || '10', 10);
+const MAX_WS_CONNECTIONS = parseInt(process.env.SUSHI_FOCUS_MAX_WS_CONNECTIONS || '10', 10);
 const PING_INTERVAL_MS = 30000; // 30 seconds
 
 // WebSocket client management with alive tracking
@@ -649,7 +649,7 @@ if (!process.env.VITEST) {
   server.listen(PORT, '127.0.0.1', () => {
     console.log(`
 ╔═══════════════════════════════════════════════════════════╗
-║                    FocusFlow Daemon                        ║
+║               Sushi Focus - Itamae 🍣                      ║
 ║                      v${VERSION}                              ║
 ╠═══════════════════════════════════════════════════════════╣
 ║  HTTP API: http://127.0.0.1:${PORT}                          ║

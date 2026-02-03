@@ -1,12 +1,13 @@
-# FocusFlow
+# 寿司フォーカス 🍣
 
 [![CI](https://github.com/Sou0327/focus_flow/actions/workflows/ci.yml/badge.svg)](https://github.com/Sou0327/focus_flow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [English](README.md)
 
-Chrome拡張 + ローカルDaemon による「ながら開発OS」。
-エディタでAIエージェントが作業する間、別サイト閲覧を許容しつつ、入力が必要な瞬間・完了時に自動で開発タブへ復帰させる。
+Chrome拡張 + ローカルDaemon による「おまかせスタイル開発」。
+腕利きの板前さんがあなたの集中を保ちながら、AIエージェントがコードを準備。
+注文が出来上がったら自動でカウンター席へお呼びします！🍣
 
 > **Note**: 現在は **Claude Code** のみ対応しています。Cursor等の他のAIエージェントは今後対応予定です。
 
@@ -14,15 +15,15 @@ Chrome拡張 + ローカルDaemon による「ながら開発OS」。
 
 ```
 ┌─────────────────┐     HTTP POST      ┌─────────────────┐    WebSocket    ┌─────────────────┐
-│   Claude Code   │ ───────────────▶ │     Daemon      │ ───────────────▶ │  Chrome拡張     │
-│                 │   /agent/start    │  localhost:41593 │  task.started   │  Side Panel     │
-│                 │   /agent/log      │                 │  task.log       │  監視ダッシュボード │
+│   Claude Code   │ ───────────────▶ │     板前さん     │ ───────────────▶ │  Chrome拡張     │
+│  (エージェント)  │   /agent/start    │  localhost:41593 │  task.started   │  カウンター席    │
+│                 │   /agent/log      │    (厨房)        │  task.log       │  ダッシュボード   │
 │                 │   /agent/need-input│                │  task.need_input│                 │
 │                 │   /agent/done     │                 │  task.done      │                 │
 └─────────────────┘                   └─────────────────┘                 └─────────────────┘
 ```
 
-**エディタで作業 → Daemonに通知 → 拡張が状態表示＆自動復帰**
+**ご注文 → 厨房で準備 → 握れたらお呼びします 🍣**
 
 ## 前提条件
 
@@ -35,21 +36,21 @@ Chrome拡張 + ローカルDaemon による「ながら開発OS」。
 ### Step 1: 依存関係のインストール
 
 ```bash
-cd FocusFlow
+cd SushiFocus
 pnpm install
 ```
 
 ### Step 2: ビルド
 
 ```bash
-# Daemon（ローカルサーバー）をビルド
+# 板前さん（厨房サーバー）をビルド
 pnpm build:daemon
 
-# Chrome拡張をビルド
+# Chrome拡張（カウンター席）をビルド
 pnpm build:extension
 ```
 
-### Step 3: Daemonを起動
+### Step 3: 厨房オープン
 
 ```bash
 pnpm dev:daemon
@@ -59,7 +60,7 @@ pnpm dev:daemon
 
 ```text
 ╔═══════════════════════════════════════════════════════════╗
-║                    FocusFlow Daemon                        ║
+║              寿司フォーカス - 板前さん 🍣                   ║
 ║                      v0.1.0                              ║
 ╠═══════════════════════════════════════════════════════════╣
 ║  HTTP API: http://127.0.0.1:41593                          ║
@@ -67,50 +68,50 @@ pnpm dev:daemon
 ╚═══════════════════════════════════════════════════════════╝
 ```
 
-> **注意**: Daemonは別ターミナルで起動したままにしておいてください。
+> **注意**: 厨房は別ターミナルで起動したままにしておいてください。
 
 ### Step 4: Chrome拡張をインストール
 
 1. Chromeで `chrome://extensions` を開く
 2. 右上の「**デベロッパーモード**」をONにする
 3. 「**パッケージ化されていない拡張機能を読み込む**」をクリック
-4. `FocusFlow/extension/dist` フォルダを選択
-5. FocusFlowアイコンが追加されていることを確認
+4. `SushiFocus/extension/dist` フォルダを選択
+5. 寿司フォーカス🍣 アイコンが追加されていることを確認
 
-### Step 5: Side Panelを開く
+### Step 5: カウンター席に座る
 
-1. Chromeのツールバーで FocusFlow アイコンをクリック
+1. Chromeのツールバーで 寿司フォーカス アイコンをクリック
 2. ポップアップが表示される
-3. 「**Open Panel**」ボタンをクリック
-4. 右側にSide Panelが開く
+3. 「**厨房を覗く**」ボタンをクリック
+4. 右側にSide Panelが開く - あなたのカウンター席です！
 
-または、Chrome右上の「サイドパネル」アイコン（📋）から FocusFlow を選択。
+または、Chrome右上の「サイドパネル」アイコン（📋）から 寿司フォーカス を選択。
 
 ## 使い方
 
-### エージェントからDaemonに通知
+### エージェントから厨房に注文
 
-エディタ（Claude Code, Cursor等）の作業状況をDaemonに送信すると、拡張機能に表示されます。
+エディタ（Claude Code, Cursor等）の作業状況を厨房（Daemon）に送信すると、拡張機能に表示されます。
 
 #### curl で直接送信
 
 ```bash
-# タスク開始
+# 注文（タスク開始）
 curl -X POST http://127.0.0.1:41593/agent/start \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","prompt":"Fix authentication bug"}'
 
-# ログ出力
+# 厨房からの報告（ログ出力）
 curl -X POST http://127.0.0.1:41593/agent/log \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","message":"Analyzing codebase..."}'
 
-# 入力待ち（自動復帰トリガー）
+# 板前さんからお呼び（入力待ち）
 curl -X POST http://127.0.0.1:41593/agent/need-input \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","question":"Which approach should I use?"}'
 
-# タスク完了（自動復帰トリガー）
+# へい、お待ち！（タスク完了）
 curl -X POST http://127.0.0.1:41593/agent/done \
   -H "Content-Type: application/json" \
   -d '{"taskId":"task-1","summary":"Fixed 3 files"}'
@@ -119,17 +120,17 @@ curl -X POST http://127.0.0.1:41593/agent/done \
 #### スクリプトを使用
 
 ```bash
-# タスク開始
-./scripts/focusflow-notify.sh start --prompt "Fix authentication bug"
+# 注文
+./scripts/sushi-focus-notify.sh start --prompt "Fix authentication bug"
 
-# ログ出力
-./scripts/focusflow-notify.sh log --message "Analyzing codebase..."
+# 厨房からの報告
+./scripts/sushi-focus-notify.sh log --message "Analyzing codebase..."
 
-# 入力待ち
-./scripts/focusflow-notify.sh need-input --question "Which approach?"
+# 板前さんからお呼び
+./scripts/sushi-focus-notify.sh need-input --question "Which approach?"
 
-# 完了
-./scripts/focusflow-notify.sh done --summary "Fixed 3 files"
+# へい、お待ち！
+./scripts/sushi-focus-notify.sh done --summary "Fixed 3 files"
 ```
 
 ### Claude Code との連携
@@ -154,7 +155,7 @@ curl -X POST http://127.0.0.1:41593/agent/done \
 }
 ```
 
-2. セッション開始時にタスク開始を通知:
+2. セッション開始時に注文を入れる:
 
 ```bash
 curl -X POST http://127.0.0.1:41593/agent/start \
@@ -162,19 +163,19 @@ curl -X POST http://127.0.0.1:41593/agent/start \
   -d '{"taskId":"claude","prompt":"Claude Code Session"}'
 ```
 
-### 入力が必要な場合（need_input）
+### 板前さんからお呼びです！（need_input）
 
-- エージェントが `/agent/need-input` を送信すると、モーダルが表示される
+- エージェントが `/agent/need-input` を送信すると、板前さんからお呼びがかかります
 - 自動でIDEにフォーカスが戻る
 
-### タスク完了時（done）
+### へい、お待ち！（done）
 
 - 脱線サイト（YouTube等）を見ている時に `/agent/done` が来ると：
   1. 1.5秒のカウントダウンが表示される
-  2. 「Cancel」を押さなければ自動でIDEにフォーカスが戻る
+  2. 「キャンセル」を押さなければ自動でIDEにフォーカスが戻る
 - 開発サイトを見ている時は通知のみ（自動復帰なし）
 
-## Daemon API
+## 厨房API（Daemon）
 
 ### External Agent API（IDE連携用）
 
@@ -183,12 +184,12 @@ curl -X POST http://127.0.0.1:41593/agent/start \
 | エンドポイント | メソッド | 説明 |
 | -------------- | -------- | ---- |
 | `/health` | GET | ヘルスチェック（`{ok, version, gitBranch}`） |
-| `/agent/start` | POST | タスク開始 |
-| `/agent/log` | POST | ログ出力 |
-| `/agent/need-input` | POST | 入力待ち（自動復帰トリガー） |
-| `/agent/done` | POST | タスク完了（自動復帰トリガー） |
-| `/agent/cancel` | POST | タスクキャンセル |
-| `/agent/progress` | POST | 進捗報告 |
+| `/agent/start` | POST | 注文（タスク開始） |
+| `/agent/log` | POST | 厨房からの報告（ログ出力） |
+| `/agent/need-input` | POST | 板前さんからお呼び（自動復帰トリガー） |
+| `/agent/done` | POST | へい、お待ち！（自動復帰トリガー） |
+| `/agent/cancel` | POST | お返しする（タスクキャンセル） |
+| `/agent/progress` | POST | 準備進捗 |
 
 #### リクエスト形式
 
@@ -214,19 +215,19 @@ curl -X POST http://127.0.0.1:41593/agent/start \
 
 ### Internal Task API（内部タスク管理）
 
-Daemon内部でタスクを作成・管理するためのエンドポイント。
+厨房内部でタスクを作成・管理するためのエンドポイント。
 
 | エンドポイント | メソッド | 説明 |
 | -------------- | -------- | ---- |
-| `/tasks` | POST | タスク作成（`{repoId, prompt}`） |
-| `/tasks/current` | GET | 現在のタスク取得 |
-| `/tasks/:id/cancel` | POST | タスクキャンセル |
-| `/tasks/:id/choice` | POST | 入力待ちへの選択肢送信（`{choiceId}`） |
+| `/tasks` | POST | 注文作成（`{repoId, prompt}`） |
+| `/tasks/current` | GET | 現在の注文取得 |
+| `/tasks/:id/cancel` | POST | 注文キャンセル |
+| `/tasks/:id/choice` | POST | 質問への回答送信（`{choiceId}`） |
 | `/repos` | GET | リポジトリ一覧 |
 
 ### Focus Settings API（IDE自動フォーカス設定）
 
-Daemon側でIDEウィンドウに自動フォーカスする機能の制御。`.env` で初期値設定。
+厨房側でIDEウィンドウに自動フォーカスする機能の制御。`.env` で初期値設定。
 
 | エンドポイント | メソッド | 説明 |
 | -------------- | -------- | ---- |
@@ -238,16 +239,16 @@ Daemon側でIDEウィンドウに自動フォーカスする機能の制御。`.
 # .env 設定例
 FOCUS_ENABLED=true         # フォーカス機能の有効/無効
 FOCUS_APP=Cursor           # フォーカス対象アプリ（Code, Cursor, Terminal, iTerm）
-FOCUS_ON_NEED_INPUT=true   # need-input時に自動フォーカスするか
-FOCUS_ON_DONE=true         # done時に自動フォーカスするか
+FOCUS_ON_NEED_INPUT=true   # お呼び時に自動フォーカスするか
+FOCUS_ON_DONE=true         # 完了時に自動フォーカスするか
 ```
 
 ### WebSocketイベント型
 
-Daemonが `ws://127.0.0.1:41593/ws` を通じてブロードキャストするイベント。
+厨房が `ws://127.0.0.1:41593/ws` を通じてブロードキャストするイベント。
 
 ```typescript
-type DaemonEvent =
+type KitchenEvent =
   | { type: 'task.started',    taskId: string, repoId: string, startedAt: number, hasImage?: boolean }
   | { type: 'task.log',        taskId: string, level: string, message: string }
   | { type: 'task.need_input', taskId: string, question: string, choices: {id: string, label: string}[] }
@@ -258,12 +259,12 @@ type DaemonEvent =
 
 ## トラブルシューティング
 
-### 「Offline」と表示される
+### 「準備中」と表示される
 
-Daemonが起動していない可能性があります：
+厨房（Daemon）が起動していない可能性があります：
 
 ```bash
-# Daemonを起動
+# 厨房オープン
 pnpm dev:daemon
 ```
 
@@ -286,31 +287,31 @@ pnpm build
 ### 開発モード
 
 ```bash
-# Daemon（ホットリロード）
+# 厨房（ホットリロード）
 pnpm dev:daemon
 
 # 拡張の変更後は手動リロード
-# chrome://extensions で FocusFlow の🔄ボタンをクリック
+# chrome://extensions で 寿司フォーカス の🔄ボタンをクリック
 ```
 
 ### プロジェクト構造
 
 ```text
-FocusFlow/
-├── extension/          # Chrome拡張 (MV3)
+SushiFocus/
+├── extension/          # Chrome拡張 (MV3) - カウンター席
 │   ├── src/
-│   │   ├── background/ # Service Worker
-│   │   ├── sidepanel/  # 監視ダッシュボード
-│   │   ├── popup/      # モード切替
-│   │   ├── options/    # 設定画面
+│   │   ├── background/ # Service Worker (厨房マネージャー)
+│   │   ├── sidepanel/  # ダッシュボード (カウンター席)
+│   │   ├── popup/      # おもてなしスタイル選択
+│   │   ├── options/    # 店のルール
 │   │   └── shared/     # 共有型定義
 │   └── dist/           # ビルド出力
-├── daemon/             # ローカル常駐サーバー
+├── daemon/             # ローカル常駐サーバー (板前さん/厨房)
 │   └── src/
 │       ├── server/     # Express + WebSocket
-│       └── task/       # タスク管理
+│       └── task/       # 注文管理
 ├── scripts/            # 連携スクリプト
-│   ├── focusflow-notify.sh    # 通知スクリプト
+│   ├── sushi-focus-notify.sh  # 注文通知スクリプト
 │   └── claude-code-hooks.json # Claude Code hooks例
 └── package.json        # ワークスペース設定
 ```
@@ -322,3 +323,7 @@ FocusFlow/
 ## ライセンス
 
 MIT
+
+---
+
+**へい、らっしゃい！** 🍣

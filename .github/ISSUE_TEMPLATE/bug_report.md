@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug to help us improve FocusFlow
+about: Report a bug to help us improve Sushi Focus
 title: '[Bug] '
 labels: bug
 assignees: ''
@@ -32,7 +32,7 @@ If applicable, add screenshots to help explain your problem.
 
 - **OS**: [e.g., macOS 14.0, Windows 11]
 - **Browser**: [e.g., Chrome 120]
-- **FocusFlow Version**: [e.g., 0.1.0]
+- **Sushi Focus Version**: [e.g., 0.1.0]
 - **Daemon Running**: [Yes/No]
 
 ## Console Errors

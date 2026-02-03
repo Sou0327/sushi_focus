@@ -1,144 +1,144 @@
 {
   "common": {
-    "focusFlow": "FocusFlow",
-    "loading": "読み込み中...",
-    "settings": "設定",
-    "saving": "保存中...",
-    "saved": "保存済み",
-    "add": "追加",
+    "focusFlow": "寿司フォーカス 🍣",
+    "loading": "シャリ準備中...",
+    "settings": "お品書き",
+    "saving": "握り中...",
+    "saved": "へい、お待ち！",
+    "add": "注文",
     "seconds": "秒",
     "minutes": "分"
   },
   "nav": {
-    "focusRules": "フォーカスルール",
-    "timerConfig": "タイマー設定",
-    "blocklist": "ブロックリスト",
-    "generalSettings": "一般設定"
+    "focusRules": "板前のこだわり",
+    "timerConfig": "時計",
+    "blocklist": "出禁リスト",
+    "generalSettings": "店のルール"
   },
   "options": {
-    "resetDefaults": "デフォルトに戻す",
+    "resetDefaults": "お品書きリセット",
     "focus": {
-      "title": "フォーカス設定",
-      "description": "ディープワークセッション中の環境管理を設定します。自動化トリガーとクールダウン期間をカスタマイズできます。",
-      "behaviorTitle": "フォーカス動作",
-      "autoReturn": "タスク完了時の IDE 復帰",
-      "autoReturnDesc": "タスク完了時に自動的に IDE にフォーカスを戻します",
+      "title": "集中設定",
+      "description": "おまかせスタイルでの集中管理を設定します。板前さんがいつカウンターに呼び戻すかをカスタマイズ。",
+      "behaviorTitle": "おまかせスタイル",
+      "autoReturn": "完了時に IDE に復帰",
+      "autoReturnDesc": "お寿司が握れたら板前さんがお呼びします",
       "alwaysReturn": "常に IDE に復帰",
-      "alwaysReturnDesc": "気が散るサイトにいなくても IDE に復帰します",
+      "alwaysReturnDesc": "板前さんがカウンター席に座らせます",
       "aiBlocking": "AI 生成中の強制復帰",
-      "aiBlockingDesc": "AI 生成中に気が散るサイトにいる場合、IDE に強制復帰します"
+      "aiBlockingDesc": "シャリを炊いてる間は席を離れないでください"
     },
     "timer": {
-      "title": "クールダウンとタイミング",
-      "description": "フォーカスセッションのカウントダウンとクールダウン時間を設定します。",
-      "sectionTitle": "クールダウンとタイミング",
+      "title": "厨房タイミング",
+      "description": "フォーカスセッションのカウントダウンとクールダウンを設定します。",
+      "sectionTitle": "厨房タイミング",
       "returnCountdown": "復帰カウントダウン",
-      "returnCountdownDesc": "IDE にフォーカスを戻すまでの遅延時間。",
-      "focusCooldown": "フォーカスクールダウン",
-      "focusCooldownDesc": "集中セッション間の最小休憩時間。"
+      "returnCountdownDesc": "板前さんが呼びに来るまでの時間。",
+      "focusCooldown": "口直し",
+      "focusCooldownDesc": "集中セッション間のお休み時間。"
     },
     "blocklist": {
-      "title": "気が散るドメイン",
-      "description": "タスク完了時に自動復帰をトリガーするウェブサイトのリストを管理します。",
-      "sectionTitle": "気が散るドメイン",
+      "title": "出禁リスト",
+      "description": "タスク完了時に自動復帰をトリガーするサイト。営業中に行ってはいけない場所。",
+      "sectionTitle": "出入り禁止",
       "placeholder": "ドメインを追加 (例: twitter.com)...",
-      "blockedList": "ブロックリスト",
-      "empty": "気が散るドメインは設定されていません"
+      "blockedList": "出禁リスト",
+      "empty": "まだ出禁にしてません"
     },
     "general": {
-      "title": "一般設定",
+      "title": "店のルール",
       "description": "接続管理とシステム設定。",
-      "daemonConnection": "デーモン接続",
-      "daemonConnectionDesc": "デーモンは http://127.0.0.1:41593 で実行されている必要があります",
-      "reconnect": "再接続",
-      "resetToDefaults": "デフォルトに戻す",
-      "resetToDefaultsDesc": "すべての設定をデフォルト値に復元します",
-      "resetSettings": "設定をリセット",
+      "daemonConnection": "厨房接続",
+      "daemonConnectionDesc": "板前さんは http://127.0.0.1:41593 で働いています",
+      "reconnect": "板前さーん！",
+      "resetToDefaults": "お品書きリセット",
+      "resetToDefaultsDesc": "すべての設定を店のデフォルトに戻します",
+      "resetSettings": "やり直し",
       "language": "言語",
       "languageDesc": "表示言語を選択",
-      "theme": "テーマ",
-      "themeDesc": "カラーテーマを選択",
-      "logVerbosity": "ログ詳細度",
-      "logVerbosityDesc": "サイドパネルのターミナルに表示するログの詳細レベルを設定",
+      "theme": "雰囲気",
+      "themeDesc": "店の雰囲気を設定",
+      "logVerbosity": "厨房のおしゃべり",
+      "logVerbosityDesc": "厨房からどれくらい詳しく聞こえるか",
       "logLevel": {
-        "minimal": "最小",
-        "normal": "通常",
-        "verbose": "詳細"
+        "minimal": "禅",
+        "normal": "並",
+        "verbose": "にぎやか"
       }
     },
     "daemon": {
-      "active": "デーモン稼働中",
-      "offline": "デーモンオフライン",
-      "offlineStatus": "オフライン"
+      "active": "板前さん出勤中",
+      "offline": "準備中",
+      "offlineStatus": "準備中"
     }
   },
   "popup": {
-    "active": "有効",
-    "paused": "一時停止",
-    "operatingMode": "動作モード",
+    "active": "新鮮 🍣",
+    "paused": "氷上 🧊",
+    "operatingMode": "おもてなしスタイル",
     "modes": {
-      "quiet": "静か",
-      "normal": "通常",
-      "force": "強制"
+      "quiet": "おまかせ",
+      "normal": "並",
+      "force": "特盛わさび 🔥"
     },
     "status": "ステータス",
-    "agentPrefix": "エージェント:",
-    "activeTask": "タスク実行中",
-    "activeTaskFallback": "実行中タスク",
+    "agentPrefix": "板前:",
+    "activeTask": "握り中",
+    "activeTaskFallback": "準備中...",
     "elapsedMinutes": "{mins}分{secs}秒",
     "elapsedSeconds": "{secs}秒",
-    "taskComplete": "タスク完了",
-    "taskError": "タスクエラー",
-    "noActiveTask": "アクティブなタスクなし",
-    "daemonConnected": "デーモン接続中",
-    "daemonOffline": "デーモンオフライン",
-    "quickActions": "クイックアクション",
-    "openSidePanel": "サイドパネルを開く",
-    "setTabAsHome": "このタブをホームに設定"
+    "taskComplete": "へい、お待ち！",
+    "taskError": "お皿落とした",
+    "noActiveTask": "厨房待機中",
+    "daemonConnected": "板前さん出勤中",
+    "daemonOffline": "準備中",
+    "quickActions": "お手軽注文",
+    "openSidePanel": "厨房を覗く",
+    "setTabAsHome": "カウンター席に座る"
   },
   "sidepanel": {
-    "clearHomeTab": "ホームタブをクリア",
-    "setCurrentTabAsHome": "現在のタブをホームに設定"
+    "clearHomeTab": "席を立つ",
+    "setCurrentTabAsHome": "カウンター席に座る"
   },
   "header": {
-    "connected": "接続中",
-    "offline": "オフライン",
-    "daemonName": "FocusFlow デーモン"
+    "connected": "営業中",
+    "offline": "準備中",
+    "daemonName": "板前さん"
   },
   "taskInput": {
-    "placeholder": "タスクを記述するかプリセットを選択...",
-    "attachImage": "画像を添付",
+    "placeholder": "ご注文をどうぞ、またはプリセットを選択...",
+    "attachImage": "板前さんに見せる",
     "presets": {
       "fixBug": "バグ修正",
-      "runTests": "テスト実行",
-      "refactor": "リファクタリング",
+      "runTests": "品質チェック",
+      "refactor": "新鮮なカット",
       "fixBugTemplate": "バグを調査して修正してください: ",
       "runTestsTemplate": "テストスイートを実行して結果を報告してください",
-      "refactorTemplate": "以下のコードを保守性向上のためリファクタリングしてください: "
+      "refactorTemplate": "品質向上のためリファクタリングしてください: "
     }
   },
   "terminal": {
-    "title": "ターミナル出力",
-    "ready": "フォーカス準備完了",
-    "readyHint": "IDE からのイベントを待機中"
+    "title": "厨房ビュー",
+    "ready": "シャリあったまってます 🍚",
+    "readyHint": "IDE からのご注文をお待ちしております"
   },
   "actionRequired": {
-    "title": "アクションが必要です",
-    "cancelTask": "タスクをキャンセル",
-    "sessionProgress": "セッション進捗",
-    "paused": "一時停止中"
+    "title": "板前さんからお呼びです！",
+    "cancelTask": "お返しする",
+    "sessionProgress": "コース進捗",
+    "paused": "お預け中"
   },
   "taskComplete": {
-    "title": "タスク完了！",
-    "returningToIde": "IDE に戻ります",
+    "title": "おまかせ完了！🎉",
+    "returningToIde": "カウンターに戻ります",
     "stayHere": "ここに留まる（キャンセル）",
     "pressEscToCancel": "",
     "escKey": "Esc",
     "toCancel": "でキャンセル"
   },
   "theme": {
-    "dark": "ダーク",
-    "light": "ライト"
+    "dark": "醤油モード 🫘",
+    "light": "シャリモード 🍚"
   },
   "language": {
     "en": "English",

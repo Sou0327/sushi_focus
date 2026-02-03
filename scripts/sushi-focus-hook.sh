@@ -1,6 +1,6 @@
 #!/bin/bash
-# FocusFlow Hook Script for Claude Code
-# Usage: focusflow-hook.sh <event> [args...]
+# Sushi Focus Hook Script for Claude Code
+# Usage: sushi-focus-hook.sh <event> [args...]
 
 DAEMON_URL="http://127.0.0.1:41593"
 SESSION_ID="${CLAUDE_SESSION_ID:-session-$$}"

@@ -1,17 +1,17 @@
 {
-  "name": "focusflow",
+  "name": "suchi-focus",
   "version": "0.1.0",
   "private": true,
-  "description": "Chrome extension + local daemon for distraction-aware development",
+  "description": "Chrome extension + local daemon for distraction-aware development 🍣",
   "workspaces": [
     "extension",
     "daemon"
   ],
   "scripts": {
-    "dev:extension": "pnpm --filter focusflow-extension dev",
-    "dev:daemon": "pnpm --filter focusflow-daemon dev",
-    "build:extension": "pnpm --filter focusflow-extension build",
-    "build:daemon": "pnpm --filter focusflow-daemon build",
+    "dev:extension": "pnpm --filter suchi-focus-extension dev",
+    "dev:daemon": "pnpm --filter suchi-focus-daemon dev",
+    "build:extension": "pnpm --filter suchi-focus-extension build",
+    "build:daemon": "pnpm --filter suchi-focus-daemon build",
     "build": "pnpm build:daemon && pnpm build:extension",
     "dev": "concurrently \"pnpm dev:daemon\" \"pnpm dev:extension\"",
     "lint": "pnpm -r lint",

@@ -82,55 +82,106 @@ export function TaskCompleteModal({
   }, [handleKeyDown]);
 
   const titleId = 'task-complete-title';
+  const progressPercent = (remaining / countdownMs) * 100;
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
     >
       <div
         ref={modalRef}
-        className="max-w-md w-full mx-4 bg-focus-surface border border-focus-border rounded-xl overflow-hidden"
+        className="max-w-md w-full mx-4 sushi-geta overflow-hidden"
       >
-        {/* Gradient top line */}
-        <div className="h-1 bg-gradient-to-r from-focus-success via-focus-primary to-purple-500" />
+        {/* 🏮 暖簾風ヘッダー */}
+        <div className="noren px-6 py-4 relative">
+          <div className="absolute bottom-0 left-0 right-0 flex justify-around">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="w-5 h-2 bg-gradient-to-b from-transparent to-black/30 rounded-b-full"
+              />
+            ))}
+          </div>
+          <div className="text-center relative z-10">
+            <div className="text-4xl mb-2 animate-bounce">🎉</div>
+            <h2 id={titleId} className="text-xl font-bold text-white drop-shadow-lg">
+              {t('taskComplete.title')}
+            </h2>
+          </div>
+        </div>
 
-        <div className="p-8 text-center">
-          {/* Animated check icon */}
-          <div className="relative inline-flex items-center justify-center mb-5">
-            <span className="absolute w-16 h-16 rounded-full bg-focus-success/20 animate-ping" aria-hidden="true" />
-            <span className="relative w-16 h-16 rounded-full bg-focus-success/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-focus-success text-4xl" aria-hidden="true">check_circle</span>
-            </span>
+        {/* 木のカウンター縁 */}
+        <div className="h-2 bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark" />
+
+        {/* 📋 注文票コンテンツ */}
+        <div className="p-6 bg-focus-surface">
+          {/* お品書き風サマリー */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sushi-wasabi/20 rounded-lg border-2 border-dashed border-sushi-wasabi/40">
+              <span className="text-xl">✅</span>
+              <span className="text-sushi-wasabi font-bold">{summary}</span>
+            </div>
           </div>
 
-          <h2 id={titleId} className="text-2xl font-bold text-heading mb-2">{t('taskComplete.title')}</h2>
-          <p className="text-text-secondary mb-1">{summary}</p>
-          <p className="text-text-secondary text-sm" aria-live="polite">
-            {t('taskComplete.returningToIde')}{' '}
-            <span className="font-mono font-bold text-heading text-lg">
-              {(remaining / 1000).toFixed(1)}s
-            </span>
-            {' '}...
-          </p>
+          {/* 🍣 回転寿司風アニメーション */}
+          <div className="flex justify-center gap-2 mb-6">
+            {['🍣', '🍱', '🍙', '🍣', '🍱'].map((emoji, i) => (
+              <span
+                key={i}
+                className="text-2xl animate-pulse"
+                style={{ animationDelay: `${i * 0.15}s` }}
+              >
+                {emoji}
+              </span>
+            ))}
+          </div>
 
-          {/* Cancel button */}
+          {/* カウントダウン表示 */}
+          <div className="text-center mb-4">
+            <p className="text-subtle text-sm mb-2" aria-live="polite">
+              {t('taskComplete.returningToIde')}
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-focus-bg rounded-lg">
+              <span className="text-lg">⏱️</span>
+              <span className="font-mono font-bold text-2xl text-sushi-salmon">
+                {(remaining / 1000).toFixed(1)}
+              </span>
+              <span className="text-muted text-sm">秒</span>
+            </div>
+          </div>
+
+          {/* プログレスバー - わさびグリーン */}
+          <div className="h-3 bg-focus-bg rounded-full overflow-hidden mb-6 border border-focus-border">
+            <div
+              className="h-full bg-gradient-to-r from-sushi-wasabi to-sushi-wasabiDark rounded-full transition-all duration-100"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+
+          {/* キャンセルボタン - 寿司プレート風 */}
           <button
             ref={cancelButtonRef}
             onClick={onCancel}
-            className="w-full mt-6 py-3 bg-focus-primary hover:bg-blue-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="w-full btn-danger py-4 flex items-center justify-center gap-3"
             aria-label={t('taskComplete.stayHere')}
           >
-            <span className="material-symbols-outlined text-lg" aria-hidden="true">pan_tool</span>
-            {t('taskComplete.stayHere')}
+            <span className="text-xl">🛑</span>
+            <span className="font-bold">{t('taskComplete.stayHere')}</span>
           </button>
 
-          <p className="text-xs text-muted mt-3">
-            {t('taskComplete.pressEscToCancel')}{t('taskComplete.pressEscToCancel') ? ' ' : ''}<kbd className="px-1.5 py-0.5 bg-focus-bg rounded text-muted font-mono text-xs">{t('taskComplete.escKey')}</kbd>{' '}{t('taskComplete.toCancel')}
+          <p className="text-center text-xs text-muted mt-4">
+            <kbd className="px-2 py-1 bg-focus-bg rounded border border-focus-border font-mono text-xs">
+              {t('taskComplete.escKey')}
+            </kbd>
+            {' '}{t('taskComplete.toCancel')}
           </p>
         </div>
+
+        {/* 木の台座 */}
+        <div className="h-3 bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark" />
       </div>
     </div>
   );

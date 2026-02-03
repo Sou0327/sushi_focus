@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "FocusFlow",
+  "name": "Sushi Focus 🍣",
   "version": "0.1.0",
-  "description": "Distraction-aware development: auto-focus when your agent needs input or completes tasks",
+  "description": "Omakase-style focus: your personal itamae keeps you on track while AI does the heavy lifting 🍣",
   "permissions": [
     "tabs",
     "windows",

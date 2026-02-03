@@ -1,172 +1,1138 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=Dela+Gothic+One&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Dark theme (default) */
+/* ═══════════════════════════════════════════════════════════════
+   🍣 SUCHI FOCUS - 狂気の回転寿司 × サイバーパンク居酒屋
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 🫘 Dark theme (醤油モード - Soy Sauce Mode) */
 .dark {
-  --focus-primary: #135bec;
-  --focus-secondary: #1E40AF;
-  --focus-success: #10B981;
+  --focus-primary: #E85D4C;
+  --focus-secondary: #7CB342;
+  --focus-success: #7CB342;
   --focus-warning: #F59E0B;
-  --focus-error: #EF4444;
-  --focus-bg: #111318;
-  --focus-surface: #1a1d23;
-  --focus-border: #282e39;
-  --surface-highlight: #282e39;
-  --text-secondary: #9da6b9;
-  --terminal-bg: #0d0f12;
-  --text-primary: #f3f4f6;
-  --text-heading: #ffffff;
-  --text-subtle: #d1d5db;
-  --text-muted: #6b7280;
-  --text-dim: #4b5563;
-  --scrollbar-bg: #111318;
-  --scrollbar-thumb: #282e39;
+  --focus-error: #C84B3D;
+  --focus-bg: #0D0705;
+  --focus-surface: #1A0F0A;
+  --focus-border: #4A2C1C;
+  --surface-highlight: #3D2317;
+  --text-secondary: #D4B896;
+  --terminal-bg: #080403;
+  --text-primary: #FFF8E7;
+  --text-heading: #FFF8E7;
+  --text-subtle: #E8D5B7;
+  --text-muted: #A68B5B;
+  --text-dim: #6B5234;
+  --scrollbar-bg: #0D0705;
+  --scrollbar-thumb: #4A2C1C;
+  --noren-top: #C84B3D;
+  --noren-bottom: #6B1F1F;
+  --wood-accent: #8B5A2B;
+  --neon-salmon: #FF6B5B;
+  --neon-wasabi: #8FFF00;
+  --lantern-glow: rgba(232, 93, 76, 0.6);
 }
 
-/* Light theme */
+/* 🍚 Light theme (シャリモード - Rice Mode) */
 :root:not(.dark) {
-  --focus-primary: #135bec;
-  --focus-secondary: #1E40AF;
-  --focus-success: #10B981;
+  --focus-primary: #C84B3D;
+  --focus-secondary: #558B2F;
+  --focus-success: #558B2F;
   --focus-warning: #F59E0B;
-  --focus-error: #EF4444;
-  --focus-bg: #f9fafb;
-  --focus-surface: #ffffff;
-  --focus-border: #e5e7eb;
-  --surface-highlight: #f3f4f6;
-  --text-secondary: #6b7280;
-  --terminal-bg: #f3f4f6;
-  --text-primary: #111827;
-  --text-heading: #111827;
-  --text-subtle: #4b5563;
-  --text-muted: #9ca3af;
-  --text-dim: #d1d5db;
-  --scrollbar-bg: #f9fafb;
-  --scrollbar-thumb: #d1d5db;
+  --focus-error: #C84B3D;
+  --focus-bg: #FFF8E7;
+  --focus-surface: #FFFFFF;
+  --focus-border: #E8D5B7;
+  --surface-highlight: #F5E6C8;
+  --text-secondary: #8B5A2B;
+  --terminal-bg: #FEF9F0;
+  --text-primary: #2C1810;
+  --text-heading: #1A0F0A;
+  --text-subtle: #4A2C1C;
+  --text-muted: #A68B5B;
+  --text-dim: #D4B896;
+  --scrollbar-bg: #FFF8E7;
+  --scrollbar-thumb: #D4B896;
+  --noren-top: #E85D4C;
+  --noren-bottom: #C84B3D;
+  --wood-accent: #D4A574;
+  --neon-salmon: #E85D4C;
+  --neon-wasabi: #7CB342;
+  --lantern-glow: rgba(232, 93, 76, 0.4);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   🎨 BASE STYLES
+   ═══════════════════════════════════════════════════════════════ */
 
 body {
-  @apply bg-focus-bg font-display antialiased;
+  @apply bg-focus-bg antialiased;
+  font-family: 'Zen Maru Gothic', 'Noto Sans JP', system-ui, sans-serif;
   color: var(--text-primary);
   min-width: 320px;
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+/* 青海波パターン背景 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23E85D4C' fill-opacity='0.03'%3E%3Cpath d='M40 40c0-11.046-8.954-20-20-20S0 28.954 0 40s8.954 20 20 20 20-8.954 20-20zm40 0c0-11.046-8.954-20-20-20S40 28.954 40 40s8.954 20 20 20 20-8.954 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🍣 FLOATING SUSHI BACKGROUND
+   ═══════════════════════════════════════════════════════════════ */
+
+.sushi-bg-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.sushi-particle {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0.15;
+  animation: float-sushi 20s infinite ease-in-out;
+}
+
+@keyframes float-sushi {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-30px) rotate(10deg); }
+  50% { transform: translateY(-10px) rotate(-5deg); }
+  75% { transform: translateY(-40px) rotate(15deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🏮 暖簾 (NOREN) HEADER
+   ═══════════════════════════════════════════════════════════════ */
+
+.noren {
+  background: linear-gradient(180deg, var(--noren-top) 0%, var(--noren-bottom) 100%);
+  @apply text-white font-bold relative;
+  box-shadow:
+    0 4px 20px var(--lantern-glow),
+    inset 0 -10px 30px rgba(0,0,0,0.3);
+}
+
+/* 暖簾の垂れ下がり（波打ちアニメーション） */
+.noren-flap {
+  @apply bg-gradient-to-b from-transparent to-black/30 rounded-b-full;
+  animation: noren-wave 3s ease-in-out infinite;
+}
+
+@keyframes noren-wave {
+  0%, 100% { transform: scaleY(1) skewX(0deg); }
+  25% { transform: scaleY(1.1) skewX(2deg); }
+  75% { transform: scaleY(0.95) skewX(-2deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🏮 提灯 (LANTERN) EFFECTS
+   ═══════════════════════════════════════════════════════════════ */
+
+.lantern {
+  @apply relative inline-block;
+  animation: lantern-swing 4s ease-in-out infinite;
+}
+
+.lantern::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--lantern-glow) 0%, transparent 70%);
+  animation: lantern-pulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes lantern-swing {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes lantern-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🍣 SUSHI CONVEYOR BELT
+   ═══════════════════════════════════════════════════════════════ */
+
+.conveyor-container {
+  @apply fixed bottom-0 left-0 right-0 h-12 overflow-hidden pointer-events-none;
+  z-index: 100;
+  background: linear-gradient(90deg, #2C1810 0%, #4A2C1C 50%, #2C1810 100%);
+  border-top: 3px solid #8B5A2B;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.conveyor-belt {
+  @apply flex items-center h-full whitespace-nowrap;
+  animation: conveyor-scroll 30s linear infinite;
+}
+
+.conveyor-sushi {
+  @apply text-3xl mx-8 inline-block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  animation: sushi-wobble 2s ease-in-out infinite;
+}
+
+@keyframes conveyor-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes sushi-wobble {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🎌 のぼり旗 (NOBORI FLAG)
+   ═══════════════════════════════════════════════════════════════ */
+
+.nobori {
+  @apply fixed right-0 top-1/4 w-8 h-48 z-50;
+  writing-mode: vertical-rl;
+  background: linear-gradient(180deg, #C84B3D 0%, #8B2500 100%);
+  box-shadow: -2px 0 10px rgba(200,75,61,0.3);
+  animation: flag-flutter 3s ease-in-out infinite;
+  transform-origin: top right;
+}
+
+.nobori-text {
+  @apply text-white font-black text-sm tracking-widest py-4 text-center;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+}
+
+@keyframes flag-flutter {
+  0%, 100% { transform: perspective(100px) rotateY(0deg); }
+  50% { transform: perspective(100px) rotateY(-5deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ✨ NEON TEXT EFFECTS
+   ═══════════════════════════════════════════════════════════════ */
+
+.neon-text {
+  color: var(--neon-salmon);
+  text-shadow:
+    0 0 5px var(--neon-salmon),
+    0 0 10px var(--neon-salmon),
+    0 0 20px var(--neon-salmon),
+    0 0 40px var(--neon-salmon);
+  animation: neon-flicker 3s ease-in-out infinite;
+}
+
+.neon-text-wasabi {
+  color: var(--neon-wasabi);
+  text-shadow:
+    0 0 5px var(--neon-wasabi),
+    0 0 10px var(--neon-wasabi),
+    0 0 20px var(--neon-wasabi),
+    0 0 40px var(--neon-wasabi);
+  animation: neon-flicker 3s ease-in-out infinite;
+}
+
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.8; }
+  94% { opacity: 1; }
+  96% { opacity: 0.9; }
+  97% { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🍵 STEAM EFFECTS
+   ═══════════════════════════════════════════════════════════════ */
+
+.steam-container {
+  @apply relative inline-block;
+}
+
+.steam {
+  @apply absolute -top-4 left-1/2 -translate-x-1/2 text-white/30 text-xl;
+  animation: steam-rise 2.5s ease-out infinite;
+}
+
+.steam:nth-child(2) { animation-delay: 0.3s; left: 40%; }
+.steam:nth-child(3) { animation-delay: 0.6s; left: 60%; }
+
+@keyframes steam-rise {
+  0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.5); }
+  20% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-30px) scale(1.5); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🎊 CELEBRATION EFFECTS
+   ═══════════════════════════════════════════════════════════════ */
+
+.celebrate {
+  animation: big-celebrate 0.6s ease-in-out;
+}
+
+@keyframes big-celebrate {
+  0% { transform: scale(1); }
+  20% { transform: scale(1.3) rotate(-10deg); }
+  40% { transform: scale(1.5) rotate(10deg); }
+  60% { transform: scale(1.3) rotate(-5deg); }
+  80% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* 紙吹雪 */
+.confetti-container {
+  @apply fixed inset-0 pointer-events-none z-50 overflow-hidden;
+}
+
+.confetti {
+  @apply absolute text-2xl;
+  animation: confetti-fall 3s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translateY(-100vh) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🪵 WOOD TEXTURE & GETA
+   ═══════════════════════════════════════════════════════════════ */
+
+.wood-counter {
+  @apply bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark;
+  background-size: 200% 100%;
+  animation: wood-shine 8s ease-in-out infinite;
+}
+
+@keyframes wood-shine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* 🍣 寿司下駄スタイル - 超立体的 */
+.sushi-geta {
+  @apply bg-focus-surface border-2 border-focus-border rounded-lg relative;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(139, 90, 43, 0.03) 2px,
+      rgba(139, 90, 43, 0.03) 4px
+    ),
+    var(--focus-surface);
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.1),
+    inset 0 -4px 0 0 rgba(139, 90, 43, 0.3),
+    0 6px 0 0 var(--wood-accent),
+    0 8px 15px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+  transition: all 0.15s ease;
+}
+
+.sushi-geta:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.1),
+    inset 0 -4px 0 0 rgba(139, 90, 43, 0.3),
+    0 8px 0 0 var(--wood-accent),
+    0 12px 25px rgba(0,0,0,0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📜 SCROLLBAR - 竹スタイル
+   ═══════════════════════════════════════════════════════════════ */
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--scrollbar-bg);
+  border-radius: 5px;
+  border: 1px solid var(--focus-border);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 9999px;
+  background: linear-gradient(180deg, #7CB342 0%, #558B2F 100%);
+  border-radius: 5px;
+  border: 2px solid var(--scrollbar-bg);
+  box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500;
+  background: linear-gradient(180deg, #8FFF00 0%, #7CB342 100%);
 }
 
-/* Terminal-like log output */
+/* ═══════════════════════════════════════════════════════════════
+   📋 LOG ENTRIES - 注文票スタイル
+   ═══════════════════════════════════════════════════════════════ */
+
 .log-entry {
-  @apply font-mono text-sm leading-relaxed;
+  @apply font-mono text-sm leading-relaxed transition-all duration-200;
 }
 
-.log-entry.info {
-  color: var(--text-primary);
+.log-entry:hover {
+  @apply transform scale-[1.01];
 }
 
-.log-entry.warn {
-  @apply text-focus-warning;
-}
+.log-entry.info { color: var(--text-primary); }
+.log-entry.warn { @apply text-focus-warning; }
+.log-entry.error { @apply text-focus-error; }
+.log-entry.debug { @apply text-muted; }
 
-.log-entry.error {
-  @apply text-focus-error;
-}
+/* ═══════════════════════════════════════════════════════════════
+   🏷️ STATUS BADGES - 寿司ネタ札風
+   ═══════════════════════════════════════════════════════════════ */
 
-.log-entry.debug {
-  @apply text-gray-500;
-}
-
-/* Status badges */
 .status-badge {
-  @apply px-2 py-0.5 rounded-full text-xs font-medium;
+  @apply px-4 py-1.5 rounded-full text-xs font-black tracking-wider uppercase;
+  box-shadow:
+    0 2px 0 0 rgba(0,0,0,0.2),
+    inset 0 1px 0 0 rgba(255,255,255,0.2);
+  transition: all 0.2s ease;
+}
+
+.status-badge:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 0 0 rgba(0,0,0,0.2),
+    inset 0 1px 0 0 rgba(255,255,255,0.2);
 }
 
 .status-badge.idle {
-  @apply bg-gray-600 text-gray-200;
+  @apply bg-sushi-bamboo/40 text-sushi-wood border-2 border-sushi-bamboo/60;
 }
 
 .status-badge.running {
-  @apply bg-blue-600 text-white;
+  @apply bg-sushi-salmon/30 text-sushi-salmonGlow border-2 border-sushi-salmon/50;
+  animation: running-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes running-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 93, 76, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(232, 93, 76, 0); }
 }
 
 .status-badge.waiting_input {
-  @apply bg-yellow-600 text-white animate-pulse;
+  @apply bg-sushi-wasabi/30 text-sushi-wasabiNeon border-2 border-sushi-wasabi/50;
+  animation: waiting-flash 0.8s ease-in-out infinite;
+}
+
+@keyframes waiting-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .status-badge.done {
-  @apply bg-green-600 text-white;
+  @apply bg-sushi-wasabi/40 text-sushi-wasabiDark border-2 border-sushi-wasabi/60;
 }
 
 .status-badge.error {
-  @apply bg-red-600 text-white;
+  @apply bg-sushi-tuna/30 text-sushi-tuna border-2 border-sushi-tuna/50;
 }
 
-/* Overlay for modals */
+/* ═══════════════════════════════════════════════════════════════
+   🚪 OVERLAY & MODAL - 暖簾をくぐる
+   ═══════════════════════════════════════════════════════════════ */
+
 .overlay {
-  @apply fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50;
+  @apply fixed inset-0 flex items-center justify-center z-50;
+  background:
+    radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.85) 100%);
+  backdrop-filter: blur(8px) saturate(150%);
+  animation: overlay-enter 0.3s ease-out;
 }
 
-/* Card component */
-.card {
-  @apply bg-focus-surface border border-focus-border rounded-xl p-4;
+@keyframes overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Button variants */
+/* ═══════════════════════════════════════════════════════════════
+   🔘 BUTTONS - 湯呑み/お皿風
+   ═══════════════════════════════════════════════════════════════ */
+
 .btn {
-  @apply px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  @apply px-5 py-2.5 rounded-xl font-black transition-all duration-150;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
   --tw-ring-offset-color: var(--focus-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
 }
 
 .btn-primary {
-  @apply btn bg-focus-primary text-white hover:bg-blue-600 focus:ring-blue-500;
+  @apply btn bg-gradient-to-br from-sushi-salmon to-sushi-tuna text-white;
+  @apply hover:from-sushi-salmonGlow hover:to-sushi-salmon;
+  @apply focus:ring-sushi-salmon;
+  box-shadow:
+    0 4px 0 0 #8B2500,
+    0 6px 20px rgba(232, 93, 76, 0.4);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.btn-primary:active {
+  box-shadow: 0 2px 0 0 #8B2500, 0 3px 10px rgba(232, 93, 76, 0.3);
+  transform: translateY(2px);
 }
 
 .btn-secondary {
-  @apply btn bg-focus-surface border border-focus-border hover:bg-gray-700 focus:ring-gray-500;
+  @apply btn bg-focus-surface border-2 border-focus-border;
+  @apply hover:border-sushi-salmon;
+  @apply focus:ring-focus-border;
   color: var(--text-primary);
+  box-shadow: 0 4px 0 0 var(--wood-accent);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(var(--focus-surface-rgb, 42, 42, 42), 0.8);
+}
+
+.btn-secondary:active {
+  box-shadow: 0 2px 0 0 var(--wood-accent);
+  transform: translateY(2px);
 }
 
 .btn-success {
-  @apply btn bg-focus-success text-white hover:bg-green-600 focus:ring-green-500;
+  @apply btn bg-gradient-to-br from-sushi-wasabi to-sushi-wasabiDark text-white;
+  @apply hover:from-sushi-wasabiNeon hover:to-sushi-wasabi;
+  @apply focus:ring-sushi-wasabi;
+  box-shadow: 0 4px 0 0 #3D6420, 0 6px 20px rgba(124, 179, 66, 0.3);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .btn-warning {
-  @apply btn bg-focus-warning text-black hover:bg-yellow-500 focus:ring-yellow-500;
+  @apply btn bg-gradient-to-br from-sushi-tamago to-sushi-uni text-black;
+  @apply hover:from-sushi-tamagoLight hover:to-sushi-tamago;
+  @apply focus:ring-yellow-500;
+  box-shadow: 0 4px 0 0 #B8860B;
 }
 
 .btn-danger {
-  @apply btn bg-focus-error text-white hover:bg-red-600 focus:ring-red-500;
+  @apply btn bg-gradient-to-br from-sushi-tuna to-sushi-tunaDeep text-white;
+  @apply hover:from-sushi-salmon hover:to-sushi-tuna;
+  @apply focus:ring-sushi-tuna;
+  box-shadow: 0 4px 0 0 #5B0F0F, 0 6px 20px rgba(200, 75, 61, 0.3);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
-/* Input styles */
+/* ═══════════════════════════════════════════════════════════════
+   📝 INPUT STYLES - 和紙風
+   ═══════════════════════════════════════════════════════════════ */
+
 .input {
-  @apply w-full px-3 py-2 bg-focus-bg border border-focus-border rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-focus-primary focus:border-transparent;
+  @apply w-full px-4 py-3 rounded-xl;
+  @apply border-2 border-focus-border;
+  @apply placeholder-muted;
+  @apply focus:outline-none focus:ring-2 focus:ring-sushi-salmon focus:border-sushi-salmon;
+  background:
+    linear-gradient(180deg, var(--focus-bg) 0%, var(--focus-surface) 100%);
   color: var(--text-primary);
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.1),
+    0 1px 0 rgba(255,255,255,0.05);
+  transition: all 0.2s ease;
 }
 
-/* Countdown animation */
+.input:focus {
+  background: var(--focus-surface);
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.05),
+    0 0 0 4px rgba(232, 93, 76, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📊 PROGRESS BARS - わさびグリーン
+   ═══════════════════════════════════════════════════════════════ */
+
 .countdown-bar {
-  @apply h-1 bg-focus-warning transition-all duration-100;
-  animation: countdown var(--countdown-duration, 1.5s) linear forwards;
+  @apply h-3 rounded-full transition-all duration-100 relative overflow-hidden;
+  background: linear-gradient(90deg, #7CB342 0%, #8FFF00 50%, #7CB342 100%);
+  background-size: 200% 100%;
+  animation: progress-shimmer 2s linear infinite;
 }
 
-@keyframes countdown {
-  from { width: 100%; }
-  to { width: 0%; }
+.countdown-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%);
+  border-radius: inherit;
+}
+
+@keyframes progress-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🌟 SPECIAL EFFECTS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* キラキラエフェクト */
+.sparkle {
+  @apply relative;
+}
+
+.sparkle::before,
+.sparkle::after {
+  content: '✨';
+  position: absolute;
+  animation: sparkle-float 2s ease-in-out infinite;
+  font-size: 0.75rem;
+}
+
+.sparkle::before { top: -10px; left: -5px; animation-delay: 0s; }
+.sparkle::after { top: -5px; right: -5px; animation-delay: 0.5s; }
+
+@keyframes sparkle-float {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+  50% { opacity: 1; transform: translateY(-5px) scale(1); }
+}
+
+/* 回転する寿司 */
+.spinning-sushi {
+  animation: sushi-spin-bounce 3s ease-in-out infinite;
+}
+
+@keyframes sushi-spin-bounce {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.1); }
+  50% { transform: rotate(180deg) scale(1); }
+  75% { transform: rotate(270deg) scale(1.1); }
+}
+
+/* 弾む寿司 */
+.bouncing-sushi {
+  animation: sushi-mega-bounce 1s ease-in-out infinite;
+}
+
+@keyframes sushi-mega-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* グラデーションボーダー */
+.gradient-border {
+  position: relative;
+  background: var(--focus-surface);
+  z-index: 1;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, #E85D4C, #7CB342, #FFD700, #E85D4C);
+  background-size: 400% 400%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: gradient-rotate 4s linear infinite;
+}
+
+@keyframes gradient-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🔔 NOTIFICATION BADGE
+   ═══════════════════════════════════════════════════════════════ */
+
+.notification-badge {
+  @apply absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center;
+  @apply text-xs font-black text-white;
+  background: linear-gradient(135deg, #FF6B5B 0%, #C84B3D 100%);
+  box-shadow: 0 2px 8px rgba(232, 93, 76, 0.5);
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🎮 INTERACTIVE ELEMENTS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ホバーで寿司が回る */
+.hover-spin:hover {
+  animation: quick-spin 0.5s ease-in-out;
+}
+
+@keyframes quick-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* クリックでぽよん */
+.click-bounce:active {
+  animation: click-squish 0.2s ease-out;
+}
+
+@keyframes click-squish {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🌙 DARK MODE SPECIFIC
+   ═══════════════════════════════════════════════════════════════ */
+
+.dark .sushi-geta {
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.05),
+    inset 0 -4px 0 0 rgba(139, 90, 43, 0.4),
+    0 6px 0 0 #5D3A1A,
+    0 8px 20px rgba(0,0,0,0.5);
+}
+
+.dark .btn-primary {
+  box-shadow:
+    0 4px 0 0 #5B0F0F,
+    0 6px 25px rgba(232, 93, 76, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📱 RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 400px) {
+  .conveyor-container {
+    @apply h-10;
+  }
+
+  .conveyor-sushi {
+    @apply text-2xl mx-4;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🎬 LOADING STATES
+   ═══════════════════════════════════════════════════════════════ */
+
+.loading-sushi {
+  @apply inline-block;
+  animation: loading-roll 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-roll {
+  0% { transform: translateX(-100%) rotate(0deg); }
+  50% { transform: translateX(0) rotate(180deg); }
+  100% { transform: translateX(100%) rotate(360deg); }
+}
+
+/* 読み込み中の寿司ドット */
+.loading-dots span {
+  @apply inline-block mx-1 text-2xl;
+  animation: dot-bounce 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-15px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🎌 REFINED HEADER STYLES - 洗練された暖簾
+   ═══════════════════════════════════════════════════════════════ */
+
+.header-glass {
+  background: linear-gradient(
+    180deg,
+    var(--noren-top) 0%,
+    color-mix(in srgb, var(--noren-bottom) 90%, transparent) 100%
+  );
+  backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.noren-refined {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
+.noren-flap-refined {
+  width: 12px;
+  height: 8px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  border-radius: 0 0 6px 6px;
+  animation: noren-flap-sway 3s ease-in-out infinite;
+}
+
+@keyframes noren-flap-sway {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50% { transform: scaleY(1.1) translateY(1px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🟢 STATUS ORB - ステータス表示オーブ
+   ═══════════════════════════════════════════════════════════════ */
+
+.status-orb-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-orb {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.status-orb-connected {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(124, 179, 66, 0.4) 0%,
+    rgba(124, 179, 66, 0.2) 50%,
+    rgba(124, 179, 66, 0.1) 100%
+  );
+  box-shadow:
+    0 0 20px rgba(124, 179, 66, 0.4),
+    inset 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.status-orb-offline {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(150, 150, 150, 0.3) 0%,
+    rgba(100, 100, 100, 0.15) 100%
+  );
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.status-pulse-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(124, 179, 66, 0.6);
+  animation: status-pulse 2s ease-out infinite;
+}
+
+@keyframes status-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* 寿司揺れアニメーション */
+.sushi-wobble {
+  animation: sushi-wobble-anim 2s ease-in-out infinite;
+}
+
+@keyframes sushi-wobble-anim {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📝 STATUS LABELS - ステータスラベル
+   ═══════════════════════════════════════════════════════════════ */
+
+.status-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+.status-label-connected {
+  background: rgba(124, 179, 66, 0.3);
+  color: #b8ff6b;
+  border: 1px solid rgba(124, 179, 66, 0.5);
+}
+
+.status-label-offline {
+  background: rgba(150, 150, 150, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(150, 150, 150, 0.3);
+}
+
+.header-title {
+  font-family: 'Dela Gothic One', 'Zen Maru Gothic', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.05em;
+}
+
+.sparkle-mini {
+  display: inline-block;
+  animation: sparkle-twinkle 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🌿 GIT BADGE - Git ブランチバッジ
+   ═══════════════════════════════════════════════════════════════ */
+
+.git-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.git-badge:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.git-icon {
+  font-size: 1rem;
+}
+
+.git-branch {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'SF Mono', 'Monaco', monospace;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🏮 LANTERN & WOOD - 提灯と木のカウンター
+   ═══════════════════════════════════════════════════════════════ */
+
+.lantern-gentle {
+  animation: lantern-gentle-sway 4s ease-in-out infinite;
+}
+
+@keyframes lantern-gentle-sway {
+  0%, 100% { transform: rotate(-2deg) translateY(0); }
+  50% { transform: rotate(2deg) translateY(-2px); }
+}
+
+.wood-counter-refined {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--wood-accent) 0%,
+    color-mix(in srgb, var(--wood-accent) 70%, white) 50%,
+    var(--wood-accent) 100%
+  );
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📋 TERMINAL CONTAINER - ターミナルコンテナ
+   ═══════════════════════════════════════════════════════════════ */
+
+.terminal-container {
+  background: var(--terminal-bg);
+  border: 1px solid var(--focus-border);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px dashed var(--focus-border);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 100%
+  );
+}
+
+.terminal-header-title {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--text-heading);
+  letter-spacing: 0.05em;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   💤 IDLE STATE - 待機状態スタイル
+   ═══════════════════════════════════════════════════════════════ */
+
+.idle-state {
+  animation: idle-fade-in 0.6s ease-out;
+}
+
+@keyframes idle-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sushi-float {
+  animation: sushi-float-anim 3s ease-in-out infinite;
+}
+
+@keyframes sushi-float-anim {
+  0%, 100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(3deg);
+  }
+}
+
+/* スパークルドット */
+.sparkle-dot {
+  position: absolute;
+  font-size: 0.875rem;
+  animation: sparkle-dot-anim 2s ease-in-out infinite;
+}
+
+.sparkle-dot-1 {
+  top: -5px;
+  left: -10px;
+  animation-delay: 0s;
+}
+
+.sparkle-dot-2 {
+  bottom: 5px;
+  right: -15px;
+  animation-delay: 0.5s;
+}
+
+@keyframes sparkle-dot-anim {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ⏳ LOADING DOTS REFINED - 洗練されたローディング
+   ═══════════════════════════════════════════════════════════════ */
+
+.loading-dots-refined {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loading-dots-refined span {
+  font-size: 1.25rem;
+  animation: loading-dot-refined 1.8s ease-in-out infinite;
+}
+
+.loading-dots-refined span:nth-child(1) { animation-delay: 0s; }
+.loading-dots-refined span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots-refined span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loading-dot-refined {
+  0%, 80%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-8px) scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📟 CURSOR BLINK - カーソル点滅
+   ═══════════════════════════════════════════════════════════════ */
+
+.animate-cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }

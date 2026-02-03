@@ -314,30 +314,66 @@ export default function App() {
     }
   };
 
+  // 寿司パーティクル生成
+  const sushiEmojis = ['🍣', '🍱', '🍙', '🥢', '🍵', '🍶', '🐟', '🦐', '🥒', '🥑'];
+  const sushiParticles = Array.from({ length: 15 }, (_, i) => ({
+    emoji: sushiEmojis[i % sushiEmojis.length],
+    style: {
+      left: `${(i * 7) % 100}%`,
+      top: `${(i * 13) % 80}%`,
+      animationDelay: `${i * 0.5}s`,
+      animationDuration: `${15 + (i % 10)}s`,
+    },
+  }));
+
+  // 回転寿司コンベアの寿司
+  const conveyorSushi = ['🍣', '🍱', '🍙', '🥟', '🍤', '🐟', '🍣', '🍱', '🍙', '🥟', '🍤', '🐟'];
+
   return (
-    <div className="flex flex-col h-screen bg-focus-bg">
-      <Header
-        connected={state.connected}
-        gitBranch={state.gitBranch}
-      />
-
-      {/* TaskInput hidden — reserved for future IDE integration */}
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TerminalOutput logs={state.logs} />
-        <div ref={logsEndRef} />
+    <div className="flex flex-col h-screen bg-focus-bg relative overflow-hidden">
+      {/* 🍣 浮遊する寿司パーティクル */}
+      <div className="sushi-bg-particles">
+        {sushiParticles.map((particle, i) => (
+          <span
+            key={i}
+            className="sushi-particle"
+            style={particle.style}
+          >
+            {particle.emoji}
+          </span>
+        ))}
       </div>
 
-      {/* Footer: Home Tab button hidden - IDE auto-focus is simpler */}
-      {/* <div className="px-4 pb-4">
-        <button
-          onClick={state.settings?.homeTabId ? handleClearHomeTab : handleSetHomeTab}
-          className="w-full py-3 border border-dashed border-focus-border rounded-xl text-text-secondary text-sm font-medium flex items-center justify-center gap-2 hover:border-focus-primary hover:text-focus-primary transition-colors"
-        >
-          <span className="material-symbols-outlined text-lg">home_app_logo</span>
-          {state.settings?.homeTabId ? t('sidepanel.clearHomeTab') : t('sidepanel.setCurrentTabAsHome')}
-        </button>
-      </div> */}
+      {/* メインコンテンツ */}
+      <div className="relative z-10 flex flex-col h-full pb-14">
+        <Header
+          connected={state.connected}
+          gitBranch={state.gitBranch}
+        />
+
+        {/* TaskInput hidden — reserved for future IDE integration */}
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <TerminalOutput logs={state.logs} />
+          <div ref={logsEndRef} />
+        </div>
+      </div>
+
+      {/* 🍣 回転寿司コンベア */}
+      <div className="conveyor-container">
+        <div className="conveyor-belt">
+          {/* 2セット分の寿司（無限ループ用） */}
+          {[...conveyorSushi, ...conveyorSushi].map((sushi, i) => (
+            <span
+              key={i}
+              className="conveyor-sushi"
+              style={{ animationDelay: `${i * 0.2}s` }}
+            >
+              {sushi}
+            </span>
+          ))}
+        </div>
+      </div>
 
       {/* Action Required Modal */}
       {state.taskStatus === 'waiting_input' && state.inputQuestion && (

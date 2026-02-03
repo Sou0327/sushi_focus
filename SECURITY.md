@@ -27,9 +27,9 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 - **Fix Timeline**: Critical issues will be addressed within 7 days; others within 30 days
 - **Disclosure**: We will coordinate disclosure timing with you
 
-### Security Measures in FocusFlow
+### Security Measures in Sushi Focus
 
-FocusFlow implements several security measures:
+Sushi Focus implements several security measures:
 
 - **Local-only communication**: Daemon binds to `127.0.0.1` only
 - **CORS restrictions**: Configurable origin whitelist
@@ -39,9 +39,9 @@ FocusFlow implements several security measures:
 
 ## Security Best Practices for Users
 
-1. **Keep FocusFlow updated** to the latest version
-2. **Set `FOCUSFLOW_SECRET`** environment variable for API authentication
+1. **Keep Sushi Focus updated** to the latest version
+2. **Set `SUSHI_FOCUS_SECRET`** environment variable for API authentication
 3. **Review distraction domain lists** before adding custom entries
 4. **Don't expose the daemon** to external networks
 
-Thank you for helping keep FocusFlow secure!
+Thank you for helping keep Sushi Focus secure!

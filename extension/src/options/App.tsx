@@ -16,9 +16,9 @@ export default function App() {
   const [connected, setConnected] = useState(false);
 
   const NAV_ITEMS: { id: SettingsSection; label: string; icon: string }[] = [
-    { id: 'focus', label: t('nav.focusRules'), icon: 'psychology' },
-    { id: 'timer', label: t('nav.timerConfig'), icon: 'hourglass_top' },
-    { id: 'general', label: t('nav.generalSettings'), icon: 'settings' },
+    { id: 'focus', label: t('nav.focusRules'), icon: '🥢' },
+    { id: 'timer', label: t('nav.timerConfig'), icon: '⏱️' },
+    { id: 'general', label: t('nav.generalSettings'), icon: '📜' },
   ];
 
   useEffect(() => {
@@ -78,129 +78,168 @@ export default function App() {
   if (!settings) {
     return (
       <div className="h-screen bg-focus-bg flex items-center justify-center">
-        <div className="text-text-secondary">{t('common.loading')}</div>
+        <div className="text-center">
+          <div className="text-5xl mb-4 animate-sushi-roll">🍣</div>
+          <div className="text-subtle">{t('common.loading')}</div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex h-screen bg-focus-bg">
-      {/* Sidebar */}
-      <aside className="w-[264px] flex-shrink-0 bg-focus-bg border-r border-focus-border flex flex-col">
-        <div className="p-6">
-          <div className="flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-focus-primary text-2xl">bolt</span>
-            <span className="text-lg font-bold text-heading font-display">{t('common.focusFlow')}</span>
+      {/* 🏮 サイドバー - 暖簾風 */}
+      <aside className="w-[280px] flex-shrink-0 bg-focus-bg border-r-2 border-focus-border flex flex-col">
+        {/* ヘッダー - 暖簾 */}
+        <div className="noren px-6 py-5 relative">
+          <div className="absolute bottom-0 left-0 right-0 flex justify-around">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="w-6 h-2 bg-gradient-to-b from-transparent to-black/30 rounded-b-full"
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-3 relative z-10">
+            <span className="text-3xl">🍣</span>
+            <div>
+              <div className="text-lg font-bold text-white drop-shadow-lg">{t('common.focusFlow')}</div>
+              <div className="text-xs text-sushi-rice/80">{t('common.settings')}</div>
+            </div>
           </div>
         </div>
 
-        <nav className="flex-1 px-3">
+        {/* 木のカウンター縁 */}
+        <div className="h-2 bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark" />
+
+        {/* ナビゲーション - お品書き風 */}
+        <nav className="flex-1 p-4">
+          <div className="mb-3 px-3">
+            <span className="text-xs text-muted uppercase tracking-widest font-bold">お品書き</span>
+          </div>
           {NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm transition-colors mb-1 ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-sm transition-all mb-2 ${
                   isActive
-                    ? 'bg-surface-highlight text-heading border-l-4 border-focus-primary pl-2'
-                    : 'text-text-secondary hover:bg-focus-surface hover:text-heading'
+                    ? 'bg-sushi-salmon/20 text-sushi-salmon border-l-4 border-sushi-salmon font-bold'
+                    : 'text-subtle hover:bg-focus-surface hover:text-heading'
                 }`}
               >
-                <span className={`material-symbols-outlined text-lg ${isActive ? 'text-focus-primary' : ''}`}>
-                  {item.icon}
-                </span>
+                <span className="text-lg">{item.icon}</span>
                 {item.label}
               </button>
             );
           })}
         </nav>
 
-        <div className="p-4 mx-3 mb-3 bg-focus-surface rounded-xl border border-focus-border">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              {connected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-focus-success opacity-75" />}
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${connected ? 'bg-focus-success' : 'bg-focus-error'}`} />
-            </span>
-            <span className="text-sm font-medium text-heading">{connected ? t('options.daemon.active') : t('options.daemon.offline')}</span>
-          </div>
-          <div className="mt-1 text-xs text-text-secondary ml-[18px]">
-            {connected ? `v${daemonVersion || '?.?.?'} · localhost:41593` : t('options.daemon.offlineStatus')}
+        {/* 厨房ステータス - 木札風 */}
+        <div className="p-4">
+          <div className="sushi-geta p-4">
+            <div className="flex items-center gap-3">
+              <div className={`
+                w-10 h-10 rounded-full flex items-center justify-center text-xl
+                ${connected
+                  ? 'bg-sushi-wasabi/20 shadow-[0_0_10px_rgba(124,179,66,0.3)]'
+                  : 'bg-sushi-tuna/20'
+                }
+              `}>
+                {connected ? '🍣' : '🚫'}
+              </div>
+              <div>
+                <div className={`text-sm font-bold ${connected ? 'text-sushi-wasabi' : 'text-sushi-tuna'}`}>
+                  {connected ? t('options.daemon.active') : t('options.daemon.offline')}
+                </div>
+                <div className="text-xs text-muted">
+                  {connected ? `v${daemonVersion || '?.?.?'} · localhost:41593` : t('options.daemon.offlineStatus')}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* メインコンテンツ */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="flex items-center justify-between px-8 py-4 border-b border-focus-border">
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <span>{t('common.settings')}</span>
-            <span className="text-dim">{'>'}</span>
-            <span className="text-heading font-medium">
+        {/* トップバー - 木のカウンター風 */}
+        <header className="flex items-center justify-between px-8 py-4 bg-focus-surface border-b-2 border-focus-border">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted">{t('common.settings')}</span>
+            <span className="text-sushi-salmon">→</span>
+            <span className="text-heading font-bold">
               {NAV_ITEMS.find(i => i.id === activeSection)?.label}
             </span>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={resetDefaults}
-              className="text-sm text-text-secondary hover:text-heading transition-colors"
+              className="text-sm text-muted hover:text-sushi-tuna transition-colors flex items-center gap-1"
             >
+              <span>🔄</span>
               {t('options.resetDefaults')}
             </button>
-            <button
-              disabled
-              className={`px-4 py-2 text-sm font-medium rounded-lg cursor-default flex items-center gap-1.5 transition-colors ${
-                saveState === 'saved' ? 'bg-focus-success/20 text-focus-success' : 'bg-focus-primary/50 text-heading/70'
+            <div
+              className={`px-4 py-2 text-sm font-bold rounded-lg flex items-center gap-2 ${
+                saveState === 'saved'
+                  ? 'bg-sushi-wasabi/20 text-sushi-wasabi border border-sushi-wasabi/30'
+                  : 'bg-focus-bg text-muted border border-focus-border'
               }`}
             >
               {saveState === 'saving' ? (
                 <>
-                  <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
+                  <span className="animate-spin">🍣</span>
                   {t('common.saving')}
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-base">check</span>
+                  <span>✅</span>
                   {t('common.saved')}
                 </>
               )}
-            </button>
+            </div>
           </div>
         </header>
 
-        {/* Content Area */}
+        {/* コンテンツエリア */}
         <main className="flex-1 overflow-y-auto px-8 py-8">
           <div className="max-w-[800px] mx-auto">
             {activeSection === 'focus' && (
               <>
-                <h1 className="text-2xl font-bold text-heading mb-2">{t('options.focus.title')}</h1>
-                <p className="text-text-secondary mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-3xl">🥢</span>
+                  <h1 className="text-2xl font-bold text-heading">{t('options.focus.title')}</h1>
+                </div>
+                <p className="text-subtle mb-8 ml-12">
                   {t('options.focus.description')}
                 </p>
 
                 <div className="mb-8">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-heading mb-4">
-                    <span className="material-symbols-outlined text-focus-primary">psychology</span>
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-heading mb-4 ml-2">
+                    <span className="text-sushi-salmon">●</span>
                     {t('options.focus.behaviorTitle')}
                   </h2>
 
                   <div className="space-y-3">
                     {/* タスク完了時の IDE 復帰 */}
-                    <div className="flex items-center justify-between bg-focus-surface border border-focus-border rounded-xl p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-focus-bg rounded-lg flex items-center justify-center">
-                          <span className="material-symbols-outlined text-focus-primary">code</span>
+                    <div className="sushi-geta p-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-sushi-salmon/20 rounded-lg flex items-center justify-center">
+                            <span className="text-2xl">🏃</span>
+                          </div>
+                          <div>
+                            <div className="text-sm font-bold text-heading">{t('options.focus.autoReturn')}</div>
+                            <div className="text-xs text-muted mt-1">{t('options.focus.autoReturnDesc')}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="text-sm font-medium text-heading">{t('options.focus.autoReturn')}</div>
-                          <div className="text-xs text-text-secondary">{t('options.focus.autoReturnDesc')}</div>
-                        </div>
+                        <ToggleSwitch
+                          checked={settings.enableDoneFocus}
+                          onChange={(checked) => saveSettings({ enableDoneFocus: checked })}
+                        />
                       </div>
-                      <ToggleSwitch
-                        checked={settings.enableDoneFocus}
-                        onChange={(checked) => saveSettings({ enableDoneFocus: checked })}
-                      />
                     </div>
                   </div>
                 </div>
@@ -209,21 +248,27 @@ export default function App() {
 
             {activeSection === 'timer' && (
               <>
-                <h1 className="text-2xl font-bold text-heading mb-2">{t('options.timer.title')}</h1>
-                <p className="text-text-secondary mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-3xl">⏱️</span>
+                  <h1 className="text-2xl font-bold text-heading">{t('options.timer.title')}</h1>
+                </div>
+                <p className="text-subtle mb-8 ml-12">
                   {t('options.timer.description')}
                 </p>
 
                 <div className="mb-8">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-heading mb-4">
-                    <span className="material-symbols-outlined text-focus-primary">hourglass_top</span>
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-heading mb-4 ml-2">
+                    <span className="text-sushi-wasabi">●</span>
                     {t('options.timer.sectionTitle')}
                   </h2>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                      <div className="text-[10px] font-semibold tracking-widest uppercase text-text-secondary mb-3">
-                        {t('options.timer.returnCountdown')}
+                    <div className="sushi-geta p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xl">⏳</span>
+                        <div className="text-xs font-bold tracking-widest uppercase text-muted">
+                          {t('options.timer.returnCountdown')}
+                        </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <input
@@ -232,16 +277,19 @@ export default function App() {
                           onChange={(e) => saveSettings({ doneCountdownMs: Number(e.target.value) * 1000 })}
                           min={1}
                           max={30}
-                          className="w-full bg-focus-bg border border-focus-border rounded-lg px-4 py-3 text-2xl font-bold text-heading text-center focus:outline-none focus:ring-2 focus:ring-focus-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          className="w-full input text-3xl font-bold text-center text-sushi-salmon [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
-                        <span className="text-text-secondary text-sm shrink-0">{t('common.seconds')}</span>
+                        <span className="text-muted text-sm shrink-0">{t('common.seconds')}</span>
                       </div>
-                      <p className="text-xs text-text-secondary mt-2">{t('options.timer.returnCountdownDesc')}</p>
+                      <p className="text-xs text-muted mt-3">{t('options.timer.returnCountdownDesc')}</p>
                     </div>
 
-                    <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                      <div className="text-[10px] font-semibold tracking-widest uppercase text-text-secondary mb-3">
-                        {t('options.timer.focusCooldown')}
+                    <div className="sushi-geta p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xl">🧊</span>
+                        <div className="text-xs font-bold tracking-widest uppercase text-muted">
+                          {t('options.timer.focusCooldown')}
+                        </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <input
@@ -250,11 +298,11 @@ export default function App() {
                           onChange={(e) => saveSettings({ doneCooldownMs: Number(e.target.value) * 60000 })}
                           min={1}
                           max={60}
-                          className="w-full bg-focus-bg border border-focus-border rounded-lg px-4 py-3 text-2xl font-bold text-heading text-center focus:outline-none focus:ring-2 focus:ring-focus-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          className="w-full input text-3xl font-bold text-center text-sushi-wasabi [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
-                        <span className="text-text-secondary text-sm shrink-0">{t('common.minutes')}</span>
+                        <span className="text-muted text-sm shrink-0">{t('common.minutes')}</span>
                       </div>
-                      <p className="text-xs text-text-secondary mt-2">{t('options.timer.focusCooldownDesc')}</p>
+                      <p className="text-xs text-muted mt-3">{t('options.timer.focusCooldownDesc')}</p>
                     </div>
                   </div>
                 </div>
@@ -263,55 +311,62 @@ export default function App() {
 
             {activeSection === 'general' && (
               <>
-                <h1 className="text-2xl font-bold text-heading mb-2">{t('options.general.title')}</h1>
-                <p className="text-text-secondary mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-3xl">📜</span>
+                  <h1 className="text-2xl font-bold text-heading">{t('options.general.title')}</h1>
+                </div>
+                <p className="text-subtle mb-8 ml-12">
                   {t('options.general.description')}
                 </p>
 
                 <div className="space-y-4">
                   {/* Language Selector */}
-                  <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                    <div className="font-medium text-heading mb-1">{t('options.general.language')}</div>
-                    <div className="text-sm text-text-secondary mb-3">
+                  <div className="sushi-geta p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">🌐</span>
+                      <div className="font-bold text-heading">{t('options.general.language')}</div>
+                    </div>
+                    <div className="text-sm text-muted mb-4 ml-8">
                       {t('options.general.languageDesc')}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 ml-8">
                       {(['en', 'ja'] as Language[]).map((lang) => (
                         <button
                           key={lang}
                           onClick={() => handleLanguageChange(lang)}
-                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          className={`px-5 py-2.5 text-sm font-bold rounded-lg transition-all ${
                             language === lang
-                              ? 'bg-focus-primary text-white'
-                              : 'bg-focus-bg border border-focus-border text-subtle hover:text-heading hover:border-focus-primary'
+                              ? 'bg-sushi-salmon text-white shadow-[0_3px_0_0_#A03D30]'
+                              : 'bg-focus-bg border-2 border-focus-border text-subtle hover:text-heading hover:border-sushi-salmon'
                           }`}
                         >
-                          {t(`language.${lang}`)}
+                          {lang === 'en' ? '🇺🇸 English' : '🇯🇵 日本語'}
                         </button>
                       ))}
                     </div>
                   </div>
 
                   {/* Theme Selector */}
-                  <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                    <div className="font-medium text-heading mb-1">{t('options.general.theme')}</div>
-                    <div className="text-sm text-text-secondary mb-3">
+                  <div className="sushi-geta p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">🎨</span>
+                      <div className="font-bold text-heading">{t('options.general.theme')}</div>
+                    </div>
+                    <div className="text-sm text-muted mb-4 ml-8">
                       {t('options.general.themeDesc')}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 ml-8">
                       {(['dark', 'light'] as Theme[]).map((th) => (
                         <button
                           key={th}
                           onClick={() => handleThemeChange(th)}
-                          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-lg transition-all ${
                             theme === th
-                              ? 'bg-focus-primary text-white'
-                              : 'bg-focus-bg border border-focus-border text-subtle hover:text-heading hover:border-focus-primary'
+                              ? 'bg-sushi-salmon text-white shadow-[0_3px_0_0_#A03D30]'
+                              : 'bg-focus-bg border-2 border-focus-border text-subtle hover:text-heading hover:border-sushi-salmon'
                           }`}
                         >
-                          <span className="material-symbols-outlined text-base">
-                            {th === 'dark' ? 'dark_mode' : 'light_mode'}
-                          </span>
+                          <span className="text-lg">{th === 'dark' ? '🫘' : '🍚'}</span>
                           {t(`theme.${th}`)}
                         </button>
                       ))}
@@ -319,20 +374,23 @@ export default function App() {
                   </div>
 
                   {/* Log Verbosity */}
-                  <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                    <div className="font-medium text-heading mb-1">{t('options.general.logVerbosity')}</div>
-                    <div className="text-sm text-text-secondary mb-3">
+                  <div className="sushi-geta p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">📝</span>
+                      <div className="font-bold text-heading">{t('options.general.logVerbosity')}</div>
+                    </div>
+                    <div className="text-sm text-muted mb-4 ml-8">
                       {t('options.general.logVerbosityDesc')}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 ml-8">
                       {(['minimal', 'normal', 'verbose'] as LogVerbosity[]).map((level) => (
                         <button
                           key={level}
                           onClick={() => saveSettings({ logVerbosity: level })}
-                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          className={`px-5 py-2.5 text-sm font-bold rounded-lg transition-all ${
                             settings.logVerbosity === level
-                              ? 'bg-focus-primary text-white'
-                              : 'bg-focus-bg border border-focus-border text-subtle hover:text-heading hover:border-focus-primary'
+                              ? 'bg-sushi-wasabi text-white shadow-[0_3px_0_0_#3D6420]'
+                              : 'bg-focus-bg border-2 border-focus-border text-subtle hover:text-heading hover:border-sushi-wasabi'
                           }`}
                         >
                           {t(`options.general.logLevel.${level}`)}
@@ -341,30 +399,38 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                    <div className="font-medium text-heading mb-1">{t('options.general.daemonConnection')}</div>
-                    <div className="text-sm text-text-secondary mb-3">
+                  {/* Daemon Connection */}
+                  <div className="sushi-geta p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">🔌</span>
+                      <div className="font-bold text-heading">{t('options.general.daemonConnection')}</div>
+                    </div>
+                    <div className="text-sm text-muted mb-4 ml-8">
                       {t('options.general.daemonConnectionDesc')}
                     </div>
                     <button
                       onClick={() => chrome.runtime.sendMessage({ type: 'reconnect' })}
-                      className="flex items-center gap-2 px-4 py-2 bg-focus-bg border border-focus-border rounded-lg text-sm text-subtle hover:text-heading hover:border-focus-primary transition-colors"
+                      className="ml-8 btn-secondary flex items-center gap-2"
                     >
-                      <span className="material-symbols-outlined text-lg">refresh</span>
+                      <span className="text-lg">🔄</span>
                       {t('options.general.reconnect')}
                     </button>
                   </div>
 
-                  <div className="bg-focus-surface border border-focus-border rounded-xl p-5">
-                    <div className="font-medium text-heading mb-1">{t('options.general.resetToDefaults')}</div>
-                    <div className="text-sm text-text-secondary mb-3">
+                  {/* Reset to Defaults */}
+                  <div className="sushi-geta p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">⚠️</span>
+                      <div className="font-bold text-heading">{t('options.general.resetToDefaults')}</div>
+                    </div>
+                    <div className="text-sm text-muted mb-4 ml-8">
                       {t('options.general.resetToDefaultsDesc')}
                     </div>
                     <button
                       onClick={resetDefaults}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400 hover:bg-red-500/20 transition-colors"
+                      className="ml-8 btn-danger flex items-center gap-2"
                     >
-                      <span className="material-symbols-outlined text-lg">restart_alt</span>
+                      <span className="text-lg">🗑️</span>
                       {t('options.general.resetSettings')}
                     </button>
                   </div>
