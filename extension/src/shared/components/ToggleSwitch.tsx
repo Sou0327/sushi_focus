@@ -15,8 +15,8 @@ export function ToggleSwitch({ checked, onChange, disabled = false }: ToggleSwit
       className={`
         relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full
         border-2 border-transparent transition-colors duration-200 ease-in-out
-        focus:outline-none focus:ring-2 focus:ring-focus-primary focus:ring-offset-2 focus:ring-offset-focus-bg
-        ${checked ? 'bg-focus-primary' : 'bg-focus-border'}
+        focus:outline-none focus:ring-2 focus:ring-sushi-primary focus:ring-offset-2 focus:ring-offset-sushi-bg
+        ${checked ? 'bg-sushi-primary' : 'bg-sushi-border'}
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       `}
     >

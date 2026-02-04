@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run quality checks
+        run: |
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Create extension ZIP
+        run: |
+          cd extension/dist
+          zip -r ../../sushi-focus-extension-${{ github.ref_name }}.zip . -x "*.map" -x ".vite/*"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: sushi-focus-extension-${{ github.ref_name }}.zip
+          generate_release_notes: true
+          body: |
+            ## Sushi Focus ${{ github.ref_name }} 🍣
+
+            ### Manual Installation
+
+            1. Download `sushi-focus-extension-${{ github.ref_name }}.zip`
+            2. Extract the ZIP file
+            3. Open Chrome and navigate to `chrome://extensions`
+            4. Enable "Developer mode" (top right toggle)
+            5. Click "Load unpacked"
+            6. Select the extracted folder
+
+            ### Daemon Setup
+
+            See the [README](https://github.com/${{ github.repository }}#quick-start) for daemon setup instructions.

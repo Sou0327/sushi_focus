@@ -25,7 +25,7 @@ function getLogStyle(level: string, message: string) {
     case 'info':
       return { labelColor: 'text-sushi-salmon', label: '注文', isCommand: false, isAI: false };
     case 'warn':
-      return { labelColor: 'text-focus-warning', label: '確認', isCommand: false, isAI: false };
+      return { labelColor: 'text-sushi-warning', label: '確認', isCommand: false, isAI: false };
     case 'error':
       return { labelColor: 'text-sushi-tuna', label: '問題', isCommand: false, isAI: false };
     case 'debug':
@@ -105,7 +105,7 @@ export function TerminalOutput({ logs }: TerminalOutputProps) {
   return (
     <div className="flex-1 mx-4 mb-4 sushi-geta overflow-hidden flex flex-col">
       {/* 注文票ヘッダー */}
-      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-dashed border-focus-border bg-gradient-to-r from-focus-surface/80 via-focus-surface to-focus-surface/80">
+      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-dashed border-sushi-border bg-gradient-to-r from-sushi-surface/80 via-sushi-surface to-sushi-surface/80">
         <div className="flex items-center gap-3">
           <span className="text-xl">📋</span>
           <span className="text-sm font-black text-heading tracking-wider">{t('terminal.title')}</span>
@@ -211,11 +211,11 @@ export function TerminalOutput({ logs }: TerminalOutputProps) {
           return (
             <div
               key={index}
-              className="group flex gap-3 py-2 px-4 bg-focus-surface/50 rounded-xl border-l-4 border-focus-border hover:bg-focus-surface/80 transition-all duration-200"
+              className="group flex gap-3 py-2 px-4 bg-sushi-surface/50 rounded-xl border-l-4 border-sushi-border hover:bg-sushi-surface/80 transition-all duration-200"
             >
               <span className="text-muted select-none shrink-0 text-xs">{formatTime(log.ts)}</span>
               <div className="flex-1 flex gap-2 items-start">
-                <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${style.labelColor} bg-focus-surface/80 border border-focus-border`}>
+                <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${style.labelColor} bg-sushi-surface/80 border border-sushi-border`}>
                   {style.label}
                 </span>
                 <span className="text-subtle break-all">{log.message}</span>

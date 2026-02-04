@@ -1,0 +1,16 @@
+{
+  "description": "Sushi Focus daemon auto-starter - starts the daemon on session start",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/start-daemon.js\"",
+            "timeout": 60000
+          }
+        ]
+      }
+    ]
+  }
+}

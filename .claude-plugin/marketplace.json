@@ -1,0 +1,18 @@
+{
+  "name": "sushi-focus",
+  "owner": {
+    "name": "Sou0327"
+  },
+  "metadata": {
+    "description": "Sushi Focus - Omakase style development with Chrome extension + local daemon",
+    "homepage": "https://github.com/Sou0327/sushi_focus"
+  },
+  "plugins": [
+    {
+      "name": "sushi-focus-daemon",
+      "version": "0.1.1",
+      "source": "./claude-plugin/sushi-focus-daemon",
+      "description": "Auto-start Sushi Focus daemon on Claude Code session start"
+    }
+  ]
+}

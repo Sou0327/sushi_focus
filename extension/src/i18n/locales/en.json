@@ -1,6 +1,6 @@
 {
   "common": {
-    "focusFlow": "Sushi Focus 🍣",
+    "sushiFocus": "Sushi Focus 🍣",
     "loading": "Rolling sushi...",
     "settings": "Menu",
     "saving": "Plating...",
@@ -73,7 +73,7 @@
     }
   },
   "popup": {
-    "active": "Fresh 🍣",
+    "active": "Active",
     "paused": "On Ice 🧊",
     "operatingMode": "Service Style",
     "modes": {

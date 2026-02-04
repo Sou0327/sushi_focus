@@ -1,6 +1,6 @@
 # Sushi Focus 🍣
 
-[![CI](https://github.com/Sou0327/focus_flow/actions/workflows/ci.yml/badge.svg)](https://github.com/Sou0327/focus_flow/actions/workflows/ci.yml)
+[![CI](https://github.com/Sou0327/sushi_focus/actions/workflows/ci.yml/badge.svg)](https://github.com/Sou0327/sushi_focus/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [日本語](README.ja.md)
@@ -28,6 +28,40 @@ A Chrome Extension + Local Daemon system for "omakase-style development." Like a
 - **Node.js** 20+
 - **pnpm** 9+ (install with `npm install -g pnpm`)
 - **Google Chrome** browser
+
+## Installation
+
+### Option A: Download from GitHub Releases (Recommended)
+
+1. Go to [Releases](https://github.com/Sou0327/sushi_focus/releases)
+2. Download the latest `sushi-focus-extension-vX.X.X.zip`
+3. Extract the ZIP file
+4. Open Chrome → `chrome://extensions`
+5. Enable "**Developer mode**" (top right)
+6. Click "**Load unpacked**" → Select extracted folder
+
+### Option B: Build from Source
+
+See [Quick Start](#quick-start) below.
+
+## Claude Code Plugin (Auto-Start Daemon)
+
+The plugin auto-starts the daemon when Claude Code starts.
+
+```bash
+# Add marketplace and install
+claude plugin marketplace add github:Sou0327/sushi_focus
+claude plugin install sushi-focus-daemon@sushi-focus
+
+# Restart Claude Code
+```
+
+On session start, you'll see:
+```
+[sushi-focus] Checking daemon on port 41593...
+[sushi-focus] Starting daemon...
+[sushi-focus] Daemon started successfully (v0.1.0)
+```
 
 ## Quick Start
 

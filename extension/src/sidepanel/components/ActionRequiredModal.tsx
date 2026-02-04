@@ -72,7 +72,7 @@ export function ActionRequiredModal({
     >
       <div
         ref={modalRef}
-        className="max-w-lg w-full mx-4 bg-focus-surface border border-focus-border rounded-xl overflow-hidden"
+        className="max-w-lg w-full mx-4 bg-sushi-surface border border-sushi-border rounded-xl overflow-hidden"
       >
         <div className="p-6">
           {/* Header */}
@@ -92,14 +92,14 @@ export function ActionRequiredModal({
               <button
                 ref={firstFocusableRef}
                 onClick={() => onChoice(choices[0].id)}
-                className="py-3 bg-focus-primary hover:bg-blue-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                className="py-3 bg-sushi-primary hover:bg-blue-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-lg" aria-hidden="true">check</span>
                 {choices[0].label}
               </button>
               <button
                 onClick={() => onChoice(choices[1].id)}
-                className="py-3 bg-focus-bg border border-focus-border text-subtle font-medium rounded-xl transition-colors hover:bg-focus-border flex items-center justify-center gap-2"
+                className="py-3 bg-sushi-bg border border-sushi-border text-subtle font-medium rounded-xl transition-colors hover:bg-sushi-border flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-lg" aria-hidden="true">skip_next</span>
                 {choices[1].label}
@@ -112,7 +112,7 @@ export function ActionRequiredModal({
                   key={choice.id}
                   ref={index === 0 ? firstFocusableRef : undefined}
                   onClick={() => onChoice(choice.id)}
-                  className="w-full py-3 bg-focus-primary hover:bg-blue-600 text-white font-medium rounded-xl transition-colors"
+                  className="w-full py-3 bg-sushi-primary hover:bg-blue-600 text-white font-medium rounded-xl transition-colors"
                 >
                   {choice.label}
                 </button>
@@ -137,7 +137,7 @@ export function ActionRequiredModal({
               {progress ? `${progress.label || `${progress.current}/${progress.total}`}` : t('actionRequired.paused')}
             </span>
           </div>
-          <div className="h-1 bg-focus-bg rounded-full overflow-hidden" role="progressbar" aria-valuenow={progress?.current ?? 0} aria-valuemax={progress?.total ?? 100}>
+          <div className="h-1 bg-sushi-bg rounded-full overflow-hidden" role="progressbar" aria-valuenow={progress?.current ?? 0} aria-valuemax={progress?.total ?? 100}>
             {progress ? (
               <div
                 className="h-full bg-amber-400 rounded-full transition-all duration-300"

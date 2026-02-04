@@ -62,7 +62,7 @@ export function TaskInput({ onRun, disabled }: TaskInputProps) {
 
   return (
     <div className="px-4 pb-3">
-      <div className="relative bg-focus-surface border border-focus-border rounded-xl overflow-hidden">
+      <div className="relative bg-sushi-surface border border-sushi-border rounded-xl overflow-hidden">
         <input
           ref={fileInputRef}
           type="file"
@@ -82,7 +82,7 @@ export function TaskInput({ onRun, disabled }: TaskInputProps) {
         />
         {imageData && (
           <div className="px-3 pb-1 flex items-center gap-2">
-            <img src={imageData} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-focus-border" />
+            <img src={imageData} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-sushi-border" />
             <span className="text-xs text-muted truncate flex-1">{imageName}</span>
             <button
               type="button"
@@ -108,7 +108,7 @@ export function TaskInput({ onRun, disabled }: TaskInputProps) {
             type="button"
             onClick={handleSubmit}
             disabled={disabled || !prompt.trim()}
-            className="w-9 h-9 flex items-center justify-center bg-focus-primary hover:bg-blue-600 text-white rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-9 h-9 flex items-center justify-center bg-sushi-primary hover:bg-blue-600 text-white rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label={t('taskInput.runTask')}
           >
             <span className="material-symbols-outlined text-xl" aria-hidden="true">play_arrow</span>

@@ -123,24 +123,7 @@ export default function App() {
   const isRunning = taskStatus === 'running' || taskStatus === 'waiting_input';
 
   return (
-    <div className="w-[340px] bg-focus-bg font-display overflow-hidden relative">
-      {/* 🍣 浮遊する寿司背景 */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {['🍣', '🍱', '🍙', '🥢'].map((emoji, i) => (
-          <span
-            key={i}
-            className="sushi-particle text-xl"
-            style={{
-              left: `${i * 25 + 10}%`,
-              top: `${(i * 20) % 80}%`,
-              animationDelay: `${i * 0.7}s`,
-            }}
-          >
-            {emoji}
-          </span>
-        ))}
-      </div>
-
+    <div className="w-[340px] bg-sushi-bg font-display overflow-hidden relative">
       {/* 🏮 暖簾ヘッダー */}
       <div className="noren px-5 py-5 relative">
         {/* 暖簾の垂れ */}
@@ -172,7 +155,7 @@ export default function App() {
             </div>
             <div>
               <div className="text-xl font-black text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.3)]">
-                {t('common.focusFlow')}
+                {t('common.sushiFocus')}
               </div>
               <div className={`text-xs font-black tracking-widest uppercase ${connected ? 'neon-text-wasabi' : 'text-sushi-ginger'}`}>
                 {enabled ? t('popup.active') : t('popup.paused')}
@@ -181,13 +164,13 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* テーマ切替 - 醤油/シャリ */}
+            {/* テーマ切替 */}
             <button
               onClick={toggleTheme}
               className="p-2 rounded-xl bg-black/20 hover:bg-black/30 transition-all duration-200 hover:scale-110 click-bounce"
               title={t(`theme.${theme === 'dark' ? 'light' : 'dark'}`)}
             >
-              <span className="text-xl">{theme === 'dark' ? '🍚' : '🫘'}</span>
+              <span className="text-xl">{theme === 'dark' ? '☀️' : '🌙'}</span>
             </button>
 
             {/* 有効/無効トグル - 寿司プレート風 */}
@@ -209,26 +192,14 @@ export default function App() {
                   ${enabled ? 'translate-x-7' : 'translate-x-0.5'}
                 `}
               >
-                <span className="flex items-center justify-center h-full text-xs">
-                  {enabled ? '🍣' : '💤'}
+                <span className="flex items-center justify-center h-full text-[10px] font-bold text-sushi-wood">
+                  {enabled ? '✓' : '−'}
                 </span>
               </span>
             </button>
           </div>
         </div>
 
-        {/* 🏮 提灯デコレーション */}
-        <div className="absolute top-2 right-3 flex gap-2">
-          {['🏮'].map((lantern, i) => (
-            <span
-              key={i}
-              className="text-xl lantern opacity-70"
-              style={{ animationDelay: `${i * 0.3}s` }}
-            >
-              {lantern}
-            </span>
-          ))}
-        </div>
       </div>
 
       {/* 木のカウンター縁 */}
@@ -237,7 +208,7 @@ export default function App() {
       {/* 🍱 ステータス表示 - 注文票風 */}
       <div className="p-5 relative z-10">
         <div className="sushi-geta p-5">
-          <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-dashed border-focus-border">
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-dashed border-sushi-border">
             <span className="text-lg">📋</span>
             <span className="text-xs font-black text-muted uppercase tracking-[0.15em]">
               {t('popup.status')}
@@ -331,7 +302,7 @@ export default function App() {
       </div>
 
       {/* 🍵 フッター - 木札風 */}
-      <div className="px-5 pb-5 pt-3 border-t-2 border-dashed border-focus-border relative z-10">
+      <div className="px-5 pb-5 pt-3 border-t-2 border-dashed border-sushi-border relative z-10">
         <button
           onClick={openOptions}
           className="flex items-center justify-between w-full py-2 group"
@@ -343,7 +314,7 @@ export default function App() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-dim font-mono px-2 py-1 bg-focus-surface rounded-lg border border-focus-border">
+            <span className="text-xs text-dim font-mono px-2 py-1 bg-sushi-surface rounded-lg border border-sushi-border">
               v0.1.0
             </span>
             <span className="text-muted group-hover:text-subtle group-hover:translate-x-1 transition-all">→</span>

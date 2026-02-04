@@ -1,6 +1,6 @@
 # 寿司フォーカス 🍣
 
-[![CI](https://github.com/Sou0327/focus_flow/actions/workflows/ci.yml/badge.svg)](https://github.com/Sou0327/focus_flow/actions/workflows/ci.yml)
+[![CI](https://github.com/Sou0327/sushi_focus/actions/workflows/ci.yml/badge.svg)](https://github.com/Sou0327/sushi_focus/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [English](README.md)
@@ -30,6 +30,41 @@ Chrome拡張 + ローカルDaemon による「おまかせスタイル開発」�
 - **Node.js** 20以上
 - **pnpm** 9以上（なければ `npm install -g pnpm` でインストール）
 - **Google Chrome** ブラウザ
+
+## インストール
+
+### オプション A: GitHub Releases からダウンロード（推奨）
+
+1. [Releases](https://github.com/Sou0327/sushi_focus/releases) ページへ
+2. 最新の `sushi-focus-extension-vX.X.X.zip` をダウンロード
+3. ZIP ファイルを解凍
+4. Chrome で `chrome://extensions` を開く
+5. 右上の「**デベロッパーモード**」をON
+6. 「**パッケージ化されていない拡張機能を読み込む**」→ 解凍したフォルダを選択
+
+### オプション B: ソースからビルド
+
+下記の [クイックスタート](#クイックスタート) を参照。
+
+## Claude Code プラグイン（Daemon 自動起動）
+
+プラグインをインストールすると、Claude Code 起動時に自動で Daemon が起動します。
+
+```bash
+# Marketplace を追加してインストール
+claude plugin marketplace add github:Sou0327/sushi_focus
+claude plugin install sushi-focus-daemon@sushi-focus
+
+# Claude Code を再起動
+```
+
+セッション開始時に以下が表示されます:
+
+```
+[sushi-focus] Checking daemon on port 41593...
+[sushi-focus] Starting daemon...
+[sushi-focus] Daemon started successfully (v0.1.0)
+```
 
 ## クイックスタート
 

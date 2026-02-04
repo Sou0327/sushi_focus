@@ -10,16 +10,16 @@ interface CodeDiffProps {
 
 export function CodeDiff({ filename, hunks }: CodeDiffProps) {
   return (
-    <div className="bg-focus-bg border border-focus-border rounded-xl overflow-hidden font-mono text-xs">
+    <div className="bg-sushi-bg border border-sushi-border rounded-xl overflow-hidden font-mono text-xs">
       {/* File header */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-focus-surface border-b border-focus-border">
+      <div className="flex items-center gap-2 px-3 py-2 bg-sushi-surface border-b border-sushi-border">
         <span className="material-symbols-outlined text-text-secondary text-sm">description</span>
         <span className="text-text-secondary">{filename}</span>
       </div>
 
       {hunks.map((hunk, i) => (
         <div key={i}>
-          <div className="px-3 py-1 text-text-secondary bg-focus-surface/50">
+          <div className="px-3 py-1 text-text-secondary bg-sushi-surface/50">
             {hunk.header}
           </div>
           {hunk.lines.map((line, j) => (

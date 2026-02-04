@@ -10,14 +10,14 @@
 
 /* 🫘 Dark theme (醤油モード - Soy Sauce Mode) */
 .dark {
-  --focus-primary: #E85D4C;
-  --focus-secondary: #7CB342;
-  --focus-success: #7CB342;
-  --focus-warning: #F59E0B;
-  --focus-error: #C84B3D;
-  --focus-bg: #0D0705;
-  --focus-surface: #1A0F0A;
-  --focus-border: #4A2C1C;
+  --sushi-primary: #E85D4C;
+  --sushi-secondary: #7CB342;
+  --sushi-success: #7CB342;
+  --sushi-warning: #F59E0B;
+  --sushi-error: #C84B3D;
+  --sushi-bg: #0D0705;
+  --sushi-surface: #1A0F0A;
+  --sushi-border: #4A2C1C;
   --surface-highlight: #3D2317;
   --text-secondary: #D4B896;
   --terminal-bg: #080403;
@@ -38,14 +38,14 @@
 
 /* 🍚 Light theme (シャリモード - Rice Mode) */
 :root:not(.dark) {
-  --focus-primary: #C84B3D;
-  --focus-secondary: #558B2F;
-  --focus-success: #558B2F;
-  --focus-warning: #F59E0B;
-  --focus-error: #C84B3D;
-  --focus-bg: #FFF8E7;
-  --focus-surface: #FFFFFF;
-  --focus-border: #E8D5B7;
+  --sushi-primary: #C84B3D;
+  --sushi-secondary: #558B2F;
+  --sushi-success: #558B2F;
+  --sushi-warning: #F59E0B;
+  --sushi-error: #C84B3D;
+  --sushi-bg: #FFF8E7;
+  --sushi-surface: #FFFFFF;
+  --sushi-border: #E8D5B7;
   --surface-highlight: #F5E6C8;
   --text-secondary: #8B5A2B;
   --terminal-bg: #FEF9F0;
@@ -69,7 +69,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 body {
-  @apply bg-focus-bg antialiased;
+  @apply bg-sushi-bg antialiased;
   font-family: 'Zen Maru Gothic', 'Noto Sans JP', system-ui, sans-serif;
   color: var(--text-primary);
   min-width: 320px;
@@ -326,7 +326,7 @@ body::before {
 
 /* 🍣 寿司下駄スタイル - 超立体的 */
 .sushi-geta {
-  @apply bg-focus-surface border-2 border-focus-border rounded-lg relative;
+  @apply bg-sushi-surface border-2 border-sushi-border rounded-lg relative;
   background:
     repeating-linear-gradient(
       90deg,
@@ -335,7 +335,7 @@ body::before {
       rgba(139, 90, 43, 0.03) 2px,
       rgba(139, 90, 43, 0.03) 4px
     ),
-    var(--focus-surface);
+    var(--sushi-surface);
   box-shadow:
     inset 0 2px 4px rgba(255,255,255,0.1),
     inset 0 -4px 0 0 rgba(139, 90, 43, 0.3),
@@ -366,7 +366,7 @@ body::before {
 ::-webkit-scrollbar-track {
   background: var(--scrollbar-bg);
   border-radius: 5px;
-  border: 1px solid var(--focus-border);
+  border: 1px solid var(--sushi-border);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -393,8 +393,8 @@ body::before {
 }
 
 .log-entry.info { color: var(--text-primary); }
-.log-entry.warn { @apply text-focus-warning; }
-.log-entry.error { @apply text-focus-error; }
+.log-entry.warn { @apply text-sushi-warning; }
+.log-entry.error { @apply text-sushi-error; }
 .log-entry.debug { @apply text-muted; }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -472,7 +472,7 @@ body::before {
 .btn {
   @apply px-5 py-2.5 rounded-xl font-black transition-all duration-150;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-  --tw-ring-offset-color: var(--focus-bg);
+  --tw-ring-offset-color: var(--sushi-bg);
   position: relative;
   overflow: hidden;
 }
@@ -513,15 +513,15 @@ body::before {
 }
 
 .btn-secondary {
-  @apply btn bg-focus-surface border-2 border-focus-border;
+  @apply btn bg-sushi-surface border-2 border-sushi-border;
   @apply hover:border-sushi-salmon;
-  @apply focus:ring-focus-border;
+  @apply focus:ring-sushi-border;
   color: var(--text-primary);
   box-shadow: 0 4px 0 0 var(--wood-accent);
 }
 
 .btn-secondary:hover {
-  background-color: rgba(var(--focus-surface-rgb, 42, 42, 42), 0.8);
+  background-color: rgba(var(--sushi-surface-rgb, 42, 42, 42), 0.8);
 }
 
 .btn-secondary:active {
@@ -558,11 +558,11 @@ body::before {
 
 .input {
   @apply w-full px-4 py-3 rounded-xl;
-  @apply border-2 border-focus-border;
+  @apply border-2 border-sushi-border;
   @apply placeholder-muted;
   @apply focus:outline-none focus:ring-2 focus:ring-sushi-salmon focus:border-sushi-salmon;
   background:
-    linear-gradient(180deg, var(--focus-bg) 0%, var(--focus-surface) 100%);
+    linear-gradient(180deg, var(--sushi-bg) 0%, var(--sushi-surface) 100%);
   color: var(--text-primary);
   box-shadow:
     inset 0 2px 4px rgba(0,0,0,0.1),
@@ -571,7 +571,7 @@ body::before {
 }
 
 .input:focus {
-  background: var(--focus-surface);
+  background: var(--sushi-surface);
   box-shadow:
     inset 0 2px 4px rgba(0,0,0,0.05),
     0 0 0 4px rgba(232, 93, 76, 0.1);
@@ -654,7 +654,7 @@ body::before {
 /* グラデーションボーダー */
 .gradient-border {
   position: relative;
-  background: var(--focus-surface);
+  background: var(--sushi-surface);
   z-index: 1;
 }
 
@@ -1005,7 +1005,7 @@ body::before {
 
 .terminal-container {
   background: var(--terminal-bg);
-  border: 1px solid var(--focus-border);
+  border: 1px solid var(--sushi-border);
   border-radius: 12px;
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.15),
@@ -1017,7 +1017,7 @@ body::before {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px dashed var(--focus-border);
+  border-bottom: 1px dashed var(--sushi-border);
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.03) 0%,

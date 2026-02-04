@@ -330,7 +330,7 @@ export default function App() {
   const conveyorSushi = ['🍣', '🍱', '🍙', '🥟', '🍤', '🐟', '🍣', '🍱', '🍙', '🥟', '🍤', '🐟'];
 
   return (
-    <div className="flex flex-col h-screen bg-focus-bg relative overflow-hidden">
+    <div className="flex flex-col h-screen bg-sushi-bg relative overflow-hidden">
       {/* 🍣 浮遊する寿司パーティクル */}
       <div className="sushi-bg-particles">
         {sushiParticles.map((particle, i) => (

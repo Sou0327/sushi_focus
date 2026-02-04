@@ -77,7 +77,7 @@ export default function App() {
 
   if (!settings) {
     return (
-      <div className="h-screen bg-focus-bg flex items-center justify-center">
+      <div className="h-screen bg-sushi-bg flex items-center justify-center">
         <div className="text-center">
           <div className="text-5xl mb-4 animate-sushi-roll">🍣</div>
           <div className="text-subtle">{t('common.loading')}</div>
@@ -87,9 +87,9 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-focus-bg">
+    <div className="flex h-screen bg-sushi-bg">
       {/* 🏮 サイドバー - 暖簾風 */}
-      <aside className="w-[280px] flex-shrink-0 bg-focus-bg border-r-2 border-focus-border flex flex-col">
+      <aside className="w-[280px] flex-shrink-0 bg-sushi-bg border-r-2 border-sushi-border flex flex-col">
         {/* ヘッダー - 暖簾 */}
         <div className="noren px-6 py-5 relative">
           <div className="absolute bottom-0 left-0 right-0 flex justify-around">
@@ -103,7 +103,7 @@ export default function App() {
           <div className="flex items-center gap-3 relative z-10">
             <span className="text-3xl">🍣</span>
             <div>
-              <div className="text-lg font-bold text-white drop-shadow-lg">{t('common.focusFlow')}</div>
+              <div className="text-lg font-bold text-white drop-shadow-lg">{t('common.sushiFocus')}</div>
               <div className="text-xs text-sushi-rice/80">{t('common.settings')}</div>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function App() {
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-sm transition-all mb-2 ${
                   isActive
                     ? 'bg-sushi-salmon/20 text-sushi-salmon border-l-4 border-sushi-salmon font-bold'
-                    : 'text-subtle hover:bg-focus-surface hover:text-heading'
+                    : 'text-subtle hover:bg-sushi-surface hover:text-heading'
                 }`}
               >
                 <span className="text-lg">{item.icon}</span>
@@ -165,7 +165,7 @@ export default function App() {
       {/* メインコンテンツ */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* トップバー - 木のカウンター風 */}
-        <header className="flex items-center justify-between px-8 py-4 bg-focus-surface border-b-2 border-focus-border">
+        <header className="flex items-center justify-between px-8 py-4 bg-sushi-surface border-b-2 border-sushi-border">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted">{t('common.settings')}</span>
             <span className="text-sushi-salmon">→</span>
@@ -185,7 +185,7 @@ export default function App() {
               className={`px-4 py-2 text-sm font-bold rounded-lg flex items-center gap-2 ${
                 saveState === 'saved'
                   ? 'bg-sushi-wasabi/20 text-sushi-wasabi border border-sushi-wasabi/30'
-                  : 'bg-focus-bg text-muted border border-focus-border'
+                  : 'bg-sushi-bg text-muted border border-sushi-border'
               }`}
             >
               {saveState === 'saving' ? (
@@ -337,7 +337,7 @@ export default function App() {
                           className={`px-5 py-2.5 text-sm font-bold rounded-lg transition-all ${
                             language === lang
                               ? 'bg-sushi-salmon text-white shadow-[0_3px_0_0_#A03D30]'
-                              : 'bg-focus-bg border-2 border-focus-border text-subtle hover:text-heading hover:border-sushi-salmon'
+                              : 'bg-sushi-bg border-2 border-sushi-border text-subtle hover:text-heading hover:border-sushi-salmon'
                           }`}
                         >
                           {lang === 'en' ? '🇺🇸 English' : '🇯🇵 日本語'}
@@ -363,7 +363,7 @@ export default function App() {
                           className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-lg transition-all ${
                             theme === th
                               ? 'bg-sushi-salmon text-white shadow-[0_3px_0_0_#A03D30]'
-                              : 'bg-focus-bg border-2 border-focus-border text-subtle hover:text-heading hover:border-sushi-salmon'
+                              : 'bg-sushi-bg border-2 border-sushi-border text-subtle hover:text-heading hover:border-sushi-salmon'
                           }`}
                         >
                           <span className="text-lg">{th === 'dark' ? '🫘' : '🍚'}</span>
@@ -390,7 +390,7 @@ export default function App() {
                           className={`px-5 py-2.5 text-sm font-bold rounded-lg transition-all ${
                             settings.logVerbosity === level
                               ? 'bg-sushi-wasabi text-white shadow-[0_3px_0_0_#3D6420]'
-                              : 'bg-focus-bg border-2 border-focus-border text-subtle hover:text-heading hover:border-sushi-wasabi'
+                              : 'bg-sushi-bg border-2 border-sushi-border text-subtle hover:text-heading hover:border-sushi-wasabi'
                           }`}
                         >
                           {t(`options.general.logLevel.${level}`)}

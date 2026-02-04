@@ -123,7 +123,7 @@ SushiFocus/
 
 - Use Tailwind CSS utility classes
 - Follow the existing design system (see `tailwind.config.js`)
-- Use semantic color tokens (`focus-primary`, `focus-bg`, etc.)
+- Use semantic color tokens (`sushi-primary`, `sushi-bg`, etc.)
 
 ### Testing
 
@@ -151,7 +151,7 @@ Please include:
 
 ## Questions?
 
-- Open a [GitHub Issue](https://github.com/Sou0327/focus_flow/issues)
+- Open a [GitHub Issue](https://github.com/Sou0327/sushi_focus/issues)
 - Check existing issues and discussions
 
 Thank you for contributing!

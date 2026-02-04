@@ -41,5 +41,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added origin validation for CORS
 - Input sanitization on all API endpoints
 
-[Unreleased]: https://github.com/Sou0327/focus_flow/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/Sou0327/focus_flow/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Sou0327/sushi_focus/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Sou0327/sushi_focus/releases/tag/v0.1.0

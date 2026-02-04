@@ -117,7 +117,7 @@ export function TaskCompleteModal({
         <div className="h-2 bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark" />
 
         {/* 📋 注文票コンテンツ */}
-        <div className="p-6 bg-focus-surface">
+        <div className="p-6 bg-sushi-surface">
           {/* お品書き風サマリー */}
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-sushi-wasabi/20 rounded-lg border-2 border-dashed border-sushi-wasabi/40">
@@ -144,7 +144,7 @@ export function TaskCompleteModal({
             <p className="text-subtle text-sm mb-2" aria-live="polite">
               {t('taskComplete.returningToIde')}
             </p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-focus-bg rounded-lg">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sushi-bg rounded-lg">
               <span className="text-lg">⏱️</span>
               <span className="font-mono font-bold text-2xl text-sushi-salmon">
                 {(remaining / 1000).toFixed(1)}
@@ -154,7 +154,7 @@ export function TaskCompleteModal({
           </div>
 
           {/* プログレスバー - わさびグリーン */}
-          <div className="h-3 bg-focus-bg rounded-full overflow-hidden mb-6 border border-focus-border">
+          <div className="h-3 bg-sushi-bg rounded-full overflow-hidden mb-6 border border-sushi-border">
             <div
               className="h-full bg-gradient-to-r from-sushi-wasabi to-sushi-wasabiDark rounded-full transition-all duration-100"
               style={{ width: `${progressPercent}%` }}
@@ -173,7 +173,7 @@ export function TaskCompleteModal({
           </button>
 
           <p className="text-center text-xs text-muted mt-4">
-            <kbd className="px-2 py-1 bg-focus-bg rounded border border-focus-border font-mono text-xs">
+            <kbd className="px-2 py-1 bg-sushi-bg rounded border border-sushi-border font-mono text-xs">
               {t('taskComplete.escKey')}
             </kbd>
             {' '}{t('taskComplete.toCancel')}
