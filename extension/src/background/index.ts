@@ -1,4 +1,4 @@
-import type { DaemonEvent, ExtensionSettings, TaskLog } from '@/shared/types';
+import type { DaemonEvent, ExtensionSettings, BackgroundTaskState } from '@/shared/types';
 import { isDaemonEvent, isHealthResponse } from '@/utils/typeGuards';
 import { isHostOnDistractionDomain, shouldTriggerFocus } from '@/utils/focusLogic';
 
@@ -65,13 +65,45 @@ let settings: ExtensionSettings = {
 };
 
 let lastDoneFocusTime = 0;
-let currentTaskId: string | null = null;
 const disabledAutoFocusTaskIds = new Set<string>();
-let taskStartedAt: number | null = null;
-let taskLogs: TaskLog[] = [];
-let taskPrompt: string | null = null;
 let daemonVersion: string | null = null;
 let daemonGitBranch: string | null = null;
+
+// Multi-task state management
+const tasks = new Map<string, BackgroundTaskState>();
+
+function getOrCreateTask(taskId: string): BackgroundTaskState {
+  let task = tasks.get(taskId);
+  if (!task) {
+    task = {
+      taskId,
+      startedAt: Date.now(),
+      logs: [],
+      prompt: null,
+      status: 'running',
+      inputQuestion: null,
+      inputChoices: [],
+    };
+    tasks.set(taskId, task);
+  }
+  return task;
+}
+
+function removeTask(taskId: string): void {
+  tasks.delete(taskId);
+}
+
+function getLatestActiveTask(): BackgroundTaskState | null {
+  let latest: BackgroundTaskState | null = null;
+  for (const task of tasks.values()) {
+    if (task.status === 'running' || task.status === 'waiting_input') {
+      if (!latest || task.startedAt > latest.startedAt) {
+        latest = task;
+      }
+    }
+  }
+  return latest;
+}
 
 // ============================================================
 // Storage
@@ -240,40 +272,57 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
 
   // State management always runs — only auto-focus is gated by enabled
   switch (event.type) {
-    case 'task.started':
-      currentTaskId = event.taskId;
-      taskStartedAt = Date.now();
-      taskLogs = [];
-      taskPrompt = event.prompt || null;
+    case 'task.started': {
+      const task = getOrCreateTask(event.taskId);
+      task.startedAt = Date.now();
+      task.logs = [];
+      task.prompt = event.prompt || null;
+      task.status = 'running';
+      task.inputQuestion = null;
+      task.inputChoices = [];
       break;
+    }
 
-    case 'task.log':
-      taskLogs.push({ level: event.level, message: event.message, ts: Date.now() });
+    case 'task.log': {
+      // Auto-create task if not exists (handles SW restart or event ordering issues)
+      const task = getOrCreateTask(event.taskId);
+      task.logs.push({ level: event.level, message: event.message, ts: Date.now() });
       // Keep only last 100 logs to prevent memory bloat
-      if (taskLogs.length > 100) {
-        taskLogs = taskLogs.slice(-100);
+      if (task.logs.length > 100) {
+        task.logs = task.logs.slice(-100);
       }
       break;
+    }
 
-    case 'task.need_input':
+    case 'task.need_input': {
+      // Auto-create task if not exists (handles SW restart or event ordering issues)
+      const task = getOrCreateTask(event.taskId);
+      task.status = 'waiting_input';
+      task.inputQuestion = event.question;
+      task.inputChoices = event.choices;
       await handleNeedInput(event.taskId, event.question);
       break;
+    }
 
-    case 'task.done':
+    case 'task.done': {
+      // Auto-create task if not exists (handles SW restart)
+      const task = getOrCreateTask(event.taskId);
+      task.status = 'done';
       await handleDone(event.taskId, event.summary);
-      taskStartedAt = null;
-      currentTaskId = null;
-      taskLogs = [];
-      taskPrompt = null;
+      // Remove task after a delay to allow UI to display completion
+      setTimeout(() => removeTask(event.taskId), 5000);
       break;
+    }
 
-    case 'task.error':
+    case 'task.error': {
+      // Auto-create task if not exists (handles SW restart)
+      const task = getOrCreateTask(event.taskId);
+      task.status = 'error';
       await showNotification('🔴 Task Failed', event.message);
-      taskStartedAt = null;
-      currentTaskId = null;
-      taskLogs = [];
-      taskPrompt = null;
+      // Remove task after a delay
+      setTimeout(() => removeTask(event.taskId), 5000);
       break;
+    }
   }
 }
 
@@ -410,15 +459,21 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         });
         break;
 
-      case 'get_task_status':
+      case 'get_task_status': {
+        // Get the latest active task for backward compatibility
+        const latestTask = getLatestActiveTask();
         sendResponse({
-          status: currentTaskId ? 'running' : 'idle',
-          taskId: currentTaskId,
-          startedAt: taskStartedAt,
-          prompt: taskPrompt,
-          logs: taskLogs,
+          // Legacy single-task fields (backward compatibility)
+          status: latestTask?.status ?? 'idle',
+          taskId: latestTask?.taskId ?? null,
+          startedAt: latestTask?.startedAt ?? null,
+          prompt: latestTask?.prompt ?? null,
+          logs: latestTask?.logs ?? [],
+          // New multi-task field
+          tasks: Array.from(tasks.values()),
         });
         break;
+      }
 
       case 'get_settings':
         sendResponse({ settings });
@@ -450,17 +505,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         sendResponse({ ok: true });
         break;
 
-      case 'execute_done_focus':
-        if (message.taskId === currentTaskId || !currentTaskId) {
-          const success = await focusHomeTab();
-          if (success) {
-            lastDoneFocusTime = Date.now();
-          }
-          sendResponse({ ok: success });
-        } else {
-          sendResponse({ ok: false, error: 'Task mismatch' });
+      case 'execute_done_focus': {
+        // Always allow focus for done countdown - the taskId is for tracking only.
+        // Even if the task was already deleted from the map (after 5s delay),
+        // we should still execute the focus since the countdown was legitimately started.
+        // This fixes the issue where long countdown (> 5s) would fail with "Task mismatch".
+        const success = await focusHomeTab();
+        if (success) {
+          lastDoneFocusTime = Date.now();
         }
+        sendResponse({ ok: success });
         break;
+      }
 
       case 'cancel_done_focus':
         if (message.taskId) {

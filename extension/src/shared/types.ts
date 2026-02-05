@@ -172,3 +172,28 @@ export interface HealthResponse {
   version: string;
   gitBranch: string | null;
 }
+
+// ============================================================
+// Multi-Task State Types
+// ============================================================
+
+export interface BackgroundTaskState {
+  taskId: string;
+  startedAt: number;
+  logs: TaskLog[];
+  prompt: string | null;
+  status: TaskStatus;
+  inputQuestion: string | null;
+  inputChoices: Choice[];
+}
+
+export interface TaskStatusResponse {
+  // Legacy single-task fields (for backward compatibility)
+  status: TaskStatus;
+  taskId: string | null;
+  startedAt: number | null;
+  prompt: string | null;
+  logs: TaskLog[];
+  // New multi-task field
+  tasks: BackgroundTaskState[];
+}

@@ -4,9 +4,16 @@ import { SushiTaro } from '@/shared/components/SushiTaro';
 import type { TaskLog, Theme } from '@/shared/types';
 import { isAIMessage, isUserPrompt, isSuccessMessage } from '@/utils/logMessageUtils';
 
+// Extended TaskLog with optional task identification
+interface ExtendedTaskLog extends TaskLog {
+  taskId?: string;
+  taskPrompt?: string;
+}
+
 interface TerminalOutputProps {
-  logs: TaskLog[];
+  logs: ExtendedTaskLog[];
   theme: Theme;
+  showTaskId?: boolean;
 }
 
 function formatTime(ts: number): string {
@@ -37,7 +44,30 @@ function getLogStyle(level: string, message: string) {
   }
 }
 
-export function TerminalOutput({ logs, theme }: TerminalOutputProps) {
+// Generate a short task badge from taskId
+function getTaskBadge(taskId: string | undefined): string {
+  if (!taskId) return '';
+  // Use first 4 characters of taskId for a short identifier
+  return taskId.slice(0, 4).toUpperCase();
+}
+
+// Color palette for task badges
+const TASK_COLORS = [
+  'bg-blue-500/20 text-blue-400 border-blue-500/40',
+  'bg-purple-500/20 text-purple-400 border-purple-500/40',
+  'bg-cyan-500/20 text-cyan-400 border-cyan-500/40',
+  'bg-pink-500/20 text-pink-400 border-pink-500/40',
+  'bg-orange-500/20 text-orange-400 border-orange-500/40',
+];
+
+function getTaskColor(taskId: string | undefined): string {
+  if (!taskId) return TASK_COLORS[0];
+  // Hash taskId to get consistent color
+  const hash = taskId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return TASK_COLORS[hash % TASK_COLORS.length];
+}
+
+export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutputProps) {
   const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -110,6 +140,16 @@ export function TerminalOutput({ logs, theme }: TerminalOutputProps) {
           const user = isUserPrompt(log.message);
           const success = isSuccessMessage(log.message);
 
+          // Task badge component (only shown when multiple tasks)
+          const taskBadge = showTaskId && log.taskId ? (
+            <span
+              className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${getTaskColor(log.taskId)}`}
+              title={log.taskPrompt || log.taskId}
+            >
+              {getTaskBadge(log.taskId)}
+            </span>
+          ) : null;
+
           if (style.isCommand) {
             return (
               <div
@@ -117,6 +157,7 @@ export function TerminalOutput({ logs, theme }: TerminalOutputProps) {
                 className="group flex gap-3 py-3 px-4 bg-gradient-to-r from-sushi-wood/20 to-transparent rounded-xl border-l-4 border-sushi-wood hover:bg-sushi-wood/30 transition-all duration-200 hover:scale-[1.01]"
               >
                 <span className="text-muted select-none shrink-0 text-xs font-bold">{formatTime(log.ts)}</span>
+                {taskBadge}
                 <div className="flex-1 flex items-center gap-2">
                   <span className="text-lg">💻</span>
                   <span className="text-heading font-bold">{log.message}</span>
@@ -133,6 +174,7 @@ export function TerminalOutput({ logs, theme }: TerminalOutputProps) {
               >
                 <div className="flex gap-3 items-start">
                   <span className="text-muted select-none shrink-0 text-xs font-bold">{formatTime(log.ts)}</span>
+                  {taskBadge}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xl">👤</span>
@@ -155,6 +197,7 @@ export function TerminalOutput({ logs, theme }: TerminalOutputProps) {
               >
                 <div className="flex gap-3 items-start">
                   <span className="text-muted select-none shrink-0 text-xs font-bold">{formatTime(log.ts)}</span>
+                  {taskBadge}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <SushiTaro size="md" className="hover-spin cursor-pointer" theme={theme} />
@@ -178,6 +221,7 @@ export function TerminalOutput({ logs, theme }: TerminalOutputProps) {
               >
                 <div className="flex gap-3 items-center">
                   <span className="text-muted select-none shrink-0 text-xs font-bold">{formatTime(log.ts)}</span>
+                  {taskBadge}
                   <div className="flex-1 flex items-center gap-3">
                     <span className="text-2xl celebrate">🎉</span>
                     <div>
@@ -198,6 +242,7 @@ export function TerminalOutput({ logs, theme }: TerminalOutputProps) {
               className="group flex gap-3 py-2 px-4 bg-sushi-surface/50 rounded-xl border-l-4 border-sushi-border hover:bg-sushi-surface/80 transition-all duration-200"
             >
               <span className="text-muted select-none shrink-0 text-xs">{formatTime(log.ts)}</span>
+              {taskBadge}
               <div className="flex-1 flex gap-2 items-start">
                 <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${style.labelColor} bg-sushi-surface/80 border border-sushi-border`}>
                   {style.label}

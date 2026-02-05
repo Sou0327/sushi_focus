@@ -6,22 +6,56 @@ import { ActionRequiredModal } from './components/ActionRequiredModal';
 import { TaskCompleteModal } from './components/TaskCompleteModal';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { useTheme } from '@/theme/useTheme';
-import type { DaemonEvent, TaskLog, TaskStatus, Choice, ExtensionSettings } from '@/shared/types';
+import type { DaemonEvent, TaskLog, TaskStatus, Choice, ExtensionSettings, BackgroundTaskState } from '@/shared/types';
 
 const DAEMON_API_URL = 'http://127.0.0.1:41593';
 
-interface AppState {
-  connected: boolean;
-  taskStatus: TaskStatus;
-  taskId: string | null;
-  taskPrompt: string | null;
+// Unique marker for UI-generated synthetic logs (invisible zero-width space)
+const SYNTHETIC_LOG_MARKER = '\u200B';
+
+// UI state for each task
+interface TaskUIState {
+  taskId: string;
+  status: TaskStatus;
+  prompt: string | null;
   logs: TaskLog[];
   inputQuestion: string | null;
   inputChoices: Choice[];
+  progress: { current: number; total: number; label?: string } | null;
+  startedAt: number;
+  hasSyntheticDoneLog?: boolean; // Track if we've added a synthetic completion log
+}
+
+interface AppState {
+  connected: boolean;
+  tasks: Map<string, TaskUIState>;  // Multi-task management
   doneCountdown: { taskId: string; summary: string; ms: number } | null;
   settings: ExtensionSettings | null;
-  progress: { current: number; total: number; label?: string } | null;
   gitBranch: string | null;
+}
+
+// Get all logs from all tasks, sorted by timestamp
+function getAllLogs(tasks: Map<string, TaskUIState>): (TaskLog & { taskId?: string; taskPrompt?: string })[] {
+  const showTaskId = tasks.size > 1;
+  return Array.from(tasks.values())
+    .flatMap(t => t.logs.map(log => ({
+      ...log,
+      taskId: showTaskId ? t.taskId : undefined,
+      taskPrompt: showTaskId ? t.prompt ?? undefined : undefined,
+    })))
+    .sort((a, b) => a.ts - b.ts);
+}
+
+// Get tasks waiting for input, sorted by startedAt
+function getPendingInputTasks(tasks: Map<string, TaskUIState>): TaskUIState[] {
+  return Array.from(tasks.values())
+    .filter(t => t.status === 'waiting_input' && t.inputQuestion)
+    .sort((a, b) => a.startedAt - b.startedAt);
+}
+
+// Check if any task is active
+function hasActiveTasks(tasks: Map<string, TaskUIState>): boolean {
+  return Array.from(tasks.values()).some(t => t.status === 'running' || t.status === 'waiting_input');
 }
 
 export default function App() {
@@ -29,15 +63,9 @@ export default function App() {
   const { theme } = useTheme();
   const [state, setState] = useState<AppState>({
     connected: false,
-    taskStatus: 'idle',
-    taskId: null,
-    taskPrompt: null,
-    logs: [],
-    inputQuestion: null,
-    inputChoices: [],
+    tasks: new Map(),
     doneCountdown: null,
     settings: null,
-    progress: null,
     gitBranch: null,
   });
 
@@ -65,18 +93,75 @@ export default function App() {
 
     // Restore task state (logs buffered while side panel was closed)
     chrome.runtime.sendMessage({ type: 'get_task_status' }, (response) => {
-      if (response?.taskId) {
+      if (response?.tasks && response.tasks.length > 0) {
+        // Restore from multi-task array
+        const tasksToRemove: string[] = [];
+        setState(s => {
+          const newTasks = new Map(s.tasks);
+          for (const bgTask of response.tasks as BackgroundTaskState[]) {
+            const prompt = bgTask.prompt || 'External task';
+            const restoredLogs = bgTask.logs?.length
+              ? bgTask.logs
+              : [{ level: 'info' as const, message: `▶ ${prompt}`, ts: Date.now() }];
+            newTasks.set(bgTask.taskId, {
+              taskId: bgTask.taskId,
+              status: bgTask.status,
+              prompt,
+              logs: restoredLogs,
+              inputQuestion: bgTask.inputQuestion,
+              inputChoices: bgTask.inputChoices,
+              progress: null,
+              startedAt: bgTask.startedAt,
+            });
+            // Schedule removal for done/error tasks
+            if (bgTask.status === 'done' || bgTask.status === 'error') {
+              tasksToRemove.push(bgTask.taskId);
+            }
+          }
+          return { ...s, tasks: newTasks };
+        });
+        // Set removal timers for done/error tasks
+        for (const taskId of tasksToRemove) {
+          setTimeout(() => {
+            setState(s => {
+              const newTasks = new Map(s.tasks);
+              newTasks.delete(taskId);
+              return { ...s, tasks: newTasks };
+            });
+          }, 5000);
+        }
+      } else if (response?.taskId) {
+        // Backward compatibility with single-task response
         const prompt = response.prompt || 'External task';
         const restoredLogs = response.logs?.length
           ? response.logs
           : [{ level: 'info' as const, message: `▶ ${prompt}`, ts: Date.now() }];
-        setState(s => ({
-          ...s,
-          taskStatus: response.status === 'running' ? 'running' : s.taskStatus,
-          taskId: response.taskId,
-          taskPrompt: prompt,
-          logs: restoredLogs,
-        }));
+        // Preserve the actual status from response (including 'waiting_input')
+        const status = response.status && response.status !== 'idle' ? response.status : 'running';
+        setState(s => {
+          const newTasks = new Map(s.tasks);
+          newTasks.set(response.taskId, {
+            taskId: response.taskId,
+            status,
+            prompt,
+            logs: restoredLogs,
+            inputQuestion: null,
+            inputChoices: [],
+            progress: null,
+            startedAt: Date.now(),
+          });
+          return { ...s, tasks: newTasks };
+        });
+        // Schedule removal for done/error tasks
+        if (status === 'done' || status === 'error') {
+          setTimeout(() => {
+            setState(s => {
+              const newTasks = new Map(s.tasks);
+              newTasks.delete(response.taskId);
+              return { ...s, tasks: newTasks };
+            });
+          }, 5000);
+        }
       }
     });
   }, []);
@@ -120,71 +205,179 @@ export default function App() {
       switch (event.type) {
         case 'task.started': {
           const prompt = (event as DaemonEvent & { prompt?: string }).prompt || 'External task';
-          setState(s => ({
-            ...s,
-            taskStatus: 'running',
-            taskId: event.taskId,
-            taskPrompt: prompt,
-            logs: [{ level: 'info', message: `▶ ${prompt}`, ts: Date.now() }],
-            inputQuestion: null,
-            inputChoices: [],
-            progress: null,
-          }));
+          setState(s => {
+            const newTasks = new Map(s.tasks);
+            newTasks.set(event.taskId, {
+              taskId: event.taskId,
+              status: 'running',
+              prompt,
+              logs: [{ level: 'info', message: `▶ ${prompt}`, ts: Date.now() }],
+              inputQuestion: null,
+              inputChoices: [],
+              progress: null,
+              startedAt: Date.now(),
+            });
+            return { ...s, tasks: newTasks };
+          });
           break;
         }
 
         case 'task.log':
-          setState(s => ({
-            ...s,
-            logs: [...s.logs, { level: event.level, message: event.message, ts: Date.now() }],
-          }));
+          setState(s => {
+            const newTasks = new Map(s.tasks);
+            const task = newTasks.get(event.taskId);
+            if (task) {
+              newTasks.set(event.taskId, {
+                ...task,
+                logs: [...task.logs, { level: event.level, message: event.message, ts: Date.now() }],
+              });
+            } else {
+              // Create stub task for unknown taskId (event arrived before task.started)
+              newTasks.set(event.taskId, {
+                taskId: event.taskId,
+                status: 'running',
+                prompt: null,
+                logs: [{ level: event.level, message: event.message, ts: Date.now() }],
+                inputQuestion: null,
+                inputChoices: [],
+                progress: null,
+                startedAt: Date.now(),
+              });
+            }
+            return { ...s, tasks: newTasks };
+          });
           break;
 
         case 'task.need_input':
-          setState(s => ({
-            ...s,
-            taskStatus: 'waiting_input',
-            inputQuestion: event.question,
-            inputChoices: event.choices,
-          }));
+          setState(s => {
+            const newTasks = new Map(s.tasks);
+            const task = newTasks.get(event.taskId);
+            if (task) {
+              newTasks.set(event.taskId, {
+                ...task,
+                status: 'waiting_input',
+                inputQuestion: event.question,
+                inputChoices: event.choices,
+              });
+            } else {
+              // Create stub task for unknown taskId (event arrived before task.started)
+              newTasks.set(event.taskId, {
+                taskId: event.taskId,
+                status: 'waiting_input',
+                prompt: null,
+                logs: [],
+                inputQuestion: event.question,
+                inputChoices: event.choices,
+                progress: null,
+                startedAt: Date.now(),
+              });
+            }
+            return { ...s, tasks: newTasks };
+          });
           break;
 
         case 'task.progress':
-          setState(s => ({
-            ...s,
-            progress: { current: event.current, total: event.total, label: event.label },
-          }));
+          setState(s => {
+            const newTasks = new Map(s.tasks);
+            const task = newTasks.get(event.taskId);
+            if (task) {
+              newTasks.set(event.taskId, {
+                ...task,
+                progress: { current: event.current, total: event.total, label: event.label },
+              });
+            } else {
+              // Create stub task for unknown taskId (event arrived before task.started)
+              newTasks.set(event.taskId, {
+                taskId: event.taskId,
+                status: 'running',
+                prompt: null,
+                logs: [],
+                inputQuestion: null,
+                inputChoices: [],
+                progress: { current: event.current, total: event.total, label: event.label },
+                startedAt: Date.now(),
+              });
+            }
+            return { ...s, tasks: newTasks };
+          });
           break;
 
         case 'task.done':
-          setState(s => ({
-            ...s,
-            taskStatus: 'done',
-            logs: [...s.logs, { level: 'info', message: `✅ ${event.summary}`, ts: Date.now() }],
-          }));
-          // Reset after a moment
+          setState(s => {
+            const newTasks = new Map(s.tasks);
+            const task = newTasks.get(event.taskId);
+            // Use marker prefix for synthetic logs to distinguish from daemon logs
+            const syntheticLog = { level: 'info' as const, message: `${SYNTHETIC_LOG_MARKER}✅ ${event.summary}`, ts: Date.now() };
+            if (task) {
+              newTasks.set(event.taskId, {
+                ...task,
+                status: 'done',
+                logs: [...task.logs, syntheticLog],
+                hasSyntheticDoneLog: true,
+              });
+            } else {
+              // Create stub task for unknown taskId (task.started was dropped)
+              newTasks.set(event.taskId, {
+                taskId: event.taskId,
+                status: 'done',
+                prompt: null,
+                logs: [syntheticLog],
+                inputQuestion: null,
+                inputChoices: [],
+                progress: null,
+                startedAt: Date.now(),
+                hasSyntheticDoneLog: true,
+              });
+            }
+            return { ...s, tasks: newTasks };
+          });
+          // Remove task after delay (matches background's 5s delay)
           setTimeout(() => {
-            setState(s => ({
-              ...s,
-              taskStatus: 'idle',
-              taskId: null,
-              taskPrompt: null,
-              inputQuestion: null,
-              inputChoices: [],
-              progress: null,
-            }));
-          }, 3000);
+            setState(s => {
+              const newTasks = new Map(s.tasks);
+              newTasks.delete(event.taskId);
+              return { ...s, tasks: newTasks };
+            });
+          }, 5000);
           break;
 
         case 'task.error':
-          setState(s => ({
-            ...s,
-            taskStatus: 'error',
-            logs: [...s.logs, { level: 'error', message: `❌ ${event.message}`, ts: Date.now() }],
-          }));
+          setState(s => {
+            const newTasks = new Map(s.tasks);
+            const task = newTasks.get(event.taskId);
+            // Use marker prefix for synthetic logs to distinguish from daemon logs
+            const syntheticLog = { level: 'error' as const, message: `${SYNTHETIC_LOG_MARKER}❌ ${event.message}`, ts: Date.now() };
+            if (task) {
+              newTasks.set(event.taskId, {
+                ...task,
+                status: 'error',
+                logs: [...task.logs, syntheticLog],
+                hasSyntheticDoneLog: true,
+              });
+            } else {
+              // Create stub task for unknown taskId (task.started was dropped)
+              newTasks.set(event.taskId, {
+                taskId: event.taskId,
+                status: 'error',
+                prompt: null,
+                logs: [syntheticLog],
+                inputQuestion: null,
+                inputChoices: [],
+                progress: null,
+                startedAt: Date.now(),
+                hasSyntheticDoneLog: true,
+              });
+            }
+            return { ...s, tasks: newTasks };
+          });
+          // Remove task after delay (matches background's 5s delay)
           setTimeout(() => {
-            setState(s => ({ ...s, taskStatus: 'idle', taskId: null, taskPrompt: null, progress: null }));
-          }, 3000);
+            setState(s => {
+              const newTasks = new Map(s.tasks);
+              newTasks.delete(event.taskId);
+              return { ...s, tasks: newTasks };
+            });
+          }, 5000);
           break;
       }
     };
@@ -195,72 +388,162 @@ export default function App() {
 
   // Poll task status as fallback (sendMessage from SW may not reach side panel reliably)
   useEffect(() => {
-    if (state.taskStatus !== 'running' && state.taskStatus !== 'waiting_input') return;
+    if (!hasActiveTasks(state.tasks)) return;
 
     const interval = setInterval(() => {
       chrome.runtime.sendMessage({ type: 'get_task_status' }, (response) => {
         if (chrome.runtime.lastError) return;
-        if (!response?.taskId) {
-          // Task ended while we weren't notified
-          setState(s => s.taskId ? ({
-            ...s,
-            taskStatus: 'idle',
-            taskId: null,
-            taskPrompt: null,
-            progress: null,
-          }) : s);
-          return;
-        }
-        // Sync logs from buffer if we have fewer
-        if (response.logs && response.logs.length > 0) {
+
+        // Sync from multi-task response
+        if (response?.tasks && response.tasks.length > 0) {
+          // Track tasks that need removal timers (status changed to done/error via polling)
+          const tasksNeedingRemovalTimer: string[] = [];
+
           setState(s => {
-            // Background buffer has authoritative log count (excluding our synthetic ▶ line)
-            const bgCount = response.logs.length;
-            const localReal = s.logs.filter((l: TaskLog) => !l.message.startsWith('▶')).length;
-            if (bgCount > localReal) {
-              // Prepend ▶ line, then use background buffer
-              const prompt = response.prompt || s.taskPrompt || 'External task';
-              return {
-                ...s,
-                logs: [
-                  { level: 'info' as const, message: `▶ ${prompt}`, ts: s.logs[0]?.ts || Date.now() },
-                  ...response.logs,
-                ],
-              };
+            const newTasks = new Map(s.tasks);
+            const bgTaskIds = new Set((response.tasks as BackgroundTaskState[]).map((t: BackgroundTaskState) => t.taskId));
+
+            // Update or add tasks from background
+            for (const bgTask of response.tasks as BackgroundTaskState[]) {
+              const localTask = newTasks.get(bgTask.taskId);
+
+              // Detect new logs: use marker to identify synthetic logs, compare count + first/last logs
+              const bgFirstLog = bgTask.logs[0];
+              const bgLastLog = bgTask.logs[bgTask.logs.length - 1];
+              const localNonSyntheticLogs = localTask?.logs.filter((l: TaskLog) =>
+                !l.message.startsWith('▶') && !l.message.startsWith(SYNTHETIC_LOG_MARKER)
+              ) || [];
+              const localFirstLog = localNonSyntheticLogs[0];
+              const localLastLog = localNonSyntheticLogs[localNonSyntheticLogs.length - 1];
+
+              // Compare count + first log + last log for robust detection (handles rotation + same-ms logs)
+              const hasNewLogs = !localTask ||
+                bgTask.logs.length !== localNonSyntheticLogs.length ||
+                !localLastLog ||
+                (bgLastLog && (bgLastLog.ts !== localLastLog.ts || bgLastLog.message !== localLastLog.message)) ||
+                (bgFirstLog && localFirstLog && (bgFirstLog.ts !== localFirstLog.ts || bgFirstLog.message !== localFirstLog.message));
+
+              // Detect status/input changes (even without new logs)
+              const hasStatusChange = localTask && localTask.status !== bgTask.status;
+              const hasInputChange = localTask && (
+                localTask.inputQuestion !== bgTask.inputQuestion ||
+                JSON.stringify(localTask.inputChoices) !== JSON.stringify(bgTask.inputChoices)
+              );
+
+              // Detect if task needs removal timer:
+              // 1. Status changed to done/error (event was received but we're syncing)
+              // 2. Task first observed via polling already in done/error (event was dropped)
+              const needsRemovalTimer =
+                (bgTask.status === 'done' || bgTask.status === 'error') &&
+                (!localTask || (localTask.status !== 'done' && localTask.status !== 'error'));
+
+              if (!localTask || hasNewLogs || hasStatusChange || hasInputChange) {
+                const prompt = bgTask.prompt || localTask?.prompt || 'External task';
+                // Preserve local synthetic logs (marked with SYNTHETIC_LOG_MARKER)
+                const localSyntheticLogs = localTask?.logs.filter((l: TaskLog) =>
+                  l.message.startsWith(SYNTHETIC_LOG_MARKER)
+                ) || [];
+                newTasks.set(bgTask.taskId, {
+                  taskId: bgTask.taskId,
+                  status: bgTask.status,
+                  prompt,
+                  logs: [
+                    { level: 'info' as const, message: `▶ ${prompt}`, ts: localTask?.logs[0]?.ts || bgTask.startedAt },
+                    ...bgTask.logs,
+                    ...localSyntheticLogs,
+                  ],
+                  inputQuestion: bgTask.inputQuestion,
+                  inputChoices: bgTask.inputChoices,
+                  progress: localTask?.progress ?? null,
+                  startedAt: bgTask.startedAt,
+                  hasSyntheticDoneLog: localTask?.hasSyntheticDoneLog,
+                });
+
+                // Schedule removal timer if task is done/error and doesn't already have one
+                if (needsRemovalTimer && !localTask?.hasSyntheticDoneLog) {
+                  tasksNeedingRemovalTimer.push(bgTask.taskId);
+                }
+              }
             }
-            return s;
+
+            // Remove tasks that are no longer in background
+            for (const taskId of newTasks.keys()) {
+              if (!bgTaskIds.has(taskId)) {
+                const task = newTasks.get(taskId);
+                if (task && task.status !== 'done' && task.status !== 'error') {
+                  newTasks.delete(taskId);
+                }
+              }
+            }
+
+            return { ...s, tasks: newTasks };
+          });
+
+          // Schedule removal timers for tasks that changed to done/error via polling
+          for (const taskId of tasksNeedingRemovalTimer) {
+            setTimeout(() => {
+              setState(s => {
+                const newTasks = new Map(s.tasks);
+                newTasks.delete(taskId);
+                return { ...s, tasks: newTasks };
+              });
+            }, 5000);
+          }
+        } else if (!response?.taskId && state.tasks.size > 0) {
+          // No active tasks in background, clear local state
+          setState(s => {
+            const newTasks = new Map(s.tasks);
+            for (const [taskId, task] of newTasks) {
+              if (task.status !== 'done' && task.status !== 'error') {
+                newTasks.delete(taskId);
+              }
+            }
+            return { ...s, tasks: newTasks };
           });
         }
       });
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [state.taskStatus]);
+  }, [state.tasks]);
+
+  // Computed values
+  const allLogs = getAllLogs(state.tasks);
+  const pendingInputTasks = getPendingInputTasks(state.tasks);
+  const firstPendingTask = pendingInputTasks[0];
 
   // Auto-scroll logs
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [state.logs]);
+  }, [allLogs]);
 
   // handleRunTask — reserved for future IDE integration
   // const handleRunTask = async (prompt: string, image?: string) => { ... };
 
-  const handleChoice = async (choiceId: string) => {
-    if (!state.taskId) return;
+  const handleChoice = async (taskId: string, choiceId: string) => {
+    if (!taskId) return;
 
     try {
-      await fetch(`${DAEMON_API_URL}/tasks/${state.taskId}/choice`, {
+      await fetch(`${DAEMON_API_URL}/tasks/${taskId}/choice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ choiceId }),
       });
 
-      setState(s => ({
-        ...s,
-        inputQuestion: null,
-        inputChoices: [],
-        taskStatus: 'running',
-      }));
+      // Update only the specific task
+      setState(s => {
+        const newTasks = new Map(s.tasks);
+        const task = newTasks.get(taskId);
+        if (task) {
+          newTasks.set(taskId, {
+            ...task,
+            status: 'running',
+            inputQuestion: null,
+            inputChoices: [],
+          });
+        }
+        return { ...s, tasks: newTasks };
+      });
     } catch (error) {
       console.error('Failed to submit choice:', error);
     }
@@ -290,25 +573,22 @@ export default function App() {
     setState(s => ({ ...s, doneCountdown: null }));
   };
 
-  const handleCancelTask = async () => {
-    if (!state.taskId) return;
+  const handleCancelTask = async (taskId: string) => {
+    if (!taskId) return;
 
     try {
       await fetch(`${DAEMON_API_URL}/agent/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId: state.taskId }),
+        body: JSON.stringify({ taskId }),
       });
 
-      setState(s => ({
-        ...s,
-        taskStatus: 'idle',
-        taskId: null,
-        taskPrompt: null,
-        inputQuestion: null,
-        inputChoices: [],
-        progress: null,
-      }));
+      // Remove the specific task
+      setState(s => {
+        const newTasks = new Map(s.tasks);
+        newTasks.delete(taskId);
+        return { ...s, tasks: newTasks };
+      });
     } catch (error) {
       console.error('Failed to cancel task:', error);
     }
@@ -351,7 +631,11 @@ export default function App() {
         {/* TaskInput hidden — reserved for future IDE integration */}
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <TerminalOutput logs={state.logs} theme={theme} />
+          <TerminalOutput
+            logs={allLogs}
+            theme={theme}
+            showTaskId={state.tasks.size > 1}
+          />
           <div ref={logsEndRef} />
         </div>
       </div>
@@ -372,14 +656,17 @@ export default function App() {
         </div>
       </div>
 
-      {/* Action Required Modal */}
-      {state.taskStatus === 'waiting_input' && state.inputQuestion && (
+      {/* Action Required Modal - show first pending task */}
+      {firstPendingTask && (
         <ActionRequiredModal
-          question={state.inputQuestion}
-          choices={state.inputChoices}
-          onChoice={handleChoice}
-          onCancel={handleCancelTask}
-          progress={state.progress}
+          taskId={firstPendingTask.taskId}
+          taskPrompt={firstPendingTask.prompt}
+          question={firstPendingTask.inputQuestion!}
+          choices={firstPendingTask.inputChoices}
+          onChoice={(choiceId) => handleChoice(firstPendingTask.taskId, choiceId)}
+          onCancel={() => handleCancelTask(firstPendingTask.taskId)}
+          progress={firstPendingTask.progress}
+          pendingCount={pendingInputTasks.length}
         />
       )}
 

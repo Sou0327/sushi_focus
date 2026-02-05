@@ -3,19 +3,25 @@ import { useTranslation } from '@/i18n/TranslationContext';
 import type { Choice } from '@/shared/types';
 
 interface ActionRequiredModalProps {
+  taskId: string;
+  taskPrompt: string | null;
   question: string;
   choices: Choice[];
   onChoice: (choiceId: string) => void;
   onCancel: () => void;
   progress: { current: number; total: number; label?: string } | null;
+  pendingCount: number;
 }
 
 export function ActionRequiredModal({
+  taskId: _taskId, // Reserved for future task-specific logic
+  taskPrompt,
   question,
   choices,
   onChoice,
   onCancel,
   progress,
+  pendingCount,
 }: ActionRequiredModalProps) {
   const { t } = useTranslation();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -80,8 +86,20 @@ export function ActionRequiredModal({
             <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
               <span className="material-symbols-outlined text-amber-400 text-2xl" aria-hidden="true">edit_document</span>
             </div>
-            <div>
-              <h2 id={titleId} className="text-lg font-bold text-heading">{t('actionRequired.title')}</h2>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h2 id={titleId} className="text-lg font-bold text-heading">{t('actionRequired.title')}</h2>
+                {pendingCount > 1 && (
+                  <span className="text-xs px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-medium">
+                    1/{pendingCount}
+                  </span>
+                )}
+              </div>
+              {taskPrompt && (
+                <p className="text-xs text-text-secondary/70 truncate mb-1" title={taskPrompt}>
+                  🎯 {taskPrompt.slice(0, 50)}{taskPrompt.length > 50 ? '...' : ''}
+                </p>
+              )}
               <p id={descId} className="text-sm text-text-secondary">{question}</p>
             </div>
           </div>
