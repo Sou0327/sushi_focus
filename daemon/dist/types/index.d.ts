@@ -32,6 +32,7 @@ export interface TaskStartedEvent {
     repoId: string;
     startedAt: number;
     hasImage?: boolean;
+    prompt?: string;
 }
 export interface TaskLogEvent {
     type: 'task.log';

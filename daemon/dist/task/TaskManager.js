@@ -11,6 +11,11 @@ export class TaskManager {
         return this.currentTask;
     }
     createTask(repoId, prompt) {
+        // Prevent concurrent task execution (both running and waiting_input states)
+        if (this.currentTask && (this.currentTask.status === 'running' || this.currentTask.status === 'waiting_input')) {
+            console.log(`[TaskManager] Task already active (status: ${this.currentTask.status}), rejecting`);
+            return null;
+        }
         const taskId = `t_${uuidv4().slice(0, 8)}`;
         this.currentTask = {
             id: taskId,
@@ -27,6 +32,7 @@ export class TaskManager {
             taskId,
             repoId,
             startedAt: Date.now(),
+            prompt,
         };
         this.broadcast(startEvent);
         // Start demo task execution

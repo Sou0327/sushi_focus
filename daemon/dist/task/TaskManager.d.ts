@@ -7,7 +7,7 @@ export declare class TaskManager {
     private cancelledTaskIds;
     constructor(broadcast: BroadcastFn);
     getCurrentTask(): Task | null;
-    createTask(repoId: string, prompt: string): string;
+    createTask(repoId: string, prompt: string): string | null;
     cancelTask(taskId: string): boolean;
     cancelExternalTask(taskId: string): boolean;
     submitChoice(taskId: string, choiceId: string): boolean;
