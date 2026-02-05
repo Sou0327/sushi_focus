@@ -385,13 +385,37 @@ async function handleDone(taskId: string, summary: string): Promise<void> {
 
   console.log(`[BG] Triggering auto-focus: ${focusResult.reason}`);
 
-  // Start countdown (handled by side panel)
-  chrome.runtime.sendMessage({
-    type: 'start_done_countdown',
-    taskId,
-    summary,
-    countdownMs: settings.doneCountdownMs,
-  }).catch(() => {});
+  // Check if side panel is open using getContexts (MV3)
+  let sidePanelOpen = false;
+  try {
+    const contexts = await chrome.runtime.getContexts({
+      contextTypes: [chrome.runtime.ContextType.SIDE_PANEL],
+    });
+    sidePanelOpen = contexts.length > 0;
+  } catch {
+    // getContexts not supported, assume side panel might be open
+    sidePanelOpen = true;
+  }
+
+  if (sidePanelOpen) {
+    // Send countdown to side panel
+    console.log('[BG] Side panel open, sending countdown');
+    chrome.runtime.sendMessage({
+      type: 'start_done_countdown',
+      taskId,
+      summary,
+      countdownMs: settings.doneCountdownMs,
+    }).catch(() => {});
+  } else {
+    // Side panel not open - execute focus directly after countdown
+    console.log('[BG] Side panel closed, executing direct focus after countdown');
+    setTimeout(async () => {
+      const success = await focusHomeTab();
+      if (success) {
+        lastDoneFocusTime = Date.now();
+      }
+    }, settings.doneCountdownMs);
+  }
 }
 
 // ============================================================
