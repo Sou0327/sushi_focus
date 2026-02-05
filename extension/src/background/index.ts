@@ -1,5 +1,6 @@
 import type { DaemonEvent, ExtensionSettings, TaskLog } from '@/shared/types';
 import { isDaemonEvent, isHealthResponse } from '@/utils/typeGuards';
+import { isHostOnDistractionDomain, shouldTriggerFocus } from '@/utils/focusLogic';
 
 // ============================================================
 // Keep-Alive (MV3 Service Worker stays active)
@@ -76,10 +77,48 @@ let daemonGitBranch: string | null = null;
 // Storage
 // ============================================================
 
+function validateSettings(stored: unknown): boolean {
+  if (!stored || typeof stored !== 'object') return false;
+  const s = stored as Partial<ExtensionSettings>;
+
+  // Validate mode enum
+  if (s.mode !== undefined && !['quiet', 'normal', 'force'].includes(s.mode)) return false;
+
+  // Validate numeric fields
+  if (s.doneCountdownMs !== undefined && (typeof s.doneCountdownMs !== 'number' || isNaN(s.doneCountdownMs))) return false;
+  if (s.doneCooldownMs !== undefined && (typeof s.doneCooldownMs !== 'number' || isNaN(s.doneCooldownMs))) return false;
+  if (s.homeTabId !== undefined && s.homeTabId !== null && typeof s.homeTabId !== 'number') return false;
+  if (s.homeWindowId !== undefined && s.homeWindowId !== null && typeof s.homeWindowId !== 'number') return false;
+
+  // Validate boolean fields
+  if (s.enabled !== undefined && typeof s.enabled !== 'boolean') return false;
+  if (s.enableDoneFocus !== undefined && typeof s.enableDoneFocus !== 'boolean') return false;
+  if (s.alwaysFocusOnDone !== undefined && typeof s.alwaysFocusOnDone !== 'boolean') return false;
+
+  // Validate language enum
+  if (s.language !== undefined && !['en', 'ja'].includes(s.language)) return false;
+
+  // Validate theme enum
+  if (s.theme !== undefined && !['dark', 'light'].includes(s.theme)) return false;
+
+  // Validate logVerbosity enum
+  if (s.logVerbosity !== undefined && !['minimal', 'normal', 'verbose'].includes(s.logVerbosity)) return false;
+
+  // Validate distractionDomains array
+  if (s.distractionDomains !== undefined) {
+    if (!Array.isArray(s.distractionDomains)) return false;
+    if (!s.distractionDomains.every(d => typeof d === 'string')) return false;
+  }
+
+  return true;
+}
+
 async function loadSettings(): Promise<void> {
   const stored = await chrome.storage.local.get('settings');
-  if (stored.settings) {
+  if (stored.settings && validateSettings(stored.settings)) {
     settings = { ...settings, ...stored.settings };
+  } else if (stored.settings) {
+    console.warn('[BG] Invalid settings detected, using defaults');
   }
 }
 
@@ -205,11 +244,15 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
       currentTaskId = event.taskId;
       taskStartedAt = Date.now();
       taskLogs = [];
-      taskPrompt = (event as DaemonEvent & { prompt?: string }).prompt || null;
+      taskPrompt = event.prompt || null;
       break;
 
     case 'task.log':
       taskLogs.push({ level: event.level, message: event.message, ts: Date.now() });
+      // Keep only last 100 logs to prevent memory bloat
+      if (taskLogs.length > 100) {
+        taskLogs = taskLogs.slice(-100);
+      }
       break;
 
     case 'task.need_input':
@@ -262,14 +305,36 @@ async function handleDone(taskId: string, summary: string): Promise<void> {
     return;
   }
 
-  // Check cooldown
-  const now = Date.now();
-  if (now - lastDoneFocusTime < settings.doneCooldownMs) {
-    console.log('[BG] In cooldown period, skipping auto-focus');
-    // Notify side panel to show emphasis only
-    chrome.runtime.sendMessage({ type: 'done_cooldown_active' }).catch(() => {});
+  // Check if current tab is on a distraction domain
+  let isOnDistraction = false;
+  try {
+    const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (currentTab?.url) {
+      const url = new URL(currentTab.url);
+      isOnDistraction = isHostOnDistractionDomain(url.hostname, settings.distractionDomains);
+    }
+  } catch {
+    // Ignore URL parsing errors
+  }
+
+  // Use centralized focus logic to determine if we should trigger focus
+  const focusResult = shouldTriggerFocus(
+    isOnDistraction,
+    settings.alwaysFocusOnDone,
+    lastDoneFocusTime,
+    settings.doneCooldownMs
+  );
+
+  if (!focusResult.shouldFocus) {
+    console.log(`[BG] Skipping auto-focus: ${focusResult.reason}`);
+    if (focusResult.reason === 'in_cooldown') {
+      // Notify side panel to show emphasis only
+      chrome.runtime.sendMessage({ type: 'done_cooldown_active' }).catch(() => {});
+    }
     return;
   }
+
+  console.log(`[BG] Triggering auto-focus: ${focusResult.reason}`);
 
   // Start countdown (handled by side panel)
   chrome.runtime.sendMessage({

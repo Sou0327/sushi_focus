@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ToggleSwitch } from '@/shared/components/ToggleSwitch';
+import { SushiTaro } from '@/shared/components/SushiTaro';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { useTheme } from '@/theme/useTheme';
 import type { ExtensionSettings, Language, LogVerbosity, Theme } from '@/shared/types';
@@ -79,7 +80,7 @@ export default function App() {
     return (
       <div className="h-screen bg-sushi-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="text-5xl mb-4 animate-sushi-roll">🍣</div>
+          <SushiTaro size="2xl" className="mb-4 animate-sushi-roll mx-auto" theme={theme} />
           <div className="text-subtle">{t('common.loading')}</div>
         </div>
       </div>
@@ -101,7 +102,7 @@ export default function App() {
             ))}
           </div>
           <div className="flex items-center gap-3 relative z-10">
-            <span className="text-3xl">🍣</span>
+            <SushiTaro size="xl" theme={theme} />
             <div>
               <div className="text-lg font-bold text-white drop-shadow-lg">{t('common.sushiFocus')}</div>
               <div className="text-xs text-sushi-rice/80">{t('common.settings')}</div>
@@ -141,13 +142,13 @@ export default function App() {
           <div className="sushi-geta p-4">
             <div className="flex items-center gap-3">
               <div className={`
-                w-10 h-10 rounded-full flex items-center justify-center text-xl
+                w-10 h-10 rounded-full flex items-center justify-center overflow-hidden
                 ${connected
                   ? 'bg-sushi-wasabi/20 shadow-[0_0_10px_rgba(124,179,66,0.3)]'
-                  : 'bg-sushi-tuna/20'
+                  : 'bg-sushi-tuna/20 grayscale opacity-60'
                 }
               `}>
-                {connected ? '🍣' : '🚫'}
+                <SushiTaro size="lg" theme={theme} />
               </div>
               <div>
                 <div className={`text-sm font-bold ${connected ? 'text-sushi-wasabi' : 'text-sushi-tuna'}`}>
@@ -190,7 +191,7 @@ export default function App() {
             >
               {saveState === 'saving' ? (
                 <>
-                  <span className="animate-spin">🍣</span>
+                  <SushiTaro size="sm" className="animate-spin" theme={theme} />
                   {t('common.saving')}
                 </>
               ) : (

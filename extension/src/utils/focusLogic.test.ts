@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isHostOnDistractionDomain } from './focusLogic';
+import { isHostOnDistractionDomain, shouldTriggerFocus } from './focusLogic';
 
 describe('isHostOnDistractionDomain', () => {
   const distractionDomains = [
@@ -90,5 +90,139 @@ describe('isHostOnDistractionDomain', () => {
   it('空のドメインリストに対して false を返す', () => {
     expect(isHostOnDistractionDomain('youtube.com', [])).toBe(false);
     expect(isHostOnDistractionDomain('any.domain.com', [])).toBe(false);
+  });
+});
+
+describe('shouldTriggerFocus', () => {
+  const COOLDOWN_MS = 45000; // 45 seconds
+  const BASE_TIME = 1000000;
+
+  describe('distraction サイトでの動作', () => {
+    it('distraction サイトでは常にフォーカスする', () => {
+      const result = shouldTriggerFocus(
+        true, // isOnDistraction
+        false, // alwaysFocusOnDone
+        BASE_TIME - 1000, // lastDoneFocusTime (1秒前)
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(true);
+      expect(result.reason).toBe('distraction');
+    });
+
+    it('distraction サイトではクールダウン中でもフォーカスする', () => {
+      const result = shouldTriggerFocus(
+        true, // isOnDistraction
+        false, // alwaysFocusOnDone
+        BASE_TIME - 10000, // lastDoneFocusTime (10秒前、クールダウン中)
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(true);
+      expect(result.reason).toBe('distraction');
+    });
+  });
+
+  describe('alwaysFocusOnDone が有効な場合', () => {
+    it('常にフォーカスする', () => {
+      const result = shouldTriggerFocus(
+        false, // isOnDistraction
+        true, // alwaysFocusOnDone
+        BASE_TIME - 1000, // lastDoneFocusTime (1秒前)
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(true);
+      expect(result.reason).toBe('always_focus');
+    });
+
+    it('クールダウン中でもフォーカスする', () => {
+      const result = shouldTriggerFocus(
+        false, // isOnDistraction
+        true, // alwaysFocusOnDone
+        BASE_TIME - 10000, // lastDoneFocusTime (10秒前、クールダウン中)
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(true);
+      expect(result.reason).toBe('always_focus');
+    });
+  });
+
+  describe('クールダウン動作', () => {
+    it('クールダウン期間内はフォーカスしない', () => {
+      const result = shouldTriggerFocus(
+        false, // isOnDistraction
+        false, // alwaysFocusOnDone
+        BASE_TIME - 10000, // lastDoneFocusTime (10秒前、クールダウン中)
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(false);
+      expect(result.reason).toBe('in_cooldown');
+    });
+
+    it('クールダウン期間終了後はフォーカスする', () => {
+      const result = shouldTriggerFocus(
+        false, // isOnDistraction
+        false, // alwaysFocusOnDone
+        BASE_TIME - 50000, // lastDoneFocusTime (50秒前、クールダウン終了)
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(true);
+      expect(result.reason).toBe('cooldown_expired');
+    });
+
+    it('lastDoneFocusTime が 0 の場合フォーカスする（初回）', () => {
+      const result = shouldTriggerFocus(
+        false, // isOnDistraction
+        false, // alwaysFocusOnDone
+        0, // lastDoneFocusTime (初回)
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(true);
+      expect(result.reason).toBe('cooldown_expired');
+    });
+
+    it('クールダウン境界値: ちょうど期間内', () => {
+      const result = shouldTriggerFocus(
+        false,
+        false,
+        BASE_TIME - COOLDOWN_MS + 1, // 1ms 期間内
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(false);
+      expect(result.reason).toBe('in_cooldown');
+    });
+
+    it('クールダウン境界値: ちょうど期間終了', () => {
+      const result = shouldTriggerFocus(
+        false,
+        false,
+        BASE_TIME - COOLDOWN_MS, // ちょうど期間終了
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      expect(result.shouldFocus).toBe(true);
+      expect(result.reason).toBe('cooldown_expired');
+    });
+  });
+
+  describe('優先順位', () => {
+    it('distraction は alwaysFocusOnDone より優先される', () => {
+      const result = shouldTriggerFocus(
+        true, // isOnDistraction
+        true, // alwaysFocusOnDone
+        BASE_TIME - 10000,
+        COOLDOWN_MS,
+        BASE_TIME
+      );
+      // 両方 true の場合、distraction が reason として返される
+      expect(result.shouldFocus).toBe(true);
+      expect(result.reason).toBe('distraction');
+    });
   });
 });

@@ -1,11 +1,14 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslation } from '@/i18n/TranslationContext';
+import { SushiTaro } from '@/shared/components/SushiTaro';
+import type { Theme } from '@/shared/types';
 
 interface TaskCompleteModalProps {
   summary: string;
   countdownMs: number;
   onComplete: () => void;
   onCancel: () => void;
+  theme: Theme;
 }
 
 export function TaskCompleteModal({
@@ -13,6 +16,7 @@ export function TaskCompleteModal({
   countdownMs,
   onComplete,
   onCancel,
+  theme,
 }: TaskCompleteModalProps) {
   const { t } = useTranslation();
   const [remaining, setRemaining] = useState(countdownMs);
@@ -126,16 +130,16 @@ export function TaskCompleteModal({
             </div>
           </div>
 
-          {/* 🍣 回転寿司風アニメーション */}
+          {/* 🍣 寿司太郎アニメーション */}
           <div className="flex justify-center gap-2 mb-6">
-            {['🍣', '🍱', '🍙', '🍣', '🍱'].map((emoji, i) => (
-              <span
+            {[0, 1, 2, 3, 4].map((i) => (
+              <SushiTaro
                 key={i}
-                className="text-2xl animate-pulse"
-                style={{ animationDelay: `${i * 0.15}s` }}
-              >
-                {emoji}
-              </span>
+                size="lg"
+                className="animate-pulse"
+                style={{ animationDelay: `${i * 0.15}s` } as React.CSSProperties}
+                theme={theme}
+              />
             ))}
           </div>
 

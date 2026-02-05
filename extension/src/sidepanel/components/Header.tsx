@@ -1,12 +1,13 @@
 import { useTranslation } from '@/i18n/TranslationContext';
+import { useTheme } from '@/theme/useTheme';
 
 interface HeaderProps {
   connected: boolean;
-  gitBranch?: string | null;
 }
 
-export function Header({ connected, gitBranch }: HeaderProps) {
+export function Header({ connected }: HeaderProps) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
 
   return (
     <header className="relative overflow-hidden header-glass">
@@ -25,15 +26,17 @@ export function Header({ connected, gitBranch }: HeaderProps) {
 
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
-            {/* 🍣 ステータスインジケーター - より視認性高く */}
+            {/* 🍣 寿司キャラステータスインジケーター（ダーク: 次郎 / ライト: 太郎） */}
             <div className="status-orb-container">
               <div className={`
-                status-orb
+                status-orb overflow-hidden !w-14 !h-14
                 ${connected ? 'status-orb-connected' : 'status-orb-offline'}
               `}>
-                <span className={`text-2xl ${connected ? 'sushi-wobble' : ''}`}>
-                  {connected ? '🍣' : '💤'}
-                </span>
+                <img
+                  src={theme === 'dark' ? '/assets/sushi_jiro.png' : '/assets/sushi_taro.png'}
+                  alt={theme === 'dark' ? 'Sushi Jiro' : 'Sushi Taro'}
+                  className={`w-12 h-12 object-contain ${connected ? 'sushi-wobble' : 'grayscale opacity-50'}`}
+                />
               </div>
               {/* 接続時のパルスリング */}
               {connected && (
@@ -57,26 +60,6 @@ export function Header({ connected, gitBranch }: HeaderProps) {
             </div>
           </div>
 
-          {/* Git Branch - 木札風バッジ */}
-          {gitBranch && (
-            <div className="git-badge">
-              <span className="git-icon">🌿</span>
-              <span className="git-branch">{gitBranch}</span>
-            </div>
-          )}
-        </div>
-
-        {/* 🏮 提灯デコレーション - 右上に控えめに */}
-        <div className="absolute top-1 right-2 flex gap-2 opacity-60">
-          {['🏮'].map((lantern, i) => (
-            <span
-              key={i}
-              className="text-xl lantern-gentle"
-              style={{ animationDelay: `${i * 0.8}s` }}
-            >
-              {lantern}
-            </span>
-          ))}
         </div>
       </div>
 

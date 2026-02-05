@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { useTheme } from '@/theme/useTheme';
+import { SushiTaro } from '@/shared/components/SushiTaro';
 import type { TaskStatus, ExtensionSettings, Theme } from '@/shared/types';
 
 function formatElapsed(t: (key: string) => string, startedAt: number): string {
@@ -139,18 +140,20 @@ export default function App() {
 
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-4">
-            {/* 提灯風ロゴ */}
+            {/* 寿司キャラロゴ（ダーク: 次郎 / ライト: 太郎） */}
             <div className="lantern">
               <div className={`
-                w-12 h-12 rounded-full flex items-center justify-center text-3xl
+                w-16 h-16 rounded-full flex items-center justify-center overflow-hidden
                 ${connected
-                  ? 'bg-gradient-to-br from-sushi-wasabi/40 to-sushi-wasabiDark/40'
-                  : 'bg-gradient-to-br from-sushi-tuna/40 to-sushi-tunaDeep/40'
+                  ? 'bg-gradient-to-br from-sushi-wasabi/40 to-sushi-wasabiDark/40 ring-2 ring-sushi-wasabi/50'
+                  : 'bg-gradient-to-br from-sushi-tuna/40 to-sushi-tunaDeep/40 grayscale opacity-60'
                 }
               `}>
-                <span className={connected ? 'hover-spin cursor-pointer' : ''}>
-                  {connected ? '🍣' : '🚫'}
-                </span>
+                <img
+                  src={theme === 'dark' ? '/assets/sushi_jiro.png' : '/assets/sushi_taro.png'}
+                  alt={theme === 'dark' ? 'Sushi Jiro' : 'Sushi Taro'}
+                  className={`w-14 h-14 object-contain ${connected ? 'hover-spin cursor-pointer' : ''}`}
+                />
               </div>
             </div>
             <div>
@@ -224,7 +227,7 @@ export default function App() {
           {isRunning ? (
             <div className="flex items-center gap-4">
               <div className="relative">
-                <span className="text-4xl spinning-sushi inline-block">🍣</span>
+                <SushiTaro size="2xl" className="spinning-sushi" theme={theme} />
                 {taskStatus === 'waiting_input' && (
                   <span className="absolute -top-1 -right-1 notification-badge">❗</span>
                 )}

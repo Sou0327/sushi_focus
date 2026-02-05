@@ -26,7 +26,7 @@ interface AppState {
 
 export default function App() {
   const { t: _t } = useTranslation(); // Reserved for future use
-  useTheme();
+  const { theme } = useTheme();
   const [state, setState] = useState<AppState>({
     connected: false,
     taskStatus: 'idle',
@@ -346,15 +346,12 @@ export default function App() {
 
       {/* メインコンテンツ */}
       <div className="relative z-10 flex flex-col h-full pb-14">
-        <Header
-          connected={state.connected}
-          gitBranch={state.gitBranch}
-        />
+        <Header connected={state.connected} />
 
         {/* TaskInput hidden — reserved for future IDE integration */}
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <TerminalOutput logs={state.logs} />
+          <TerminalOutput logs={state.logs} theme={theme} />
           <div ref={logsEndRef} />
         </div>
       </div>
@@ -393,6 +390,7 @@ export default function App() {
           countdownMs={state.doneCountdown.ms}
           onComplete={handleDoneCountdownComplete}
           onCancel={handleDoneCountdownCancel}
+          theme={theme}
         />
       )}
     </div>

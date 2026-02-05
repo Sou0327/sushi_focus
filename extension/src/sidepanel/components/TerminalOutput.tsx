@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/i18n/TranslationContext';
-import type { TaskLog } from '@/shared/types';
+import { SushiTaro } from '@/shared/components/SushiTaro';
+import type { TaskLog, Theme } from '@/shared/types';
 import { isAIMessage, isUserPrompt, isSuccessMessage } from '@/utils/logMessageUtils';
 
 interface TerminalOutputProps {
   logs: TaskLog[];
+  theme: Theme;
 }
 
 function formatTime(ts: number): string {
@@ -35,7 +37,7 @@ function getLogStyle(level: string, message: string) {
   }
 }
 
-export function TerminalOutput({ logs }: TerminalOutputProps) {
+export function TerminalOutput({ logs, theme }: TerminalOutputProps) {
   const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -64,38 +66,20 @@ export function TerminalOutput({ logs }: TerminalOutputProps) {
             <span className="text-lg">📋</span>
             <span className="terminal-header-title">{t('terminal.title')}</span>
           </div>
-          <div className="flex items-center gap-1">
-            {['🍣', '🍱', '🍙'].map((emoji, i) => (
-              <span
-                key={i}
-                className="text-base opacity-60 hover:opacity-100 hover:scale-110 transition-all cursor-pointer"
-                style={{ animationDelay: `${i * 0.15}s` }}
-              >
-                {emoji}
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* 待機状態 - エレガントに */}
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="text-center idle-state">
-            {/* 回転寿司 - サイズ調整 */}
+            {/* 寿司太郎 - サイズ調整 */}
             <div className="relative mb-4 inline-block">
-              <span className="text-5xl sushi-float inline-block">🍣</span>
+              <SushiTaro size="2xl" className="sushi-float" theme={theme} />
               <span className="sparkle-dot sparkle-dot-1">✨</span>
               <span className="sparkle-dot sparkle-dot-2">✨</span>
             </div>
 
             <p className="text-lg font-bold text-heading mb-1">{t('terminal.ready')}</p>
-            <p className="text-xs text-muted mb-4 max-w-[200px] mx-auto">{t('terminal.readyHint')}</p>
-
-            {/* 待機ドット - 控えめに */}
-            <div className="loading-dots-refined">
-              <span>🍣</span>
-              <span>🍱</span>
-              <span>🍙</span>
-            </div>
+            <p className="text-xs text-muted">{t('terminal.readyHint')}</p>
           </div>
         </div>
       </div>
@@ -173,7 +157,7 @@ export function TerminalOutput({ logs }: TerminalOutputProps) {
                   <span className="text-muted select-none shrink-0 text-xs font-bold">{formatTime(log.ts)}</span>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl hover-spin cursor-pointer">🍣</span>
+                      <SushiTaro size="md" className="hover-spin cursor-pointer" theme={theme} />
                       <span className="text-sushi-salmon font-black text-xs px-3 py-1 bg-sushi-salmon/20 rounded-full border border-sushi-salmon/40 uppercase tracking-wider">
                         板前
                       </span>

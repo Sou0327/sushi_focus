@@ -2,11 +2,12 @@ import { config } from 'dotenv';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
-import { execFile, execSync } from 'child_process';
+import { execFile } from 'child_process';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { TaskManager } from '../task/TaskManager.js';
 import { validateString, validateOptionalString, validateNumber } from '../utils/validation.js';
+import { verifyWsClient } from '../utils/wsAuth.js';
 import type { CreateTaskRequest, ChoiceRequest, HealthResponse, ApiResponse } from '../types/index.js';
 
 // Load .env from project root
@@ -46,11 +47,20 @@ const ALLOWED_TARGET_APPS = new Set([
 ]);
 
 // N.2: CORS allowed origins
-const DEFAULT_ALLOWED_ORIGINS = [
-  /^chrome-extension:\/\//,
+const ALLOWED_EXTENSION_ID = process.env.ALLOWED_EXTENSION_ID || null;
+const DEFAULT_ALLOWED_ORIGINS: (string | RegExp)[] = [
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
   /^http:\/\/localhost(:\d+)?$/,
 ];
+
+// Add extension origin pattern based on configuration
+if (ALLOWED_EXTENSION_ID) {
+  // Restrict to specific extension ID when configured
+  DEFAULT_ALLOWED_ORIGINS.push(new RegExp(`^chrome-extension://${ALLOWED_EXTENSION_ID}$`));
+} else {
+  // Allow any Chrome extension in development mode
+  DEFAULT_ALLOWED_ORIGINS.push(/^chrome-extension:\/\//);
+}
 
 function parseAllowedOrigins(): (string | RegExp)[] {
   const envOrigins = process.env.ALLOWED_ORIGINS;
@@ -180,7 +190,28 @@ function authMiddleware(req: Request, res: Response, next: NextFunction): void {
 app.use(authMiddleware);
 
 const server = createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
+const wss = new WebSocketServer({
+  server,
+  path: '/ws',
+  verifyClient: (info: { origin?: string; req: { url?: string; headers: { host?: string; authorization?: string } } }) => {
+    const result = verifyWsClient(
+      {
+        origin: info.origin,
+        url: info.req.url,
+        host: info.req.headers.host,
+        authorization: info.req.headers.authorization,
+      },
+      AUTH_SECRET ?? undefined,
+      ALLOWED_EXTENSION_ID ?? undefined
+    );
+
+    if (!result && AUTH_SECRET) {
+      console.warn('[WS] Unauthorized connection attempt');
+    }
+
+    return result;
+  },
+});
 
 // Q.3: WebSocket connection limit
 const MAX_WS_CONNECTIONS = parseInt(process.env.SUSHI_FOCUS_MAX_WS_CONNECTIONS || '10', 10);
@@ -259,14 +290,28 @@ const taskManager = new TaskManager(broadcast);
 // HTTP API Endpoints
 // ============================================================
 
-// Health check
-app.get('/health', (_req, res) => {
-  let gitBranch: string | null = null;
-  try {
-    gitBranch = execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
-  } catch {
-    // Git not available or not a git repo
+// Health check with cached git branch
+let gitBranchCache: string | null = null;
+let gitBranchCacheTime = 0;
+const GIT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function getGitBranch(): Promise<string | null> {
+  const now = Date.now();
+  if (gitBranchCache !== null && now - gitBranchCacheTime < GIT_CACHE_TTL) {
+    return gitBranchCache;
   }
+
+  return new Promise((resolve) => {
+    execFile('git', ['branch', '--show-current'], { encoding: 'utf-8' }, (error, stdout) => {
+      gitBranchCache = error ? null : stdout.trim();
+      gitBranchCacheTime = now;
+      resolve(gitBranchCache);
+    });
+  });
+}
+
+app.get('/health', async (_req, res) => {
+  const gitBranch = await getGitBranch();
   const response: HealthResponse = { ok: true, version: VERSION, gitBranch };
   res.json(response);
 });
@@ -296,6 +341,10 @@ app.post('/tasks', (req, res) => {
   }
 
   const taskId = taskManager.createTask(body.repoId || 'default', body.prompt);
+  if (!taskId) {
+    const response: ApiResponse = { ok: false, error: 'A task is already running' };
+    return res.status(409).json(response);
+  }
   res.json({ taskId });
 });
 
