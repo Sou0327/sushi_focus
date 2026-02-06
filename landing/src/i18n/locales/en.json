@@ -1,0 +1,146 @@
+{
+  "common": {
+    "sushiFocus": "Sushi Focus",
+    "tagline": "AI Development Flow Manager",
+    "getStarted": "Get Started",
+    "viewOnGithub": "View on GitHub",
+    "learnMore": "Learn more",
+    "skipToContent": "Skip to content"
+  },
+  "nav": {
+    "features": "Features",
+    "demo": "Demo",
+    "installation": "Install",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
+  },
+  "hero": {
+    "title": "Stay in the Zone",
+    "subtitle": "Auto-return focus when AI finishes tasks",
+    "description": "Sushi Focus is a Chrome extension + local daemon that brings you back to your IDE when Claude Code or other AI assistants complete their work. No more tab-surfing while waiting for AI.",
+    "cta": "Download Now",
+    "ctaSecondary": "See Demo",
+    "badgeOpenSource": "Open Source",
+    "badgeLicense": "MIT License",
+    "statsPlatform": "Chrome + VSCode",
+    "statsSupported": "Supported",
+    "statsFree": "Free & OSS",
+    "floatingTaskComplete": "Task Complete",
+    "floatingFocusRestored": "Focus Restored"
+  },
+  "features": {
+    "title": "Features",
+    "subtitle": "Everything you need for omakase-style AI development",
+    "autoFocus": {
+      "title": "Auto Focus Return",
+      "description": "Automatically brings you back to your IDE when AI completes a task. No more missing that 'done' notification."
+    },
+    "multiTask": {
+      "title": "Multi-Task Support",
+      "description": "Track multiple concurrent AI sessions. Perfect for running tests while Claude works on your feature."
+    },
+    "pluginIntegration": {
+      "title": "Plugin Integration",
+      "description": "Daemon auto-starts when Claude Code launches. Zero setup required, ready to use instantly."
+    }
+  },
+  "demo": {
+    "title": "See It In Action",
+    "subtitle": "Watch how Sushi Focus keeps you in the development flow",
+    "controls": {
+      "run": "Run Demo",
+      "running": "Running...",
+      "clickToStart": "Click \"Run Demo\" to start"
+    },
+    "terminal": {
+      "command": "$ claude \"Fix the authentication bug\"",
+      "starting": "🍣 Starting task...",
+      "running": "Running task...",
+      "analyzing": "Analyzing codebase...",
+      "foundIssue": "🔍 Found issue in auth/login.ts:42",
+      "implementing": "Implementing feature...",
+      "testsPassing": "✅ Tests passing (12/12)",
+      "complete": "Task complete!",
+      "focusReturn": "Returning focus to IDE..."
+    }
+  },
+  "installation": {
+    "title": "Installation",
+    "subtitle": "Get started in under 2 minutes",
+    "chromeExtension": {
+      "title": "Chrome Extension",
+      "step1": "Download from GitHub Releases",
+      "step2": "Unzip the file",
+      "step3": "Go to chrome://extensions",
+      "step4": "Enable Developer mode",
+      "step5": "Click 'Load unpacked' and select the folder"
+    },
+    "claudePlugin": {
+      "title": "Claude Code Plugin",
+      "description": "The plugin auto-starts the daemon when Claude Code launches",
+      "command1": "claude plugin marketplace add github:Sou0327/sushi_focus",
+      "command2": "claude plugin install sushi-focus-daemon@sushi-focus",
+      "step1Label": "1. Add marketplace",
+      "step2Label": "2. Install plugin",
+      "copyStep1AriaLabel": "Copy marketplace add command",
+      "copyStep2AriaLabel": "Copy plugin install command"
+    },
+    "buildFromSource": {
+      "title": "Build from Source",
+      "description": "For developers who want to customize or contribute",
+      "step1": "Clone the repository",
+      "step2": "Install dependencies: pnpm install",
+      "step3": "Build: pnpm build",
+      "step4": "Start daemon: pnpm dev:daemon"
+    },
+    "copy": {
+      "action": "Copy",
+      "copied": "Copied",
+      "failed": "Failed"
+    }
+  },
+  "architecture": {
+    "title": "How It Works",
+    "subtitle": "Simple architecture, powerful results",
+    "flow": {
+      "claudeCode": "Claude Code",
+      "daemon": "Local Daemon",
+      "extension": "Chrome Extension",
+      "httpPost": "HTTP POST",
+      "websocket": "WebSocket",
+      "agentEvents": "/agent/* events",
+      "focusControl": "Focus control",
+      "aiAgent": "AI Agent",
+      "nodejs": "Node.js",
+      "mv3": "MV3",
+      "daemonEvent": "DaemonEvent",
+      "aiAgentEventsLegend": "AI Agent Events"
+    }
+  },
+  "cta": {
+    "title": "Ready to Try?",
+    "subtitle": "Join developers who never miss an AI completion again",
+    "download": "Download Extension",
+    "github": "Star on GitHub",
+    "docs": "Read the Docs"
+  },
+  "footer": {
+    "madeWith": "Made with",
+    "and": "and",
+    "by": "by",
+    "openSource": "Open Source",
+    "license": "MIT License",
+    "rights": "All rights reserved."
+  },
+  "theme": {
+    "dark": "Soy Sauce Mode",
+    "light": "Rice Mode",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
+  },
+  "language": {
+    "en": "English",
+    "ja": "日本語",
+    "toggle": "Toggle language"
+  }
+}

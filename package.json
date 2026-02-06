@@ -5,13 +5,16 @@
   "description": "Chrome extension + local daemon for distraction-aware development 🍣",
   "workspaces": [
     "extension",
-    "daemon"
+    "daemon",
+    "landing"
   ],
   "scripts": {
     "dev:extension": "pnpm --filter sushi-focus-extension dev",
     "dev:daemon": "pnpm --filter sushi-focus-daemon dev",
+    "dev:landing": "pnpm --filter sushi-focus-landing dev",
     "build:extension": "pnpm --filter sushi-focus-extension build",
     "build:daemon": "pnpm --filter sushi-focus-daemon build",
+    "build:landing": "pnpm --filter sushi-focus-landing build",
     "build": "pnpm build:daemon && pnpm build:extension",
     "dev": "concurrently \"pnpm dev:daemon\" \"pnpm dev:extension\"",
     "lint": "pnpm -r lint",

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sushi Focus - AI Development Flow Manager</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="/sushi_taro.webp" />
+
+    <!-- Theme Color (updated dynamically by ThemeContext) -->
+    <meta name="theme-color" content="#0A0908" />
+
+    <!-- SEO -->
+    <meta name="description" content="Sushi Focus - AI development flow management. Auto-focus return for Claude Code and other AI coding assistants." />
+    <meta name="keywords" content="Claude Code, AI development, focus management, Chrome extension, developer tools" />
+    <meta name="robots" content="index,follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Sushi Focus - AI Development Flow Manager" />
+    <meta property="og:description" content="Auto-return focus when AI finishes tasks. Stay in the zone with omakase development." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/sushi_taro.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Sushi Focus - AI Development Flow Manager" />
+    <meta name="twitter:description" content="Auto-return focus when AI finishes tasks. Stay in the zone with omakase development." />
+    <meta name="twitter:image" content="/sushi_taro.png" />
+
+    <!-- Inline theme detection: prevents FOUC -->
+    <script>
+      (function() {
+        var t = localStorage.getItem('sushi-focus-theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        if (t === 'dark') document.documentElement.classList.add('dark');
+      })();
+    </script>
+
+    <!-- LCP image preload (static, both themes - 53+56KB, avoids JS-dependency for discovery) -->
+    <link rel="preload" as="image" type="image/webp" href="/sushi_jiro.webp" />
+    <link rel="preload" as="image" type="image/webp" href="/sushi_taro.webp" />
+
+    <!-- Fonts: preconnect + non-blocking stylesheet (eliminates render-blocking chain) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Latin fonts (body + headings) - non-blocking with swap -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap" /></noscript>
+    <!-- CJK font (Japanese headings only, weights 600+700) - deferred -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600;700&display=swap" /></noscript>
+    <!-- Monospace font (terminal/code, below-fold only) - deferred -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" /></noscript>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Sushi Focus",
+      "description": "AI development flow management tool with auto-focus return for Claude Code.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Chrome, macOS, Windows, Linux",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "license": "https://opensource.org/licenses/MIT"
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <main style="max-width: 720px; margin: 48px auto; padding: 0 16px; font-family: 'DM Sans', system-ui, sans-serif; line-height: 1.6;">
+        <h1 style="font-family: 'Cormorant Garamond', 'Noto Serif JP', serif; font-size: 40px; line-height: 1.2; margin-bottom: 12px;">
+          Sushi Focus
+        </h1>
+        <p style="margin: 0 0 16px;">
+          AI development flow manager that returns focus to your IDE when coding assistants finish tasks.
+        </p>
+        <p style="margin: 0;">
+          <a href="https://github.com/Sou0327/sushi_focus/releases">Download</a>
+          ·
+          <a href="https://github.com/Sou0327/sushi_focus">GitHub</a>
+        </p>
+      </main>
+    </div>
+    <noscript>
+      <p style="max-width: 720px; margin: 0 auto 32px; padding: 0 16px; font-family: 'DM Sans', system-ui, sans-serif;">
+        JavaScript is disabled. You can still access Sushi Focus releases on GitHub.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
