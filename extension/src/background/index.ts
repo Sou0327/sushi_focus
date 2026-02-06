@@ -1,4 +1,5 @@
-import type { DaemonEvent, ExtensionSettings, BackgroundTaskState } from '@/shared/types';
+import type { DaemonEvent, ExtensionSettings, BackgroundTaskState, ErrorLogEntry, ErrorCategory } from '@/shared/types';
+import { DEFAULT_SETTINGS } from '@/shared/types';
 import { isDaemonEvent, isHealthResponse } from '@/utils/typeGuards';
 import { isHostOnDistractionDomain, shouldTriggerFocus } from '@/utils/focusLogic';
 
@@ -38,59 +39,154 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 10;
-const DAEMON_WS_URL = 'ws://127.0.0.1:41593/ws';
 
-let settings: ExtensionSettings = {
-  mode: 'normal',
-  homeTabId: null,
-  homeWindowId: null,
-  enableDoneFocus: true,
-  alwaysFocusOnDone: true,
-  doneCountdownMs: 1500,
-  doneCooldownMs: 45000,
-  distractionDomains: [
-    'netflix.com',
-    'tiktok.com',
-    'youtube.com',
-    'x.com',
-    'twitter.com',
-    'instagram.com',
-    'twitch.tv',
-    'reddit.com',
-  ],
-  enabled: true,
-  language: 'en',
-  theme: 'dark',
-  logVerbosity: 'normal',
-};
+// Settings initialized from DEFAULT_SETTINGS (WebSocket URL now configurable)
+let settings: ExtensionSettings = { ...DEFAULT_SETTINGS };
 
 let lastDoneFocusTime = 0;
 const disabledAutoFocusTaskIds = new Set<string>();
 let daemonVersion: string | null = null;
 let daemonGitBranch: string | null = null;
 
-// Multi-task state management
+// Multi-task state management (active + completed history)
 const tasks = new Map<string, BackgroundTaskState>();
+// Completed tasks history (persisted to storage)
+const completedTasks = new Map<string, BackgroundTaskState>();
+// Error logs (persisted to storage)
+const errorLogs: ErrorLogEntry[] = [];
+
+// ============================================================
+// Error Logging
+// ============================================================
+
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+async function logError(
+  category: ErrorCategory,
+  message: string,
+  details?: string,
+  taskId?: string
+): Promise<void> {
+  const entry: ErrorLogEntry = {
+    id: generateId(),
+    timestamp: Date.now(),
+    category,
+    message,
+    details,
+    taskId,
+  };
+
+  errorLogs.push(entry);
+
+  // Trim old logs
+  while (errorLogs.length > (settings.maxErrorLogs ?? 100)) {
+    errorLogs.shift();
+  }
+
+  // Persist to storage
+  if (settings.saveErrorLogs) {
+    try {
+      await chrome.storage.local.set({ errorLogs: [...errorLogs] });
+    } catch {
+      // Storage might be full, ignore
+    }
+  }
+
+  // Notify user for connection/websocket errors
+  if (category === 'connection' || category === 'websocket') {
+    await showNotification('⚠️ Connection Error', message);
+  }
+}
+
+async function loadErrorLogs(): Promise<void> {
+  try {
+    const stored = await chrome.storage.local.get('errorLogs');
+    if (Array.isArray(stored.errorLogs)) {
+      errorLogs.length = 0;
+      errorLogs.push(...stored.errorLogs);
+    }
+  } catch {
+    // Ignore load errors
+  }
+}
+
+// ============================================================
+// Task Management
+// ============================================================
 
 function getOrCreateTask(taskId: string): BackgroundTaskState {
-  let task = tasks.get(taskId);
-  if (!task) {
-    task = {
-      taskId,
-      startedAt: Date.now(),
-      logs: [],
-      prompt: null,
-      status: 'running',
-      inputQuestion: null,
-      inputChoices: [],
-    };
-    tasks.set(taskId, task);
+  // Check for ID collision
+  if (tasks.has(taskId)) {
+    const existing = tasks.get(taskId)!;
+    // If existing task is still active, return it
+    if (existing.status === 'running' || existing.status === 'waiting_input') {
+      return existing;
+    }
+    // Otherwise, create a new task with unique suffix
+    const uniqueId = `${taskId}-${Date.now()}`;
+    console.log(`[BG] Task ID collision detected, using: ${uniqueId}`);
+    taskId = uniqueId;
   }
+
+  const task: BackgroundTaskState = {
+    taskId,
+    startedAt: Date.now(),
+    logs: [],
+    prompt: null,
+    status: 'running',
+    inputQuestion: null,
+    inputChoices: [],
+    completedAt: null,
+    summary: null,
+    errorMessage: null,
+  };
+  tasks.set(taskId, task);
+  persistTasks();
   return task;
 }
 
-function removeTask(taskId: string): void {
+function completeTask(taskId: string, summary: string | null, errorMessage: string | null): void {
+  const task = tasks.get(taskId);
+  if (!task) return;
+
+  task.completedAt = Date.now();
+  task.summary = summary;
+  task.errorMessage = errorMessage;
+
+  // Move to completed history if enabled
+  if (settings.keepCompletedTasks) {
+    completedTasks.set(taskId, { ...task });
+
+    // Trim old completed tasks
+    const maxCompleted = settings.maxCompletedTasks ?? 50;
+    if (completedTasks.size > maxCompleted) {
+      const sortedEntries = Array.from(completedTasks.entries())
+        .sort((a, b) => (a[1].completedAt ?? 0) - (b[1].completedAt ?? 0));
+      const toRemove = sortedEntries.slice(0, completedTasks.size - maxCompleted);
+      for (const [id] of toRemove) {
+        completedTasks.delete(id);
+      }
+    }
+  }
+
+  // Remove from active tasks
   tasks.delete(taskId);
+  persistTasks();
+}
+
+function removeCompletedTask(taskId: string): boolean {
+  const deleted = completedTasks.delete(taskId);
+  if (deleted) {
+    persistTasks();
+  }
+  return deleted;
+}
+
+function clearCompletedTasks(): void {
+  completedTasks.clear();
+  persistTasks();
 }
 
 function getLatestActiveTask(): BackgroundTaskState | null {
@@ -106,51 +202,240 @@ function getLatestActiveTask(): BackgroundTaskState | null {
 }
 
 // ============================================================
+// Task Persistence
+// ============================================================
+
+async function persistTasks(): Promise<void> {
+  try {
+    await chrome.storage.local.set({
+      activeTasks: Array.from(tasks.values()),
+      completedTasks: Array.from(completedTasks.values()),
+    });
+  } catch {
+    // Storage might be full
+  }
+}
+
+async function loadTasks(): Promise<void> {
+  try {
+    const stored = await chrome.storage.local.get(['activeTasks', 'completedTasks']);
+
+    // Restore active tasks
+    if (Array.isArray(stored.activeTasks)) {
+      tasks.clear();
+      for (const task of stored.activeTasks) {
+        if (task && typeof task.taskId === 'string') {
+          tasks.set(task.taskId, task);
+        }
+      }
+    }
+
+    // Restore completed tasks
+    if (Array.isArray(stored.completedTasks)) {
+      completedTasks.clear();
+      for (const task of stored.completedTasks) {
+        if (task && typeof task.taskId === 'string') {
+          completedTasks.set(task.taskId, task);
+        }
+      }
+    }
+  } catch {
+    // Ignore load errors
+  }
+}
+
+// ============================================================
 // Storage
 // ============================================================
 
-function validateSettings(stored: unknown): boolean {
-  if (!stored || typeof stored !== 'object') return false;
-  const s = stored as Partial<ExtensionSettings>;
+interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+  sanitized: Partial<ExtensionSettings>;
+}
+
+function validateSettings(stored: unknown): ValidationResult {
+  const errors: string[] = [];
+  const sanitized: Partial<ExtensionSettings> = {};
+
+  if (!stored || typeof stored !== 'object') {
+    return { valid: false, errors: ['Settings must be an object'], sanitized: {} };
+  }
+
+  const s = stored as Record<string, unknown>;
 
   // Validate mode enum
-  if (s.mode !== undefined && !['quiet', 'normal', 'force'].includes(s.mode)) return false;
+  if (s.mode !== undefined) {
+    if (['quiet', 'normal', 'force'].includes(s.mode as string)) {
+      sanitized.mode = s.mode as ExtensionSettings['mode'];
+    } else {
+      errors.push(`Invalid mode: ${s.mode}`);
+    }
+  }
 
-  // Validate numeric fields
-  if (s.doneCountdownMs !== undefined && (typeof s.doneCountdownMs !== 'number' || isNaN(s.doneCountdownMs))) return false;
-  if (s.doneCooldownMs !== undefined && (typeof s.doneCooldownMs !== 'number' || isNaN(s.doneCooldownMs))) return false;
-  if (s.homeTabId !== undefined && s.homeTabId !== null && typeof s.homeTabId !== 'number') return false;
-  if (s.homeWindowId !== undefined && s.homeWindowId !== null && typeof s.homeWindowId !== 'number') return false;
+  // Validate numeric fields with range checks
+  if (s.doneCountdownMs !== undefined) {
+    const val = Number(s.doneCountdownMs);
+    if (!isNaN(val) && val >= 0 && val <= 60000) {
+      sanitized.doneCountdownMs = val;
+    } else {
+      errors.push(`Invalid doneCountdownMs: ${s.doneCountdownMs} (must be 0-60000)`);
+    }
+  }
+
+  if (s.doneCooldownMs !== undefined) {
+    const val = Number(s.doneCooldownMs);
+    if (!isNaN(val) && val >= 0 && val <= 3600000) {
+      sanitized.doneCooldownMs = val;
+    } else {
+      errors.push(`Invalid doneCooldownMs: ${s.doneCooldownMs} (must be 0-3600000)`);
+    }
+  }
+
+  if (s.homeTabId !== undefined) {
+    if (s.homeTabId === null || (typeof s.homeTabId === 'number' && !isNaN(s.homeTabId))) {
+      sanitized.homeTabId = s.homeTabId as number | null;
+    } else {
+      errors.push(`Invalid homeTabId: ${s.homeTabId}`);
+    }
+  }
+
+  if (s.homeWindowId !== undefined) {
+    if (s.homeWindowId === null || (typeof s.homeWindowId === 'number' && !isNaN(s.homeWindowId))) {
+      sanitized.homeWindowId = s.homeWindowId as number | null;
+    } else {
+      errors.push(`Invalid homeWindowId: ${s.homeWindowId}`);
+    }
+  }
 
   // Validate boolean fields
-  if (s.enabled !== undefined && typeof s.enabled !== 'boolean') return false;
-  if (s.enableDoneFocus !== undefined && typeof s.enableDoneFocus !== 'boolean') return false;
-  if (s.alwaysFocusOnDone !== undefined && typeof s.alwaysFocusOnDone !== 'boolean') return false;
+  const booleanFields = ['enabled', 'enableDoneFocus', 'alwaysFocusOnDone', 'keepCompletedTasks', 'saveErrorLogs'] as const;
+  for (const field of booleanFields) {
+    if (s[field] !== undefined) {
+      if (typeof s[field] === 'boolean') {
+        (sanitized as Record<string, unknown>)[field] = s[field];
+      } else {
+        errors.push(`Invalid ${field}: ${s[field]} (must be boolean)`);
+      }
+    }
+  }
 
   // Validate language enum
-  if (s.language !== undefined && !['en', 'ja'].includes(s.language)) return false;
+  if (s.language !== undefined) {
+    if (['en', 'ja'].includes(s.language as string)) {
+      sanitized.language = s.language as ExtensionSettings['language'];
+    } else {
+      errors.push(`Invalid language: ${s.language}`);
+    }
+  }
 
   // Validate theme enum
-  if (s.theme !== undefined && !['dark', 'light'].includes(s.theme)) return false;
+  if (s.theme !== undefined) {
+    if (['dark', 'light'].includes(s.theme as string)) {
+      sanitized.theme = s.theme as ExtensionSettings['theme'];
+    } else {
+      errors.push(`Invalid theme: ${s.theme}`);
+    }
+  }
 
   // Validate logVerbosity enum
-  if (s.logVerbosity !== undefined && !['minimal', 'normal', 'verbose'].includes(s.logVerbosity)) return false;
+  if (s.logVerbosity !== undefined) {
+    if (['minimal', 'normal', 'verbose'].includes(s.logVerbosity as string)) {
+      sanitized.logVerbosity = s.logVerbosity as ExtensionSettings['logVerbosity'];
+    } else {
+      errors.push(`Invalid logVerbosity: ${s.logVerbosity}`);
+    }
+  }
 
   // Validate distractionDomains array
   if (s.distractionDomains !== undefined) {
-    if (!Array.isArray(s.distractionDomains)) return false;
-    if (!s.distractionDomains.every(d => typeof d === 'string')) return false;
+    if (Array.isArray(s.distractionDomains)) {
+      const validDomains = s.distractionDomains.filter(d => typeof d === 'string' && d.length > 0);
+      if (validDomains.length === s.distractionDomains.length) {
+        sanitized.distractionDomains = validDomains;
+      } else {
+        errors.push('Some distractionDomains entries are invalid');
+        sanitized.distractionDomains = validDomains;
+      }
+    } else {
+      errors.push(`Invalid distractionDomains: must be an array`);
+    }
   }
 
-  return true;
+  // Validate URL fields
+  if (s.daemonWsUrl !== undefined) {
+    if (typeof s.daemonWsUrl === 'string' && isValidWsUrl(s.daemonWsUrl)) {
+      sanitized.daemonWsUrl = s.daemonWsUrl;
+    } else {
+      errors.push(`Invalid daemonWsUrl: ${s.daemonWsUrl}`);
+    }
+  }
+
+  if (s.daemonHttpUrl !== undefined) {
+    if (typeof s.daemonHttpUrl === 'string' && isValidHttpUrl(s.daemonHttpUrl)) {
+      sanitized.daemonHttpUrl = s.daemonHttpUrl;
+    } else {
+      errors.push(`Invalid daemonHttpUrl: ${s.daemonHttpUrl}`);
+    }
+  }
+
+  // Validate max values
+  if (s.maxCompletedTasks !== undefined) {
+    const val = Number(s.maxCompletedTasks);
+    if (!isNaN(val) && val >= 0 && val <= 1000) {
+      sanitized.maxCompletedTasks = val;
+    } else {
+      errors.push(`Invalid maxCompletedTasks: ${s.maxCompletedTasks} (must be 0-1000)`);
+    }
+  }
+
+  if (s.maxErrorLogs !== undefined) {
+    const val = Number(s.maxErrorLogs);
+    if (!isNaN(val) && val >= 0 && val <= 1000) {
+      sanitized.maxErrorLogs = val;
+    } else {
+      errors.push(`Invalid maxErrorLogs: ${s.maxErrorLogs} (must be 0-1000)`);
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    sanitized,
+  };
+}
+
+function isValidWsUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'ws:' || parsed.protocol === 'wss:';
+  } catch {
+    return false;
+  }
+}
+
+function isValidHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 async function loadSettings(): Promise<void> {
   const stored = await chrome.storage.local.get('settings');
-  if (stored.settings && validateSettings(stored.settings)) {
-    settings = { ...settings, ...stored.settings };
-  } else if (stored.settings) {
-    console.warn('[BG] Invalid settings detected, using defaults');
+  if (stored.settings) {
+    const result = validateSettings(stored.settings);
+    if (result.errors.length > 0) {
+      console.warn('[BG] Settings validation errors:', result.errors);
+      // Log errors for debugging
+      await logError('unknown', 'Settings validation errors', result.errors.join('; '));
+    }
+    // Merge sanitized values with defaults (safe merge)
+    settings = { ...DEFAULT_SETTINGS, ...result.sanitized };
+  } else {
+    settings = { ...DEFAULT_SETTINGS };
   }
 }
 
@@ -167,16 +452,27 @@ function connectWebSocket(): void {
     return;
   }
 
-  console.log('[BG] Connecting to daemon...');
-  ws = new WebSocket(DAEMON_WS_URL);
+  const wsUrl = settings.daemonWsUrl ?? DEFAULT_SETTINGS.daemonWsUrl;
+  console.log(`[BG] Connecting to daemon at ${wsUrl}...`);
+
+  try {
+    ws = new WebSocket(wsUrl);
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[BG] Failed to create WebSocket:', msg);
+    logError('connection', `Failed to create WebSocket: ${msg}`);
+    scheduleReconnect();
+    return;
+  }
 
   ws.onopen = async () => {
     console.log('[BG] Connected to daemon');
     reconnectAttempts = 0;
 
     // Fetch daemon health info before broadcasting (so gitBranch is available)
+    const httpUrl = settings.daemonHttpUrl ?? DEFAULT_SETTINGS.daemonHttpUrl;
     try {
-      const res = await fetch('http://127.0.0.1:41593/health');
+      const res = await fetch(`${httpUrl}/health`);
       const health: unknown = await res.json();
 
       // O.2: Validate Health API response structure
@@ -188,8 +484,10 @@ function connectWebSocket(): void {
         daemonVersion = null;
         daemonGitBranch = null;
       }
-    } catch {
+    } catch (error) {
       // Daemon might not support these fields yet, use defaults
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      console.warn('[BG] Failed to fetch health:', msg);
       daemonVersion = null;
       daemonGitBranch = null;
     }
@@ -197,14 +495,22 @@ function connectWebSocket(): void {
     broadcastConnectionStatus(true);
   };
 
-  ws.onclose = () => {
-    console.log('[BG] Disconnected from daemon');
+  ws.onclose = (event) => {
+    console.log(`[BG] Disconnected from daemon (code: ${event.code}, reason: ${event.reason || 'none'})`);
+
+    // Log unexpected disconnections
+    if (event.code !== 1000 && event.code !== 1001) {
+      logError('websocket', `WebSocket closed unexpectedly`, `Code: ${event.code}, Reason: ${event.reason || 'none'}`);
+    }
+
     broadcastConnectionStatus(false);
     scheduleReconnect();
   };
 
   ws.onerror = (error) => {
     console.error('[BG] WebSocket error:', error);
+    // Note: onerror doesn't provide useful error details in browsers
+    logError('websocket', 'WebSocket connection error', 'Check if daemon is running');
   };
 
   ws.onmessage = (event) => {
@@ -214,12 +520,15 @@ function connectWebSocket(): void {
       // O.1: Validate WebSocket message structure
       if (!isDaemonEvent(parsed)) {
         console.warn('[BG] Invalid or unknown daemon event, ignoring:', parsed);
+        logError('parse', 'Invalid daemon event received', JSON.stringify(parsed).slice(0, 200));
         return;
       }
 
       handleDaemonEvent(parsed);
     } catch (e) {
-      console.error('[BG] Failed to parse message:', e);
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      console.error('[BG] Failed to parse message:', msg);
+      logError('parse', `Failed to parse WebSocket message: ${msg}`);
     }
   };
 }
@@ -309,8 +618,8 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
       const task = getOrCreateTask(event.taskId);
       task.status = 'done';
       await handleDone(event.taskId, event.summary);
-      // Remove task after a delay to allow UI to display completion
-      setTimeout(() => removeTask(event.taskId), 5000);
+      // Move to completed history (preserves task for user review)
+      completeTask(event.taskId, event.summary, null);
       break;
     }
 
@@ -319,8 +628,10 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
       const task = getOrCreateTask(event.taskId);
       task.status = 'error';
       await showNotification('🔴 Task Failed', event.message);
-      // Remove task after a delay
-      setTimeout(() => removeTask(event.taskId), 5000);
+      // Log the error
+      await logError('api', event.message, event.details, event.taskId);
+      // Move to completed history with error
+      completeTask(event.taskId, null, event.message);
       break;
     }
   }
@@ -493,9 +804,41 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           startedAt: latestTask?.startedAt ?? null,
           prompt: latestTask?.prompt ?? null,
           logs: latestTask?.logs ?? [],
-          // New multi-task field
+          // New multi-task fields
           tasks: Array.from(tasks.values()),
+          completedTasks: Array.from(completedTasks.values()),
         });
+        break;
+      }
+
+      case 'remove_completed_task': {
+        const success = removeCompletedTask(message.taskId);
+        sendResponse({ ok: success });
+        break;
+      }
+
+      case 'clear_completed_tasks': {
+        clearCompletedTasks();
+        sendResponse({ ok: true });
+        break;
+      }
+
+      case 'get_error_logs': {
+        sendResponse({ errorLogs: [...errorLogs] });
+        break;
+      }
+
+      case 'clear_error_logs': {
+        errorLogs.length = 0;
+        chrome.storage.local.remove('errorLogs');
+        sendResponse({ ok: true });
+        break;
+      }
+
+      case 'reset_settings': {
+        settings = { ...DEFAULT_SETTINGS };
+        await saveSettings();
+        sendResponse({ ok: true, settings });
         break;
       }
 
@@ -582,6 +925,8 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('[BG] Extension installed');
   await loadSettings();
+  await loadTasks();
+  await loadErrorLogs();
   await setupKeepAlive();
   connectWebSocket();
 });
@@ -589,12 +934,16 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.runtime.onStartup.addListener(async () => {
   console.log('[BG] Extension started');
   await loadSettings();
+  await loadTasks();
+  await loadErrorLogs();
   await setupKeepAlive();
   connectWebSocket();
 });
 
 // Initial connection
 loadSettings().then(async () => {
+  await loadTasks();
+  await loadErrorLogs();
   await setupKeepAlive();
   connectWebSocket();
 });

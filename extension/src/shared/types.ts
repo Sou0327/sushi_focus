@@ -118,6 +118,15 @@ export interface ExtensionSettings {
   language: Language;
   theme: Theme;
   logVerbosity: LogVerbosity;
+  // WebSocket URL (configurable)
+  daemonWsUrl: string;
+  daemonHttpUrl: string;
+  // Task history settings
+  keepCompletedTasks: boolean;
+  maxCompletedTasks: number;
+  // Error log settings
+  saveErrorLogs: boolean;
+  maxErrorLogs: number;
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -142,6 +151,15 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   language: 'en',
   theme: 'dark',
   logVerbosity: 'normal',
+  // WebSocket URL defaults
+  daemonWsUrl: 'ws://127.0.0.1:41593/ws',
+  daemonHttpUrl: 'http://127.0.0.1:41593',
+  // Task history defaults
+  keepCompletedTasks: true,
+  maxCompletedTasks: 50,
+  // Error log defaults
+  saveErrorLogs: true,
+  maxErrorLogs: 100,
 };
 
 // ============================================================
@@ -185,6 +203,25 @@ export interface BackgroundTaskState {
   status: TaskStatus;
   inputQuestion: string | null;
   inputChoices: Choice[];
+  // Task history fields
+  completedAt: number | null;
+  summary: string | null;
+  errorMessage: string | null;
+}
+
+// ============================================================
+// Error Log Types
+// ============================================================
+
+export type ErrorCategory = 'connection' | 'websocket' | 'parse' | 'api' | 'unknown';
+
+export interface ErrorLogEntry {
+  id: string;
+  timestamp: number;
+  category: ErrorCategory;
+  message: string;
+  details?: string;
+  taskId?: string;
 }
 
 export interface TaskStatusResponse {
@@ -194,6 +231,7 @@ export interface TaskStatusResponse {
   startedAt: number | null;
   prompt: string | null;
   logs: TaskLog[];
-  // New multi-task field
+  // New multi-task fields
   tasks: BackgroundTaskState[];
+  completedTasks: BackgroundTaskState[];
 }
