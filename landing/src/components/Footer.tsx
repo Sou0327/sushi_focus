@@ -2,6 +2,7 @@ import { useTranslation } from '@/i18n/TranslationContext';
 import { useTheme } from '@/theme/ThemeContext';
 
 const GITHUB_URL = 'https://github.com/Sou0327/sushi_focus';
+const TWITTER_URL = 'https://x.com/gensou_ongaku';
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -38,6 +39,16 @@ export default function Footer() {
             <span>{t('footer.openSource')}</span>
           </a>
           <span className="text-sf-text-dim">•</span>
+          <a
+            href={TWITTER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-link flex items-center gap-2"
+          >
+            <XIcon className="w-4 h-4" />
+            <span>@gensou_ongaku</span>
+          </a>
+          <span className="text-sf-text-dim">•</span>
           <span className="text-sm text-sf-text-muted">{t('footer.license')}</span>
         </div>
 
@@ -47,6 +58,14 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
   );
 }
 
