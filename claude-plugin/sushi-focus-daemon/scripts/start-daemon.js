@@ -22,10 +22,9 @@
 
 import { spawn, execSync } from 'node:child_process';
 import { createServer } from 'node:net';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { homedir } from 'node:os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,33 +43,14 @@ function findDaemonPath() {
     return process.env.SUSHI_FOCUS_DAEMON_PATH;
   }
 
-  // 2. Project root from environment variable
+  // 2. Bundled daemon (works when installed via plugin marketplace)
+  const bundledPath = join(__dirname, '..', 'daemon-dist', 'server', 'index.js');
+  if (existsSync(bundledPath)) return bundledPath;
+
+  // 3. Project root from environment variable
   if (process.env.SUSHI_FOCUS_PROJECT_ROOT) {
     const path = join(process.env.SUSHI_FOCUS_PROJECT_ROOT, 'daemon', 'dist', 'server', 'index.js');
     if (existsSync(path)) return path;
-  }
-
-  // 3. Check marketplace config (works for both GitHub and local installs)
-  try {
-    const marketplacePath = join(homedir(), '.claude', 'plugins', 'known_marketplaces.json');
-    if (existsSync(marketplacePath)) {
-      const marketplaces = JSON.parse(readFileSync(marketplacePath, 'utf-8'));
-      const sushiFocus = marketplaces['sushi-focus'];
-      if (sushiFocus) {
-        // Check installLocation first (works for GitHub, local, and directory sources)
-        if (sushiFocus.installLocation) {
-          const path = join(sushiFocus.installLocation, 'daemon', 'dist', 'server', 'index.js');
-          if (existsSync(path)) return path;
-        }
-        // Fallback to source.path for directory/local sources
-        if (sushiFocus.source?.path) {
-          const path = join(sushiFocus.source.path, 'daemon', 'dist', 'server', 'index.js');
-          if (existsSync(path)) return path;
-        }
-      }
-    }
-  } catch {
-    // Ignore JSON parse errors
   }
 
   // 4. Relative path from plugin (for development/symlink install)

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sushi Focus 🍣",
-  "version": "0.1.0",
+  "version": "0.3.1",
   "description": "Omakase-style focus: your personal itamae keeps you on track while AI does the heavy lifting 🍣",
   "permissions": [
     "tabs",
