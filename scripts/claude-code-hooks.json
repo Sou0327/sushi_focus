@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:41593/agent/start -H 'Content-Type: application/json' -d '{\"taskId\":\"claude-session\",\"prompt\":\"Claude Code session started\"}' > /dev/null 2>&1 || true"
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/start -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\":\"claude-code-session\",\"prompt\":\"Claude Code session started\"}' > /dev/null 2>&1 || true"
           }
         ]
       }
@@ -18,19 +18,29 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/aocunxiangyilang/kaihatu/FocusFlow/scripts/hook-debug.sh UserPromptSubmit"
+            "command": "jq -c '{taskId: \"claude-code-session\", level: \"info\", message: (\"[USER] \" + ((.prompt // \"(no prompt)\") | tostring | .[0:500]))}' | curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d @- > /dev/null 2>&1 || true"
           }
         ]
       }
     ],
-    "PreToolUse": [],
+    "PreToolUse": [
+      {
+        "matcher": "Read|Glob|Grep|Edit|Write|Bash|Task|WebSearch|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ./scripts/sushi-focus-tool-log.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "jq -c '{taskId: \"claude-session\", level: \"debug\", message: (\"Tool: \" + (.tool_name // \"unknown\") + \" completed\")}' | curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' -d @- > /dev/null 2>&1 || true"
+            "command": "jq -c '{taskId: \"claude-code-session\", level: \"debug\", message: (\"Tool: \" + (.tool_name // \"unknown\") + \" completed\")}' | curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d @- > /dev/null 2>&1 || true"
           }
         ]
       }
@@ -41,7 +51,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -c '{taskId: \"claude-session\", level: \"info\", message: (.message // \"Notification\")}' | curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' -d @- > /dev/null 2>&1 || true"
+            "command": "jq -c '{taskId: \"claude-code-session\", level: \"focus\", message: (\"[NOTIFY] \" + (.message // \"Notification\"))}' | curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d @- > /dev/null 2>&1 || true"
           }
         ]
       }
@@ -52,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:41593/agent/done -H 'Content-Type: application/json' -d '{\"taskId\":\"claude-session\",\"summary\":\"Session ended\"}' > /dev/null 2>&1 || true"
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/done -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\":\"claude-code-session\",\"summary\":\"Session ended\"}' > /dev/null 2>&1 || true"
           }
         ]
       }

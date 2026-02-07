@@ -7,7 +7,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { TaskManager } from '../task/TaskManager.js';
 import { validateString, validateOptionalString, validateNumber } from '../utils/validation.js';
-import { verifyWsClient } from '../utils/wsAuth.js';
+import { verifyWsClient, safeCompare } from '../utils/wsAuth.js';
 import type { CreateTaskRequest, ChoiceRequest, HealthResponse, ApiResponse } from '../types/index.js';
 
 // Load .env from project root
@@ -158,6 +158,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Routes called by external tools (Claude Code hooks) require auth.
 // Routes called only by the extension are exempt (trusted local origin).
 const AUTH_EXEMPT_ROUTES = ['/health', '/repos', '/agent/cancel'];
+// GET-only exempt: reading is safe, but writes require auth when secret is set
+const AUTH_EXEMPT_GET_ROUTES = ['/focus/settings'];
 const AUTH_EXEMPT_PREFIXES = ['/tasks/'];
 
 function authMiddleware(req: Request, res: Response, next: NextFunction): void {
@@ -168,7 +170,8 @@ function authMiddleware(req: Request, res: Response, next: NextFunction): void {
 
   // Skip auth for extension-only routes (local trusted origin)
   if (AUTH_EXEMPT_ROUTES.includes(req.path) ||
-      AUTH_EXEMPT_PREFIXES.some(prefix => req.path.startsWith(prefix))) {
+      AUTH_EXEMPT_PREFIXES.some(prefix => req.path.startsWith(prefix)) ||
+      (req.method === 'GET' && AUTH_EXEMPT_GET_ROUTES.includes(req.path))) {
     return next();
   }
 
@@ -179,7 +182,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   }
 
   const token = authHeader.slice(7); // Remove 'Bearer ' prefix
-  if (token !== AUTH_SECRET) {
+  if (!safeCompare(token, AUTH_SECRET!)) {
     res.status(401).json({ ok: false, error: 'Invalid authentication token' });
     return;
   }
@@ -407,7 +410,7 @@ interface AgentEventStart {
 interface AgentEventLog {
   taskId: string;
   message: string;
-  level?: 'info' | 'warn' | 'warning' | 'error' | 'debug';
+  level?: 'info' | 'warn' | 'warning' | 'error' | 'debug' | 'success' | 'focus' | 'command';
 }
 
 interface AgentEventNeedInput {
@@ -473,7 +476,7 @@ app.post('/agent/log', (req, res) => {
   }
 
   // Validate and normalize level enum
-  const validLevels = ['info', 'warn', 'error', 'debug'] as const;
+  const validLevels = ['info', 'warn', 'error', 'debug', 'success', 'focus', 'command'] as const;
   const normalizedLevel = body.level === 'warning' ? 'warn' : body.level;
   if (body.level && !validLevels.includes(normalizedLevel as typeof validLevels[number])) {
     return res.status(400).json({ ok: false, error: `level must be one of: ${validLevels.join(', ')}` });
@@ -486,7 +489,11 @@ app.post('/agent/log', (req, res) => {
     message: body.message,
   });
 
-  console.log(`[Agent] Log: ${body.message.slice(0, 200)}${body.message.length > 200 ? '...' : ''}`);
+  // Redact user prompts and commands from daemon stdout to prevent sensitive data leakage
+  const logSafe = body.message.startsWith('[USER] ')
+    ? '[USER] [redacted]'
+    : body.message.slice(0, 200) + (body.message.length > 200 ? '...' : '');
+  console.log(`[Agent] Log: ${logSafe}`);
   res.json({ ok: true });
 });
 
@@ -564,6 +571,7 @@ app.post('/agent/done', (req, res) => {
     type: 'task.done',
     taskId: body.taskId,
     summary,
+    ...(summary === 'Task completed' && { summaryKey: 'daemon.log.taskCompleted' }),
     meta: { changedFiles: body.filesModified },
   });
 

@@ -2,8 +2,7 @@
  * ログメッセージの種類を判定するユーティリティ関数
  */
 
-// Zero-width space marker used for UI-generated synthetic logs
-const SYNTHETIC_LOG_MARKER = '\u200B';
+import { SYNTHETIC_LOG_MARKER } from '@/shared/constants';
 
 /**
  * AI からのメッセージかどうかを判定

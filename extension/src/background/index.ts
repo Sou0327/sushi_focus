@@ -1,7 +1,25 @@
-import type { DaemonEvent, ExtensionSettings, BackgroundTaskState, ErrorLogEntry, ErrorCategory } from '@/shared/types';
+import type { DaemonEvent, ExtensionSettings, BackgroundTaskState, ErrorLogEntry, ErrorCategory, Language } from '@/shared/types';
 import { DEFAULT_SETTINGS } from '@/shared/types';
 import { isDaemonEvent, isHealthResponse } from '@/utils/typeGuards';
 import { isHostOnDistractionDomain, shouldTriggerFocus } from '@/utils/focusLogic';
+import en from '@/i18n/locales/en.json';
+import ja from '@/i18n/locales/ja.json';
+
+// ============================================================
+// Standalone Translation Helper (Service Worker, no React context)
+// ============================================================
+
+const localeData: Record<Language, Record<string, unknown>> = { en, ja };
+
+function bgTranslate(key: string): string {
+  const keys = key.split('.');
+  let current: unknown = localeData[settings.language];
+  for (const k of keys) {
+    if (!current || typeof current !== 'object') return key;
+    current = (current as Record<string, unknown>)[k];
+  }
+  return typeof current === 'string' ? current : key;
+}
 
 // ============================================================
 // Keep-Alive (MV3 Service Worker stays active)
@@ -96,7 +114,7 @@ async function logError(
 
   // Notify user for connection/websocket errors
   if (category === 'connection' || category === 'websocket') {
-    await showNotification('⚠️ Connection Error', message);
+    await showNotification(`⚠️ ${bgTranslate('notification.connectionError')}`, message);
   }
 }
 
@@ -309,7 +327,7 @@ function validateSettings(stored: unknown): ValidationResult {
   }
 
   // Validate boolean fields
-  const booleanFields = ['enabled', 'enableDoneFocus', 'alwaysFocusOnDone', 'keepCompletedTasks', 'saveErrorLogs'] as const;
+  const booleanFields = ['enabled', 'enableDoneFocus', 'alwaysFocusOnDone', 'keepCompletedTasks', 'saveErrorLogs', 'logPromptContent'] as const;
   for (const field of booleanFields) {
     if (s[field] !== undefined) {
       if (typeof s[field] === 'boolean') {
@@ -443,6 +461,31 @@ async function saveSettings(): Promise<void> {
   await chrome.storage.local.set({ settings });
 }
 
+async function syncFocusSettingsToDaemon(): Promise<void> {
+  // Best-effort sync: when SUSHI_FOCUS_SECRET is set on the daemon,
+  // this POST will return 401 because the extension cannot provide auth.
+  // The daemon falls back to its own .env-based focus settings in that case.
+  const httpUrl = settings.daemonHttpUrl ?? DEFAULT_SETTINGS.daemonHttpUrl;
+  try {
+    const res = await fetch(`${httpUrl}/focus/settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        enabled: settings.enabled,
+        focusOnDone: settings.enableDoneFocus,
+      }),
+    });
+    if (!res.ok) {
+      console.warn(`[BG] Daemon rejected focus settings sync: ${res.status}`);
+      return;
+    }
+    console.log('[BG] Synced focus settings to daemon');
+  } catch {
+    // Daemon may not be running - log only, don't break extension
+    console.warn('[BG] Failed to sync focus settings to daemon');
+  }
+}
+
 // ============================================================
 // WebSocket Connection
 // ============================================================
@@ -491,6 +534,9 @@ function connectWebSocket(): void {
       daemonVersion = null;
       daemonGitBranch = null;
     }
+
+    // Sync focus settings to daemon on reconnect
+    syncFocusSettingsToDaemon();
 
     broadcastConnectionStatus(true);
   };
@@ -569,23 +615,33 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
     const shouldLog =
       verbosity === 'verbose' ||
       (verbosity === 'normal' && event.level !== 'debug') ||
-      (verbosity === 'minimal' && (event.level === 'info' || event.level === 'error'));
+      (verbosity === 'minimal' && ['info', 'error', 'success', 'focus'].includes(event.level));
 
     if (!shouldLog) {
       return;
     }
   }
 
+  // Mask user prompt content before forwarding (privacy)
+  let forwardEvent = event;
+  if (event.type === 'task.log' && !settings.logPromptContent && event.message.startsWith('[USER] ')) {
+    forwardEvent = { ...event, message: '[USER] [Prompt content hidden]' };
+  }
+
   // Forward to side panel (always, regardless of enabled state)
-  chrome.runtime.sendMessage(event).catch(() => {});
+  chrome.runtime.sendMessage(forwardEvent).catch(() => {});
 
   // State management always runs — only auto-focus is gated by enabled
   switch (event.type) {
     case 'task.started': {
+      const existing = tasks.get(event.taskId);
       const task = getOrCreateTask(event.taskId);
-      task.startedAt = Date.now();
-      task.logs = [];
-      task.prompt = event.prompt || null;
+      // Preserve logs if task already exists and is active (e.g. re-sent start event)
+      if (!existing || existing.status === 'done' || existing.status === 'error') {
+        task.startedAt = Date.now();
+        task.logs = [];
+      }
+      task.prompt = event.prompt || task.prompt;
       task.status = 'running';
       task.inputQuestion = null;
       task.inputChoices = [];
@@ -595,7 +651,13 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
     case 'task.log': {
       // Auto-create task if not exists (handles SW restart or event ordering issues)
       const task = getOrCreateTask(event.taskId);
-      task.logs.push({ level: event.level, message: event.message, ts: Date.now() });
+      task.logs.push({
+        level: event.level,
+        message: forwardEvent.type === 'task.log' ? forwardEvent.message : event.message,
+        ts: Date.now(),
+        ...(event.messageKey && { messageKey: event.messageKey }),
+        ...(event.messageParams && { messageParams: event.messageParams }),
+      });
       // Keep only last 100 logs to prevent memory bloat
       if (task.logs.length > 100) {
         task.logs = task.logs.slice(-100);
@@ -617,7 +679,7 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
       // Auto-create task if not exists (handles SW restart)
       const task = getOrCreateTask(event.taskId);
       task.status = 'done';
-      await handleDone(event.taskId, event.summary);
+      await handleDone(event.taskId, event.summary, event.summaryKey);
       // Move to completed history (preserves task for user review)
       completeTask(event.taskId, event.summary, null);
       break;
@@ -627,7 +689,8 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
       // Auto-create task if not exists (handles SW restart)
       const task = getOrCreateTask(event.taskId);
       task.status = 'error';
-      await showNotification('🔴 Task Failed', event.message);
+      const errorMsg = event.messageKey ? bgTranslate(event.messageKey) : event.message;
+      await showNotification(`🔴 ${bgTranslate('notification.taskFailed')}`, errorMsg);
       // Log the error
       await logError('api', event.message, event.details, event.taskId);
       // Move to completed history with error
@@ -639,7 +702,7 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
 
 async function handleNeedInput(_taskId: string, question: string): Promise<void> {
   // Always show notification
-  await showNotification('🟡 Input Required', question);
+  await showNotification(`🟡 ${bgTranslate('notification.inputRequired')}`, question);
 
   if (!settings.enabled) return;
 
@@ -647,9 +710,10 @@ async function handleNeedInput(_taskId: string, question: string): Promise<void>
   await focusHomeTab();
 }
 
-async function handleDone(taskId: string, summary: string): Promise<void> {
+async function handleDone(taskId: string, summary: string, summaryKey?: string): Promise<void> {
   // Always show notification
-  await showNotification('✅ Task Complete', summary);
+  const translatedSummary = summaryKey ? bgTranslate(summaryKey) : summary;
+  await showNotification(`✅ ${bgTranslate('notification.taskComplete')}`, translatedSummary);
 
   if (!settings.enabled) return;
 
@@ -714,7 +778,7 @@ async function handleDone(taskId: string, summary: string): Promise<void> {
     chrome.runtime.sendMessage({
       type: 'start_done_countdown',
       taskId,
-      summary,
+      summary: translatedSummary,
       countdownMs: settings.doneCountdownMs,
     }).catch(() => {});
   } else {
@@ -846,11 +910,21 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         sendResponse({ settings });
         break;
 
-      case 'update_settings':
-        settings = { ...settings, ...message.settings };
+      case 'update_settings': {
+        const { valid, errors, sanitized } = validateSettings(message.settings);
+        if (!valid) {
+          console.warn('[BG] Invalid settings update rejected:', errors);
+        }
+        // Use sanitized values only (invalid fields are silently dropped)
+        const prev = { enabled: settings.enabled, enableDoneFocus: settings.enableDoneFocus };
+        settings = { ...settings, ...sanitized };
         await saveSettings();
-        sendResponse({ ok: true });
+        if (settings.enabled !== prev.enabled || settings.enableDoneFocus !== prev.enableDoneFocus) {
+          syncFocusSettingsToDaemon();
+        }
+        sendResponse({ ok: true, warnings: errors.length > 0 ? errors : undefined });
         break;
+      }
 
       case 'set_home_tab': {
         const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });

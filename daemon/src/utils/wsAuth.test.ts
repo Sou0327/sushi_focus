@@ -1,5 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { verifyWsClient, extractExtensionId, type WsClientInfo } from './wsAuth.js';
+import { verifyWsClient, extractExtensionId, safeCompare, type WsClientInfo } from './wsAuth.js';
+
+describe('safeCompare', () => {
+  it('同じ文字列で true を返す', () => {
+    expect(safeCompare('abc', 'abc')).toBe(true);
+  });
+
+  it('異なる文字列で false を返す', () => {
+    expect(safeCompare('abc', 'def')).toBe(false);
+  });
+
+  it('異なる長さで false を返す', () => {
+    expect(safeCompare('abc', 'abcd')).toBe(false);
+  });
+
+  it('非ASCIIでバイト長が異なる場合に例外を投げない', () => {
+    // 'éé' は4バイト、'aa' は2バイト（同じ文字数だがバイト長が異なる）
+    expect(() => safeCompare('éé', 'aa')).not.toThrow();
+    expect(safeCompare('éé', 'aa')).toBe(false);
+  });
+
+  it('空文字同士で true を返す', () => {
+    expect(safeCompare('', '')).toBe(true);
+  });
+});
 
 describe('extractExtensionId', () => {
   it('有効なChrome拡張IDを抽出する', () => {
@@ -119,12 +143,12 @@ describe('verifyWsClient', () => {
   });
 
   describe('外部接続（Claude Code フック等）', () => {
-    it('URLパラメータの token で認証を通す', () => {
+    it('URLパラメータの token は無視される（セキュリティ上の理由）', () => {
       const info: WsClientInfo = {
         url: '/ws?token=test-secret-123',
         host: 'localhost:41593',
       };
-      expect(verifyWsClient(info, AUTH_SECRET)).toBe(true);
+      expect(verifyWsClient(info, AUTH_SECRET)).toBe(false);
     });
 
     it('Authorization ヘッダーで認証を通す', () => {
@@ -152,28 +176,33 @@ describe('verifyWsClient', () => {
       expect(verifyWsClient(info, AUTH_SECRET)).toBe(false);
     });
 
-    it('URLなしを拒否する', () => {
+    it('Authorizationヘッダーなしを拒否する', () => {
       const info: WsClientInfo = {
         host: 'localhost:41593',
       };
       expect(verifyWsClient(info, AUTH_SECRET)).toBe(false);
     });
 
-    it('hostなしを拒否する', () => {
+    it('AuthorizationヘッダーがあればURL/hostなしでも許可する', () => {
       const info: WsClientInfo = {
-        url: '/ws?token=test-secret-123',
+        authorization: 'Bearer test-secret-123',
+      };
+      expect(verifyWsClient(info, AUTH_SECRET)).toBe(true);
+    });
+
+    it('不正なAuthorizationヘッダー形式を拒否する', () => {
+      const info: WsClientInfo = {
+        authorization: 'Basic test-secret-123',
       };
       expect(verifyWsClient(info, AUTH_SECRET)).toBe(false);
     });
-  });
 
-  describe('不正なURL', () => {
-    it('パース不可能なURLを拒否する', () => {
+    it('Bearer プレフィックスなしでもトークンが正しければ許可する', () => {
       const info: WsClientInfo = {
-        url: ':::invalid-url',
-        host: 'localhost:41593',
+        authorization: 'test-secret-123',
       };
-      expect(verifyWsClient(info, AUTH_SECRET)).toBe(false);
+      // replace('Bearer ', '') は一致しないので元の文字列がそのままトークンとして使われる
+      expect(verifyWsClient(info, AUTH_SECRET)).toBe(true);
     });
   });
 });

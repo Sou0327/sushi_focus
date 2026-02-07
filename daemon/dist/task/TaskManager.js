@@ -50,6 +50,7 @@ export class TaskManager {
             type: 'task.error',
             taskId,
             message: 'Task cancelled by user',
+            messageKey: 'daemon.log.taskCancelled',
         };
         this.broadcast(errorEvent);
         // Resolve pending input to unblock waitForInput
@@ -67,6 +68,7 @@ export class TaskManager {
             type: 'task.error',
             taskId,
             message: 'Task cancelled by user',
+            messageKey: 'daemon.log.taskCancelled',
         };
         this.broadcast(errorEvent);
         // Also cancel internal task if it matches
@@ -106,8 +108,8 @@ export class TaskManager {
             this.currentTask.updatedAt = Date.now();
         }
     }
-    log(taskId, level, message) {
-        const logEntry = { level, message, ts: Date.now() };
+    log(taskId, level, message, messageKey, messageParams) {
+        const logEntry = { level, message, ts: Date.now(), messageKey, messageParams };
         if (this.currentTask && this.currentTask.id === taskId) {
             this.currentTask.logs.push(logEntry);
             // Keep only last 100 logs
@@ -120,6 +122,8 @@ export class TaskManager {
             taskId,
             level,
             message,
+            ...(messageKey && { messageKey }),
+            ...(messageParams && { messageParams }),
         };
         this.broadcast(logEvent);
     }
@@ -142,24 +146,24 @@ export class TaskManager {
     async runDemoTask(taskId, prompt) {
         // Demo task simulation
         try {
-            this.log(taskId, 'info', `Starting task: "${prompt}"`);
+            this.log(taskId, 'info', `Starting task: "${prompt}"`, 'daemon.log.startingTask', { prompt });
             await this.delay(500);
             if (this.isCancelled(taskId))
                 return;
-            this.log(taskId, 'info', 'Analyzing codebase...');
+            this.log(taskId, 'info', 'Analyzing codebase...', 'daemon.log.analyzing');
             await this.delay(1000);
             if (this.isCancelled(taskId))
                 return;
-            this.log(taskId, 'info', 'Found 3 files to modify');
+            this.log(taskId, 'info', 'Found 3 files to modify', 'daemon.log.foundFiles', { count: 3 });
             await this.delay(800);
             if (this.isCancelled(taskId))
                 return;
-            this.log(taskId, 'info', 'Generating changes...');
+            this.log(taskId, 'info', 'Generating changes...', 'daemon.log.generating');
             await this.delay(1500);
             if (this.isCancelled(taskId))
                 return;
             // Simulate need_input
-            this.log(taskId, 'info', 'Changes ready for review');
+            this.log(taskId, 'info', 'Changes ready for review', 'daemon.log.changesReady');
             const choice = await this.waitForInput(taskId, 'Apply the following changes?', [
                 { id: 'apply', label: 'Apply Changes' },
                 { id: 'skip', label: 'Skip' },
@@ -169,17 +173,17 @@ export class TaskManager {
                 return;
             this.updateStatus('running');
             if (choice === 'apply') {
-                this.log(taskId, 'info', 'Applying changes...');
+                this.log(taskId, 'info', 'Applying changes...', 'daemon.log.applying');
                 await this.delay(1000);
                 if (this.isCancelled(taskId))
                     return;
-                this.log(taskId, 'info', 'Changes applied successfully');
+                this.log(taskId, 'info', 'Changes applied successfully', 'daemon.log.applied');
             }
             else if (choice === 'skip') {
-                this.log(taskId, 'info', 'Changes skipped');
+                this.log(taskId, 'info', 'Changes skipped', 'daemon.log.skipped');
             }
             else {
-                this.log(taskId, 'info', 'Regenerating with modifications...');
+                this.log(taskId, 'info', 'Regenerating with modifications...', 'daemon.log.regenerating');
                 await this.delay(1000);
                 if (this.isCancelled(taskId))
                     return;
@@ -217,6 +221,10 @@ export class TaskManager {
             this.cancelledTaskIds.delete(taskId);
         }
     }
+    /**
+     * Delay utility - exposed for testing with fake timers.
+     * @internal
+     */
     delay(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }

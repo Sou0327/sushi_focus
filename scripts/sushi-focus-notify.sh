@@ -16,6 +16,11 @@
 
 DAEMON_URL="${SUSHI_FOCUS_DAEMON_URL:-http://127.0.0.1:41593}"
 TASK_ID="${SUSHI_FOCUS_TASK_ID:-task-$(date +%s)}"
+AUTH_HEADER=()
+
+if [[ -n "${SUSHI_FOCUS_SECRET:-}" ]]; then
+  AUTH_HEADER=(-H "Authorization: Bearer ${SUSHI_FOCUS_SECRET}")
+fi
 
 event="$1"
 shift
@@ -117,7 +122,7 @@ make_json() {
         escaped_level=$(printf '%s' "$raw_level" | sed 's/[^a-zA-Z]//g')
         # Validate level is one of the allowed values, default to 'info'
         case "$escaped_level" in
-          info|warn|warning|error|debug) ;;
+          info|warn|warning|error|debug|success|focus|command) ;;
           *) escaped_level="info" ;;
         esac
         printf '{"taskId":"%s","message":"%s","level":"%s"}' "$TASK_ID" "$escaped" "$escaped_level"
@@ -132,37 +137,43 @@ make_json() {
   fi
 }
 
+send_event() {
+  local endpoint="$1"
+  local json="$2"
+  local status
+
+  status=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "${DAEMON_URL}${endpoint}" \
+    -H "Content-Type: application/json" \
+    "${AUTH_HEADER[@]}" \
+    -d "$json" || true)
+
+  if [[ "$status" =~ ^2[0-9][0-9]$ ]]; then
+    return 0
+  fi
+
+  echo "Sushi Focus: request failed (${endpoint}, HTTP ${status:-000})" >&2
+  return 1
+}
+
 case "$event" in
   start)
     JSON=$(make_json start)
-    curl -s -X POST "${DAEMON_URL}/agent/start" \
-      -H "Content-Type: application/json" \
-      -d "$JSON" \
-      > /dev/null
+    send_event "/agent/start" "$JSON" || exit 1
     echo "Sushi Focus: Task started (${TASK_ID})"
     echo "${TASK_ID}"
     ;;
   log)
     JSON=$(make_json log)
-    curl -s -X POST "${DAEMON_URL}/agent/log" \
-      -H "Content-Type: application/json" \
-      -d "$JSON" \
-      > /dev/null
+    send_event "/agent/log" "$JSON" || exit 1
     ;;
   need-input)
     JSON=$(make_json need-input)
-    curl -s -X POST "${DAEMON_URL}/agent/need-input" \
-      -H "Content-Type: application/json" \
-      -d "$JSON" \
-      > /dev/null
+    send_event "/agent/need-input" "$JSON" || exit 1
     echo "Sushi Focus: Input required"
     ;;
   done)
     JSON=$(make_json done)
-    curl -s -X POST "${DAEMON_URL}/agent/done" \
-      -H "Content-Type: application/json" \
-      -d "$JSON" \
-      > /dev/null
+    send_event "/agent/done" "$JSON" || exit 1
     echo "Sushi Focus: Task completed"
     ;;
   *)

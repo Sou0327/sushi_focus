@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TaskManager } from './TaskManager.js';
 /**
  * テスト用の TaskManager 拡張クラス
@@ -28,10 +28,15 @@ describe('TaskManager', () => {
     let taskManager;
     let broadcastedEvents;
     beforeEach(() => {
+        // Use fake timers to avoid real delays in runDemoTask
+        vi.useFakeTimers();
         broadcastedEvents = [];
         taskManager = new TestableTaskManager((event) => {
             broadcastedEvents.push(event);
         });
+    });
+    afterEach(() => {
+        vi.useRealTimers();
     });
     describe('createTask', () => {
         it('新規タスクを作成できる', () => {

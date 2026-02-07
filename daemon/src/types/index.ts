@@ -5,9 +5,11 @@
 export type TaskStatus = 'idle' | 'running' | 'waiting_input' | 'done' | 'error';
 
 export interface TaskLog {
-  level: 'info' | 'warn' | 'error' | 'debug';
+  level: 'info' | 'warn' | 'error' | 'debug' | 'success' | 'focus' | 'command';
   message: string;
   ts: number;
+  messageKey?: string;
+  messageParams?: Record<string, string | number>;
 }
 
 export interface Choice {
@@ -51,8 +53,10 @@ export interface TaskStartedEvent {
 export interface TaskLogEvent {
   type: 'task.log';
   taskId: string;
-  level: 'info' | 'warn' | 'error' | 'debug';
+  level: 'info' | 'warn' | 'error' | 'debug' | 'success' | 'focus' | 'command';
   message: string;
+  messageKey?: string;
+  messageParams?: Record<string, string | number>;
 }
 
 export interface TaskNeedInputEvent {
@@ -66,6 +70,7 @@ export interface TaskDoneEvent {
   type: 'task.done';
   taskId: string;
   summary: string;
+  summaryKey?: string;
   meta?: {
     changedFiles?: number;
     tests?: 'passed' | 'failed' | 'not_run';
@@ -76,6 +81,7 @@ export interface TaskErrorEvent {
   type: 'task.error';
   taskId: string;
   message: string;
+  messageKey?: string;
   details?: string;
 }
 

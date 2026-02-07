@@ -46,6 +46,9 @@ Plans.md
 plans/
 screen_image/
 
+# Debug scripts (not for distribution)
+scripts/hook-capture.sh
+
 # Promotional assets (Orynth marketplace)
 orynth-assets/
 promo-video/

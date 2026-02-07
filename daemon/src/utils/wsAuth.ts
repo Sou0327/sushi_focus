@@ -3,6 +3,18 @@
  * Extracted from server/index.ts for testability.
  */
 
+import { timingSafeEqual } from 'node:crypto';
+
+/**
+ * Timing-safe string comparison to prevent timing attacks on secret tokens.
+ */
+export function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.byteLength !== bufB.byteLength) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 export interface WsClientInfo {
   origin?: string;
   url?: string;
@@ -48,22 +60,10 @@ export function verifyWsClient(
   // Skip auth if no secret is configured (local development mode)
   if (!authSecret) return true;
 
-  // Validate external connections with token
-  try {
-    if (!info.url || !info.host) {
-      return false;
-    }
-
-    const url = new URL(info.url, `http://${info.host}`);
-    const token =
-      url.searchParams.get('token') ||
-      info.authorization?.replace('Bearer ', '');
-
-    if (!token || token !== authSecret) {
-      return false;
-    }
-    return true;
-  } catch {
+  // Validate external connections with Authorization header
+  const token = info.authorization?.replace('Bearer ', '');
+  if (!token || !safeCompare(token, authSecret)) {
     return false;
   }
+  return true;
 }

@@ -7,7 +7,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { TaskManager } from '../task/TaskManager.js';
 import { validateString, validateOptionalString, validateNumber } from '../utils/validation.js';
-import { verifyWsClient } from '../utils/wsAuth.js';
+import { verifyWsClient, safeCompare } from '../utils/wsAuth.js';
 // Load .env from project root
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '../../..');
@@ -140,6 +140,8 @@ app.use((req, res, next) => {
 // Routes called by external tools (Claude Code hooks) require auth.
 // Routes called only by the extension are exempt (trusted local origin).
 const AUTH_EXEMPT_ROUTES = ['/health', '/repos', '/agent/cancel'];
+// GET-only exempt: reading is safe, but writes require auth when secret is set
+const AUTH_EXEMPT_GET_ROUTES = ['/focus/settings'];
 const AUTH_EXEMPT_PREFIXES = ['/tasks/'];
 function authMiddleware(req, res, next) {
     // Skip auth if no secret is configured (local development mode)
@@ -148,7 +150,8 @@ function authMiddleware(req, res, next) {
     }
     // Skip auth for extension-only routes (local trusted origin)
     if (AUTH_EXEMPT_ROUTES.includes(req.path) ||
-        AUTH_EXEMPT_PREFIXES.some(prefix => req.path.startsWith(prefix))) {
+        AUTH_EXEMPT_PREFIXES.some(prefix => req.path.startsWith(prefix)) ||
+        (req.method === 'GET' && AUTH_EXEMPT_GET_ROUTES.includes(req.path))) {
         return next();
     }
     const authHeader = req.headers.authorization;
@@ -157,7 +160,7 @@ function authMiddleware(req, res, next) {
         return;
     }
     const token = authHeader.slice(7); // Remove 'Bearer ' prefix
-    if (token !== AUTH_SECRET) {
+    if (!safeCompare(token, AUTH_SECRET)) {
         res.status(401).json({ ok: false, error: 'Invalid authentication token' });
         return;
     }
@@ -174,7 +177,7 @@ const wss = new WebSocketServer({
             url: info.req.url,
             host: info.req.headers.host,
             authorization: info.req.headers.authorization,
-        }, AUTH_SECRET ?? undefined);
+        }, AUTH_SECRET ?? undefined, ALLOWED_EXTENSION_ID ?? undefined);
         if (!result && AUTH_SECRET) {
             console.warn('[WS] Unauthorized connection attempt');
         }
@@ -366,7 +369,7 @@ app.post('/agent/log', (req, res) => {
         return res.status(400).json({ ok: false, error: messageError });
     }
     // Validate and normalize level enum
-    const validLevels = ['info', 'warn', 'error', 'debug'];
+    const validLevels = ['info', 'warn', 'error', 'debug', 'success', 'focus', 'command'];
     const normalizedLevel = body.level === 'warning' ? 'warn' : body.level;
     if (body.level && !validLevels.includes(normalizedLevel)) {
         return res.status(400).json({ ok: false, error: `level must be one of: ${validLevels.join(', ')}` });
@@ -377,7 +380,11 @@ app.post('/agent/log', (req, res) => {
         level: normalizedLevel || 'info',
         message: body.message,
     });
-    console.log(`[Agent] Log: ${body.message.slice(0, 200)}${body.message.length > 200 ? '...' : ''}`);
+    // Redact user prompts and commands from daemon stdout to prevent sensitive data leakage
+    const logSafe = body.message.startsWith('[USER] ')
+        ? '[USER] [redacted]'
+        : body.message.slice(0, 200) + (body.message.length > 200 ? '...' : '');
+    console.log(`[Agent] Log: ${logSafe}`);
     res.json({ ok: true });
 });
 // Agent: Need input (triggers auto-focus)
@@ -442,6 +449,7 @@ app.post('/agent/done', (req, res) => {
         type: 'task.done',
         taskId: body.taskId,
         summary,
+        ...(summary === 'Task completed' && { summaryKey: 'daemon.log.taskCompleted' }),
         meta: { changedFiles: body.filesModified },
     });
     // Auto-focus IDE

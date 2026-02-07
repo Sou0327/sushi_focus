@@ -60,6 +60,8 @@
       "themeDesc": "Set the mood",
       "logVerbosity": "Kitchen Chatter",
       "logVerbosityDesc": "How much detail from the kitchen",
+      "logPromptContent": "Show Prompt Content",
+      "logPromptContentDesc": "Display user prompts in kitchen view (privacy sensitive)",
       "logLevel": {
         "minimal": "Zen",
         "normal": "Regular",
@@ -120,7 +122,23 @@
   "terminal": {
     "title": "Kitchen View",
     "ready": "Rice is warm 🍚",
-    "readyHint": "Waiting for orders from IDE"
+    "readyHint": "Waiting for orders from IDE",
+    "itemCount": "{count} items",
+    "nextOrder": "Waiting for next order...",
+    "logLevel": {
+      "info": "Order",
+      "warn": "Check",
+      "error": "Issue",
+      "debug": "Note",
+      "success": "Done",
+      "focus": "Focus"
+    },
+    "badge": {
+      "customer": "Customer",
+      "chef": "Chef",
+      "preparing": "Preparing...",
+      "successDone": "Done!"
+    }
   },
   "actionRequired": {
     "title": "Chef Needs You!",
@@ -143,5 +161,26 @@
   "language": {
     "en": "English",
     "ja": "Japanese"
+  },
+  "daemon": {
+    "log": {
+      "startingTask": "Starting task: \"{prompt}\"",
+      "analyzing": "Analyzing codebase...",
+      "foundFiles": "Found {count} files to modify",
+      "generating": "Generating changes...",
+      "changesReady": "Changes ready for review",
+      "applying": "Applying changes...",
+      "applied": "Changes applied successfully",
+      "skipped": "Changes skipped",
+      "regenerating": "Regenerating with modifications...",
+      "taskCompleted": "Task completed",
+      "taskCancelled": "Task cancelled by user"
+    }
+  },
+  "notification": {
+    "taskComplete": "Task Complete",
+    "inputRequired": "Input Required",
+    "taskFailed": "Task Failed",
+    "connectionError": "Connection Error"
   }
 }

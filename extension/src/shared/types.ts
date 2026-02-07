@@ -7,9 +7,11 @@ export type TaskStatus = 'idle' | 'running' | 'waiting_input' | 'done' | 'error'
 export type FocusMode = 'quiet' | 'normal' | 'force';
 
 export interface TaskLog {
-  level: 'info' | 'warn' | 'error' | 'debug';
+  level: 'info' | 'warn' | 'error' | 'debug' | 'success' | 'focus' | 'command';
   message: string;
   ts: number;
+  messageKey?: string;
+  messageParams?: Record<string, string | number>;
 }
 
 export interface Choice {
@@ -53,8 +55,10 @@ export interface TaskStartedEvent {
 export interface TaskLogEvent {
   type: 'task.log';
   taskId: string;
-  level: 'info' | 'warn' | 'error' | 'debug';
+  level: 'info' | 'warn' | 'error' | 'debug' | 'success' | 'focus' | 'command';
   message: string;
+  messageKey?: string;
+  messageParams?: Record<string, string | number>;
 }
 
 export interface TaskNeedInputEvent {
@@ -68,6 +72,7 @@ export interface TaskDoneEvent {
   type: 'task.done';
   taskId: string;
   summary: string;
+  summaryKey?: string;
   meta?: {
     changedFiles?: number;
     tests?: 'passed' | 'failed' | 'not_run';
@@ -78,6 +83,7 @@ export interface TaskErrorEvent {
   type: 'task.error';
   taskId: string;
   message: string;
+  messageKey?: string;
   details?: string;
 }
 
@@ -127,6 +133,8 @@ export interface ExtensionSettings {
   // Error log settings
   saveErrorLogs: boolean;
   maxErrorLogs: number;
+  // Privacy
+  logPromptContent: boolean;
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -149,7 +157,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   ],
   enabled: true,
   language: 'en',
-  theme: 'dark',
+  theme: 'light',
   logVerbosity: 'normal',
   // WebSocket URL defaults
   daemonWsUrl: 'ws://127.0.0.1:41593/ws',
@@ -160,6 +168,8 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   // Error log defaults
   saveErrorLogs: true,
   maxErrorLogs: 100,
+  // Privacy defaults
+  logPromptContent: false,
 };
 
 // ============================================================

@@ -16,7 +16,11 @@ export declare class TaskManager {
     private waitForInput;
     private isCancelled;
     private runDemoTask;
-    private delay;
+    /**
+     * Delay utility - exposed for testing with fake timers.
+     * @internal
+     */
+    protected delay(ms: number): Promise<void>;
 }
 export {};
 //# sourceMappingURL=TaskManager.d.ts.map

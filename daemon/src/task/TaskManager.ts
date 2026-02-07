@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
   Task,
   TaskStatus,
+  TaskLog,
   DaemonEvent,
   TaskStartedEvent,
   TaskLogEvent,
@@ -75,6 +76,7 @@ export class TaskManager {
       type: 'task.error',
       taskId,
       message: 'Task cancelled by user',
+      messageKey: 'daemon.log.taskCancelled',
     };
     this.broadcast(errorEvent);
 
@@ -96,6 +98,7 @@ export class TaskManager {
       type: 'task.error',
       taskId,
       message: 'Task cancelled by user',
+      messageKey: 'daemon.log.taskCancelled',
     };
     this.broadcast(errorEvent);
 
@@ -142,8 +145,14 @@ export class TaskManager {
     }
   }
 
-  private log(taskId: string, level: 'info' | 'warn' | 'error' | 'debug', message: string): void {
-    const logEntry = { level, message, ts: Date.now() };
+  private log(
+    taskId: string,
+    level: TaskLog['level'],
+    message: string,
+    messageKey?: string,
+    messageParams?: Record<string, string | number>,
+  ): void {
+    const logEntry = { level, message, ts: Date.now(), messageKey, messageParams };
 
     if (this.currentTask && this.currentTask.id === taskId) {
       this.currentTask.logs.push(logEntry);
@@ -158,6 +167,8 @@ export class TaskManager {
       taskId,
       level,
       message,
+      ...(messageKey && { messageKey }),
+      ...(messageParams && { messageParams }),
     };
     this.broadcast(logEvent);
   }
@@ -185,24 +196,24 @@ export class TaskManager {
   private async runDemoTask(taskId: string, prompt: string): Promise<void> {
     // Demo task simulation
     try {
-      this.log(taskId, 'info', `Starting task: "${prompt}"`);
+      this.log(taskId, 'info', `Starting task: "${prompt}"`, 'daemon.log.startingTask', { prompt });
       await this.delay(500);
       if (this.isCancelled(taskId)) return;
 
-      this.log(taskId, 'info', 'Analyzing codebase...');
+      this.log(taskId, 'info', 'Analyzing codebase...', 'daemon.log.analyzing');
       await this.delay(1000);
       if (this.isCancelled(taskId)) return;
 
-      this.log(taskId, 'info', 'Found 3 files to modify');
+      this.log(taskId, 'info', 'Found 3 files to modify', 'daemon.log.foundFiles', { count: 3 });
       await this.delay(800);
       if (this.isCancelled(taskId)) return;
 
-      this.log(taskId, 'info', 'Generating changes...');
+      this.log(taskId, 'info', 'Generating changes...', 'daemon.log.generating');
       await this.delay(1500);
       if (this.isCancelled(taskId)) return;
 
       // Simulate need_input
-      this.log(taskId, 'info', 'Changes ready for review');
+      this.log(taskId, 'info', 'Changes ready for review', 'daemon.log.changesReady');
 
       const choice = await this.waitForInput(taskId, 'Apply the following changes?', [
         { id: 'apply', label: 'Apply Changes' },
@@ -215,14 +226,14 @@ export class TaskManager {
       this.updateStatus('running');
 
       if (choice === 'apply') {
-        this.log(taskId, 'info', 'Applying changes...');
+        this.log(taskId, 'info', 'Applying changes...', 'daemon.log.applying');
         await this.delay(1000);
         if (this.isCancelled(taskId)) return;
-        this.log(taskId, 'info', 'Changes applied successfully');
+        this.log(taskId, 'info', 'Changes applied successfully', 'daemon.log.applied');
       } else if (choice === 'skip') {
-        this.log(taskId, 'info', 'Changes skipped');
+        this.log(taskId, 'info', 'Changes skipped', 'daemon.log.skipped');
       } else {
-        this.log(taskId, 'info', 'Regenerating with modifications...');
+        this.log(taskId, 'info', 'Regenerating with modifications...', 'daemon.log.regenerating');
         await this.delay(1000);
         if (this.isCancelled(taskId)) return;
       }

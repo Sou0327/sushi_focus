@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Header } from './components/Header';
 // import { TaskInput } from './components/TaskInput'; // Reserved for future IDE integration
 import { TerminalOutput } from './components/TerminalOutput';
@@ -7,11 +7,9 @@ import { TaskCompleteModal } from './components/TaskCompleteModal';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { useTheme } from '@/theme/useTheme';
 import type { DaemonEvent, TaskLog, TaskStatus, Choice, ExtensionSettings, BackgroundTaskState } from '@/shared/types';
+import { SYNTHETIC_LOG_MARKER } from '@/shared/constants';
 
 const DAEMON_API_URL = 'http://127.0.0.1:41593';
-
-// Unique marker for UI-generated synthetic logs (invisible zero-width space)
-const SYNTHETIC_LOG_MARKER = '\u200B';
 
 // UI state for each task
 interface TaskUIState {
@@ -59,7 +57,7 @@ function hasActiveTasks(tasks: Map<string, TaskUIState>): boolean {
 }
 
 export default function App() {
-  const { t: _t } = useTranslation(); // Reserved for future use
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [state, setState] = useState<AppState>({
     connected: false,
@@ -222,14 +220,21 @@ export default function App() {
           break;
         }
 
-        case 'task.log':
+        case 'task.log': {
+          const logEntry: TaskLog = {
+            level: event.level,
+            message: event.message,
+            ts: Date.now(),
+            ...(event.messageKey && { messageKey: event.messageKey }),
+            ...(event.messageParams && { messageParams: event.messageParams }),
+          };
           setState(s => {
             const newTasks = new Map(s.tasks);
             const task = newTasks.get(event.taskId);
             if (task) {
               newTasks.set(event.taskId, {
                 ...task,
-                logs: [...task.logs, { level: event.level, message: event.message, ts: Date.now() }],
+                logs: [...task.logs, logEntry],
               });
             } else {
               // Create stub task for unknown taskId (event arrived before task.started)
@@ -237,7 +242,7 @@ export default function App() {
                 taskId: event.taskId,
                 status: 'running',
                 prompt: null,
-                logs: [{ level: event.level, message: event.message, ts: Date.now() }],
+                logs: [logEntry],
                 inputQuestion: null,
                 inputChoices: [],
                 progress: null,
@@ -247,6 +252,7 @@ export default function App() {
             return { ...s, tasks: newTasks };
           });
           break;
+        }
 
         case 'task.need_input':
           setState(s => {
@@ -302,12 +308,13 @@ export default function App() {
           });
           break;
 
-        case 'task.done':
+        case 'task.done': {
+          const doneSummary = event.summaryKey ? t(event.summaryKey) : event.summary;
           setState(s => {
             const newTasks = new Map(s.tasks);
             const task = newTasks.get(event.taskId);
             // Use marker prefix for synthetic logs to distinguish from daemon logs
-            const syntheticLog = { level: 'info' as const, message: `${SYNTHETIC_LOG_MARKER}✅ ${event.summary}`, ts: Date.now() };
+            const syntheticLog = { level: 'info' as const, message: `${SYNTHETIC_LOG_MARKER}✅ ${doneSummary}`, ts: Date.now() };
             if (task) {
               newTasks.set(event.taskId, {
                 ...task,
@@ -340,13 +347,15 @@ export default function App() {
             });
           }, 5000);
           break;
+        }
 
-        case 'task.error':
+        case 'task.error': {
+          const errorText = event.messageKey ? t(event.messageKey) : event.message;
           setState(s => {
             const newTasks = new Map(s.tasks);
             const task = newTasks.get(event.taskId);
             // Use marker prefix for synthetic logs to distinguish from daemon logs
-            const syntheticLog = { level: 'error' as const, message: `${SYNTHETIC_LOG_MARKER}❌ ${event.message}`, ts: Date.now() };
+            const syntheticLog = { level: 'error' as const, message: `${SYNTHETIC_LOG_MARKER}❌ ${errorText}`, ts: Date.now() };
             if (task) {
               newTasks.set(event.taskId, {
                 ...task,
@@ -379,16 +388,20 @@ export default function App() {
             });
           }, 5000);
           break;
+        }
       }
     };
 
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
-  }, []);
+  }, [t]);
+
+  // Memoize active tasks check to avoid unnecessary useEffect re-runs
+  const hasActive = useMemo(() => hasActiveTasks(state.tasks), [state.tasks]);
 
   // Poll task status as fallback (sendMessage from SW may not reach side panel reliably)
   useEffect(() => {
-    if (!hasActiveTasks(state.tasks)) return;
+    if (!hasActive) return;
 
     const interval = setInterval(() => {
       chrome.runtime.sendMessage({ type: 'get_task_status' }, (response) => {
@@ -489,9 +502,10 @@ export default function App() {
               });
             }, 5000);
           }
-        } else if (!response?.taskId && state.tasks.size > 0) {
+        } else if (!response?.taskId) {
           // No active tasks in background, clear local state
           setState(s => {
+            if (s.tasks.size === 0) return s;
             const newTasks = new Map(s.tasks);
             for (const [taskId, task] of newTasks) {
               if (task.status !== 'done' && task.status !== 'error') {
@@ -505,7 +519,7 @@ export default function App() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [state.tasks]);
+  }, [hasActive]);
 
   // Computed values
   const allLogs = getAllLogs(state.tasks);
