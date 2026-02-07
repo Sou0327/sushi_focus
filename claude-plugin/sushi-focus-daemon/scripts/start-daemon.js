@@ -77,17 +77,6 @@ function findDaemonPath() {
   const relativePath = join(__dirname, '..', '..', '..', 'daemon', 'dist', 'server', 'index.js');
   if (existsSync(relativePath)) return relativePath;
 
-  // 5. Common locations
-  const commonPaths = [
-    join(homedir(), 'kaihatu', 'FocusFlow', 'daemon', 'dist', 'server', 'index.js'),
-    join(homedir(), 'projects', 'sushi-focus', 'daemon', 'dist', 'server', 'index.js'),
-    join(homedir(), 'dev', 'sushi-focus', 'daemon', 'dist', 'server', 'index.js'),
-  ];
-
-  for (const path of commonPaths) {
-    if (existsSync(path)) return path;
-  }
-
   return null;
 }
 

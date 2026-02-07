@@ -90,7 +90,7 @@ export default function Installation() {
                   <span>{t('installation.claudePlugin.step1Label')}</span>
                   <button
                     type="button"
-                    onClick={() => copyToClipboard('claude plugin marketplace add github:Sou0327/sushi_focus', 'plugin1')}
+                    onClick={() => copyToClipboard('/plugin marketplace add Sou0327/sushi_focus', 'plugin1')}
                     className="copy-btn"
                     aria-label={t('installation.claudePlugin.copyStep1AriaLabel')}
                   >
@@ -106,7 +106,7 @@ export default function Installation() {
                   <span>{t('installation.claudePlugin.step2Label')}</span>
                   <button
                     type="button"
-                    onClick={() => copyToClipboard('claude plugin install sushi-focus-daemon@sushi-focus', 'plugin2')}
+                    onClick={() => copyToClipboard('/plugin install sushi-focus-daemon@sushi-focus', 'plugin2')}
                     className="copy-btn"
                     aria-label={t('installation.claudePlugin.copyStep2AriaLabel')}
                   >

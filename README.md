@@ -52,15 +52,14 @@ See [Quick Start](#quick-start) below.
 
 The plugin auto-starts the daemon when Claude Code starts.
 
-```bash
-# Add marketplace and install
-claude plugin marketplace add github:Sou0327/sushi_focus
-claude plugin install sushi-focus-daemon@sushi-focus
+Inside Claude Code, run:
 
-# Restart Claude Code
+```
+/plugin marketplace add Sou0327/sushi_focus
+/plugin install sushi-focus-daemon@sushi-focus
 ```
 
-On session start, you'll see:
+Restart Claude Code. On session start, you'll see:
 ```
 [sushi-focus] Checking daemon on port 41593...
 [sushi-focus] Starting daemon...
@@ -69,10 +68,11 @@ On session start, you'll see:
 
 ## Quick Start
 
-### Step 1: Install Dependencies
+### Step 1: Clone and Install Dependencies
 
 ```bash
-cd SushiFocus
+git clone https://github.com/Sou0327/sushi_focus.git
+cd sushi_focus
 pnpm install
 ```
 
@@ -111,7 +111,7 @@ You should see:
 1. Open `chrome://extensions` in Chrome
 2. Enable "**Developer mode**" (top right)
 3. Click "**Load unpacked**"
-4. Select the `SushiFocus/extension/dist` folder
+4. Select the `sushi_focus/extension/dist` folder
 5. Verify the Sushi Focus 🍣 icon appears in your toolbar
 
 ### Step 5: Take Your Seat at the Counter
@@ -170,33 +170,28 @@ curl -X POST http://127.0.0.1:41593/agent/done \
 
 ### Claude Code Integration
 
-1. Add hooks to `~/.claude/settings.json`:
+**Option 1: Plugin (Recommended)** - See [Claude Code Plugin](#claude-code-plugin-auto-start-daemon) above.
 
-```json
-{
-  "hooks": {
-    "Notification": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' -d '{\"taskId\":\"claude\",\"message\":\"Notification\"}' > /dev/null 2>&1 || true"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-2. Notify kitchen at session start:
+**Option 2: Manual hooks** - Copy the provided hooks config to your project:
 
 ```bash
-curl -X POST http://127.0.0.1:41593/agent/start \
-  -H "Content-Type: application/json" \
-  -d '{"taskId":"claude","prompt":"Claude Code Session"}'
+# From the project root
+cp scripts/claude-code-hooks.json .claude/settings.json
 ```
+
+Or copy to your global settings at `~/.claude/settings.json`.
+
+The hooks file includes: SessionStart (auto-start task), UserPromptSubmit (log prompts), PreToolUse (tool activity logging), PostToolUse, Notification, and Stop (task completion).
+
+### Authentication (Optional)
+
+To secure the daemon API, set a shared secret:
+
+```bash
+export SUSHI_FOCUS_SECRET="your-secret-here"
+```
+
+The hooks and scripts automatically include the `Authorization: Bearer` header when `SUSHI_FOCUS_SECRET` is set. The curl examples in this README omit the header for simplicity; add `-H "Authorization: Bearer $SUSHI_FOCUS_SECRET"` when authentication is enabled.
 
 ### Chef Needs You! (need_input)
 
@@ -233,7 +228,7 @@ Endpoints for external agents (Claude Code, Cursor, etc.) to send events.
 { taskId?: string, prompt: string, repoId?: string, image?: string }
 
 // POST /agent/log
-{ taskId: string, message: string, level?: "info" | "warn" | "error" | "debug" }
+{ taskId: string, message: string, level?: "info" | "warn" | "error" | "debug" | "success" | "focus" | "command" }
 
 // POST /agent/need-input
 { taskId: string, question: string, choices?: { id: string, label: string }[] }
@@ -332,7 +327,7 @@ pnpm dev:daemon
 ### Project Structure
 
 ```text
-SushiFocus/
+sushi_focus/
 ├── extension/          # Chrome Extension (MV3) - Sushi Counter
 │   ├── src/
 │   │   ├── background/ # Service Worker (Kitchen Manager)

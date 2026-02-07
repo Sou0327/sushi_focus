@@ -54,15 +54,14 @@ Chrome拡張 + ローカルDaemon による「おまかせスタイル開発」�
 
 プラグインをインストールすると、Claude Code 起動時に自動で Daemon が起動します。
 
-```bash
-# Marketplace を追加してインストール
-claude plugin marketplace add github:Sou0327/sushi_focus
-claude plugin install sushi-focus-daemon@sushi-focus
+Claude Code 内で以下を実行:
 
-# Claude Code を再起動
+```
+/plugin marketplace add Sou0327/sushi_focus
+/plugin install sushi-focus-daemon@sushi-focus
 ```
 
-セッション開始時に以下が表示されます:
+Claude Code を再起動。セッション開始時に以下が表示されます:
 
 ```
 [sushi-focus] Checking daemon on port 41593...
@@ -72,10 +71,11 @@ claude plugin install sushi-focus-daemon@sushi-focus
 
 ## クイックスタート
 
-### Step 1: 依存関係のインストール
+### Step 1: クローンと依存関係のインストール
 
 ```bash
-cd SushiFocus
+git clone https://github.com/Sou0327/sushi_focus.git
+cd sushi_focus
 pnpm install
 ```
 
@@ -114,7 +114,7 @@ pnpm dev:daemon
 1. Chromeで `chrome://extensions` を開く
 2. 右上の「**デベロッパーモード**」をONにする
 3. 「**パッケージ化されていない拡張機能を読み込む**」をクリック
-4. `SushiFocus/extension/dist` フォルダを選択
+4. `sushi_focus/extension/dist` フォルダを選択
 5. 寿司フォーカス🍣 アイコンが追加されていることを確認
 
 ### Step 5: カウンター席に座る
@@ -174,33 +174,28 @@ curl -X POST http://127.0.0.1:41593/agent/done \
 
 ### Claude Code との連携
 
-1. `~/.claude/settings.json` にhooksを追加:
+**方法 1: プラグイン（推奨）** - 上記の [Claude Code プラグイン](#claude-code-プラグインdaemon-自動起動) を参照。
 
-```json
-{
-  "hooks": {
-    "Notification": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' -d '{\"taskId\":\"claude\",\"message\":\"Notification\"}' > /dev/null 2>&1 || true"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-2. セッション開始時に注文を入れる:
+**方法 2: 手動 hooks 設定** - 提供された hooks 設定をプロジェクトにコピー:
 
 ```bash
-curl -X POST http://127.0.0.1:41593/agent/start \
-  -H "Content-Type: application/json" \
-  -d '{"taskId":"claude","prompt":"Claude Code Session"}'
+# プロジェクトルートから
+cp scripts/claude-code-hooks.json .claude/settings.json
 ```
+
+またはグローバル設定 `~/.claude/settings.json` にコピー。
+
+hooks ファイルには SessionStart（タスク自動開始）、UserPromptSubmit（プロンプトログ）、PreToolUse（ツール活動ログ）、PostToolUse、Notification、Stop（タスク完了）が含まれます。
+
+### 認証（オプション）
+
+Daemon API を保護するには共有シークレットを設定:
+
+```bash
+export SUSHI_FOCUS_SECRET="your-secret-here"
+```
+
+hooks とスクリプトは `SUSHI_FOCUS_SECRET` が設定されている場合、自動的に `Authorization: Bearer` ヘッダーを付与します。本 README の curl 例は簡略化のためヘッダーを省略しています。認証有効時は `-H "Authorization: Bearer $SUSHI_FOCUS_SECRET"` を追加してください。
 
 ### 板前さんからお呼びです！（need_input）
 
@@ -237,7 +232,7 @@ curl -X POST http://127.0.0.1:41593/agent/start \
 { taskId?: string, prompt: string, repoId?: string, image?: string }
 
 // POST /agent/log
-{ taskId: string, message: string, level?: "info" | "warn" | "error" | "debug" }
+{ taskId: string, message: string, level?: "info" | "warn" | "error" | "debug" | "success" | "focus" | "command" }
 
 // POST /agent/need-input
 { taskId: string, question: string, choices?: { id: string, label: string }[] }
@@ -336,7 +331,7 @@ pnpm dev:daemon
 ### プロジェクト構造
 
 ```text
-SushiFocus/
+sushi_focus/
 ├── extension/          # Chrome拡張 (MV3) - カウンター席
 │   ├── src/
 │   │   ├── background/ # Service Worker (厨房マネージャー)

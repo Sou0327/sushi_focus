@@ -1,0 +1,12 @@
+{
+  "name": "sushi-focus-daemon",
+  "description": "Auto-start Sushi Focus daemon on Claude Code session start",
+  "version": "0.1.1",
+  "author": {
+    "name": "Sou0327"
+  },
+  "homepage": "https://github.com/Sou0327/sushi_focus",
+  "repository": "https://github.com/Sou0327/sushi_focus",
+  "license": "MIT",
+  "keywords": ["sushi-focus", "daemon", "auto-start", "focus"]
+}

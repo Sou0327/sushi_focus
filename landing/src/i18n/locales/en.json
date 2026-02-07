@@ -78,8 +78,8 @@
     "claudePlugin": {
       "title": "Claude Code Plugin",
       "description": "The plugin auto-starts the daemon when Claude Code launches",
-      "command1": "claude plugin marketplace add github:Sou0327/sushi_focus",
-      "command2": "claude plugin install sushi-focus-daemon@sushi-focus",
+      "command1": "/plugin marketplace add Sou0327/sushi_focus",
+      "command2": "/plugin install sushi-focus-daemon@sushi-focus",
       "step1Label": "1. Add marketplace",
       "step2Label": "2. Install plugin",
       "copyStep1AriaLabel": "Copy marketplace add command",
