@@ -20,7 +20,7 @@ function getNestedValue(obj: unknown, path: string): string {
 }
 
 interface TranslationContextValue {
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   language: Language;
   setLanguage: (lang: Language) => void;
 }
@@ -68,15 +68,17 @@ export function TranslationProvider({
   }, []);
 
   const t = useCallback(
-    (key: string): string => {
-      const value = getNestedValue(locales[language], key);
-      if (value !== key) return value;
-      // Fallback to English
-      if (language !== 'en') {
+    (key: string, params?: Record<string, string | number>): string => {
+      let value = getNestedValue(locales[language], key);
+      if (value === key && language !== 'en') {
+        // Fallback to English
         const fallback = getNestedValue(locales.en, key);
-        if (fallback !== key) return fallback;
+        if (fallback !== key) value = fallback;
       }
-      return key;
+      if (!params) return value;
+      return value.replace(/\{(\w+)\}/g, (_, k) =>
+        params[k] !== undefined ? String(params[k]) : `{${k}}`
+      );
     },
     [language],
   );

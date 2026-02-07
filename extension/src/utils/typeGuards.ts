@@ -41,7 +41,7 @@ export function isDaemonEvent(data: unknown): data is DaemonEvent {
       return (
         typeof obj.taskId === 'string' &&
         typeof obj.level === 'string' &&
-        ['info', 'warn', 'error', 'debug'].includes(obj.level) &&
+        ['info', 'warn', 'error', 'debug', 'success', 'focus', 'command'].includes(obj.level) &&
         typeof obj.message === 'string'
       );
     case 'task.need_input':

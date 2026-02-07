@@ -1,7 +1,7 @@
 import type { Theme } from '@/shared/types';
 import { applyTheme } from './useTheme';
 
-export function bootstrapTheme(render: () => void, fallback: Theme = 'dark'): void {
+export function bootstrapTheme(render: () => void, fallback: Theme = 'light'): void {
   try {
     chrome.storage.local.get('settings', (result) => {
       const theme = result.settings?.theme;

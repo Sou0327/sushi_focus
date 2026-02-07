@@ -57,7 +57,7 @@ export default {
         'sushi-primary': '#E85D4C',
         'sushi-secondary': '#7CB342',
         'sushi-success': '#7CB342',
-        'sushi-warning': '#FFD700',
+        'sushi-warning': 'var(--sushi-warning)',
         'sushi-error': '#C84B3D',
         'surface-highlight': 'var(--surface-highlight)',
         'text-secondary': 'var(--text-secondary)',

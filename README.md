@@ -9,6 +9,10 @@ A Chrome Extension + Local Daemon system for "omakase-style development." Like a
 
 > **Note**: Currently supports **Claude Code** only. Cursor and other AI agent support is planned for future releases.
 
+<p align="center">
+  <img src="sushi-focus-demo-en.gif" alt="Sushi Focus Demo" width="720">
+</p>
+
 ## Architecture
 
 ```

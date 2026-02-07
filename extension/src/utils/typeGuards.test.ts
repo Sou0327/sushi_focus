@@ -48,6 +48,33 @@ describe('isDaemonEvent', () => {
         message: 'Debug message',
       })
     ).toBe(true);
+
+    expect(
+      isDaemonEvent({
+        type: 'task.log',
+        taskId: 'task-123',
+        level: 'success',
+        message: 'Task complete!',
+      })
+    ).toBe(true);
+
+    expect(
+      isDaemonEvent({
+        type: 'task.log',
+        taskId: 'task-123',
+        level: 'focus',
+        message: 'Returning focus to IDE...',
+      })
+    ).toBe(true);
+
+    expect(
+      isDaemonEvent({
+        type: 'task.log',
+        taskId: 'task-123',
+        level: 'command',
+        message: '$ pnpm build',
+      })
+    ).toBe(true);
   });
 
   it('有効な task.need_input イベントを認識する', () => {

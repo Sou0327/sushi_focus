@@ -28,19 +28,25 @@ function formatTime(ts: number): string {
 
 function getLogStyle(level: string, message: string) {
   if (message.startsWith('$') || message.startsWith('>')) {
-    return { labelColor: '', label: '', isCommand: true, isAI: false };
+    return { labelColor: '', labelKey: '', isCommand: true, isAI: false };
   }
   switch (level) {
     case 'info':
-      return { labelColor: 'text-sushi-salmon', label: '注文', isCommand: false, isAI: false };
+      return { labelColor: 'text-sushi-salmon', labelKey: 'terminal.logLevel.info', isCommand: false, isAI: false };
     case 'warn':
-      return { labelColor: 'text-sushi-warning', label: '確認', isCommand: false, isAI: false };
+      return { labelColor: 'text-sushi-warning', labelKey: 'terminal.logLevel.warn', isCommand: false, isAI: false };
     case 'error':
-      return { labelColor: 'text-sushi-tuna', label: '問題', isCommand: false, isAI: false };
+      return { labelColor: 'text-sushi-tuna', labelKey: 'terminal.logLevel.error', isCommand: false, isAI: false };
     case 'debug':
-      return { labelColor: 'text-muted', label: 'メモ', isCommand: false, isAI: false };
+      return { labelColor: 'text-muted', labelKey: 'terminal.logLevel.debug', isCommand: false, isAI: false };
+    case 'success':
+      return { labelColor: 'text-sushi-wasabi', labelKey: 'terminal.logLevel.success', isCommand: false, isAI: false };
+    case 'focus':
+      return { labelColor: 'text-sushi-salmon', labelKey: 'terminal.logLevel.focus', isCommand: false, isAI: false };
+    case 'command':
+      return { labelColor: '', labelKey: '', isCommand: true, isAI: false };
     default:
-      return { labelColor: 'text-muted', label: level.toUpperCase(), isCommand: false, isAI: false };
+      return { labelColor: 'text-muted', labelKey: '', isCommand: false, isAI: false };
   }
 }
 
@@ -127,13 +133,13 @@ export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutp
         <div className="flex items-center gap-2">
           <span className="text-sushi-salmon text-lg animate-pulse">🔥</span>
           <span className="text-xs font-mono font-bold px-3 py-1 bg-sushi-salmon/20 rounded-full text-sushi-salmon border border-sushi-salmon/30">
-            {logs.length} 件
+            {t('terminal.itemCount').replace('{count}', String(logs.length))}
           </span>
         </div>
       </div>
 
       {/* ログエントリ - 伝票スタイル */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-3">
+      <div ref={scrollRef} role="log" aria-live="polite" className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-3">
         {logs.map((log, index) => {
           const style = getLogStyle(log.level, log.message);
           const ai = isAIMessage(log.message);
@@ -143,14 +149,18 @@ export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutp
           // Task badge component (only shown when multiple tasks)
           const taskBadge = showTaskId && log.taskId ? (
             <span
-              className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${getTaskColor(log.taskId)}`}
+              className={`text-[11px] font-mono font-bold px-1.5 py-0.5 rounded border ${getTaskColor(log.taskId)}`}
               title={log.taskPrompt || log.taskId}
             >
               {getTaskBadge(log.taskId)}
             </span>
           ) : null;
 
-          if (style.isCommand) {
+          const displayMessage = log.messageKey
+            ? t(log.messageKey, log.messageParams)
+            : log.message;
+
+          if (log.level === 'command' || style.isCommand) {
             return (
               <div
                 key={index}
@@ -160,7 +170,30 @@ export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutp
                 {taskBadge}
                 <div className="flex-1 flex items-center gap-2">
                   <span className="text-lg">💻</span>
-                  <span className="text-heading font-bold">{log.message}</span>
+                  <span className="text-heading font-bold">{displayMessage}</span>
+                </div>
+              </div>
+            );
+          }
+
+          if (log.level === 'focus') {
+            return (
+              <div
+                key={index}
+                className="group py-3 px-4 bg-gradient-to-r from-sushi-salmon/15 to-sushi-salmon/5 rounded-xl border-l-4 border-sushi-salmon hover:from-sushi-salmon/25 hover:to-sushi-salmon/10 transition-all duration-200 hover:scale-[1.01]"
+              >
+                <div className="flex gap-3 items-start">
+                  <span className="text-muted select-none shrink-0 text-xs font-bold">{formatTime(log.ts)}</span>
+                  {taskBadge}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">🍣</span>
+                      <span className="text-sushi-salmon font-black text-xs px-3 py-1 bg-sushi-salmon/20 rounded-full border border-sushi-salmon/40 uppercase tracking-wider">
+                        {t('terminal.logLevel.focus')}
+                      </span>
+                    </div>
+                    <span className="text-sushi-salmon font-medium block mt-1">{displayMessage}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -179,10 +212,10 @@ export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutp
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xl">👤</span>
                       <span className="text-sushi-wasabi font-black text-xs px-3 py-1 bg-sushi-wasabi/20 rounded-full border border-sushi-wasabi/40 uppercase tracking-wider">
-                        お客様
+                        {t('terminal.badge.customer')}
                       </span>
                     </div>
-                    <span className="text-sushi-wasabi font-medium block mt-1">{log.message.replace('[USER] ', '')}</span>
+                    <span className="text-sushi-wasabi font-medium block mt-1">{displayMessage.replace('[USER] ', '')}</span>
                   </div>
                 </div>
               </div>
@@ -202,18 +235,18 @@ export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutp
                     <div className="flex items-center gap-2 mb-1">
                       <SushiTaro size="md" className="hover-spin cursor-pointer" theme={theme} />
                       <span className="text-sushi-salmon font-black text-xs px-3 py-1 bg-sushi-salmon/20 rounded-full border border-sushi-salmon/40 uppercase tracking-wider">
-                        板前
+                        {t('terminal.badge.chef')}
                       </span>
-                      <span className="text-xs text-sushi-salmon/60">握り中...</span>
+                      <span className="text-xs text-sushi-salmon/60">{t('terminal.badge.preparing')}</span>
                     </div>
-                    <span className="text-subtle font-medium block mt-1">{log.message.replace('[AI] ', '')}</span>
+                    <span className="text-subtle font-medium block mt-1">{displayMessage.replace('[AI] ', '')}</span>
                   </div>
                 </div>
               </div>
             );
           }
 
-          if (success) {
+          if (log.level === 'success' || success) {
             return (
               <div
                 key={index}
@@ -226,9 +259,9 @@ export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutp
                     <span className="text-2xl celebrate">🎉</span>
                     <div>
                       <span className="text-sushi-wasabi font-black text-xs px-3 py-1 bg-sushi-wasabi/30 rounded-full border border-sushi-wasabi/50 uppercase tracking-wider">
-                        ✅ 完了！
+                        ✅ {t('terminal.badge.successDone')}
                       </span>
-                      <span className="text-sushi-wasabi font-bold block mt-1">{log.message}</span>
+                      <span className="text-sushi-wasabi font-bold block mt-1">{displayMessage}</span>
                     </div>
                   </div>
                 </div>
@@ -245,9 +278,9 @@ export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutp
               {taskBadge}
               <div className="flex-1 flex gap-2 items-start">
                 <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${style.labelColor} bg-sushi-surface/80 border border-sushi-border`}>
-                  {style.label}
+                  {style.labelKey ? t(style.labelKey) : log.level.toUpperCase()}
                 </span>
-                <span className="text-subtle break-all">{log.message}</span>
+                <span className="text-subtle break-all">{displayMessage}</span>
               </div>
             </div>
           );
@@ -262,7 +295,7 @@ export function TerminalOutput({ logs, theme, showTaskId = false }: TerminalOutp
               <span className="w-3 h-5 bg-sushi-salmon/80 rounded-sm animate-cursor-blink" />
               <span className="w-1 h-5 bg-sushi-salmon/40 rounded-sm animate-cursor-blink" style={{ animationDelay: '0.1s' }} />
             </div>
-            <span className="text-xs text-muted italic">お次のご注文をどうぞ...</span>
+            <span className="text-xs text-muted italic">{t('terminal.nextOrder')}</span>
           </div>
         </div>
       </div>

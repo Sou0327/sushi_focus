@@ -11,6 +11,10 @@ Chrome拡張 + ローカルDaemon による「おまかせスタイル開発」�
 
 > **Note**: 現在は **Claude Code** のみ対応しています。Cursor等の他のAIエージェントは今後対応予定です。
 
+<p align="center">
+  <img src="sushi-focus-demo.gif" alt="Sushi Focus デモ" width="720">
+</p>
+
 ## アーキテクチャ
 
 ```

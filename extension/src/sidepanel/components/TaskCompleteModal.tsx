@@ -153,7 +153,7 @@ export function TaskCompleteModal({
               <span className="font-mono font-bold text-2xl text-sushi-salmon">
                 {(remaining / 1000).toFixed(1)}
               </span>
-              <span className="text-muted text-sm">秒</span>
+              <span className="text-muted text-sm">{t('common.seconds')}</span>
             </div>
           </div>
 
