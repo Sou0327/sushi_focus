@@ -400,6 +400,31 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Log Prompt Content */}
+                  <div className="sushi-geta p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🔒</span>
+                        <div>
+                          <div className="font-bold text-heading">{t('options.general.logPromptContent')}</div>
+                          <div className="text-sm text-muted">
+                            {t('options.general.logPromptContentDesc')}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => saveSettings({ logPromptContent: !settings.logPromptContent })}
+                        className={`relative w-12 h-7 rounded-full transition-colors ${
+                          settings.logPromptContent ? 'bg-sushi-wasabi' : 'bg-sushi-border'
+                        }`}
+                      >
+                        <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                          settings.logPromptContent ? 'translate-x-5' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Daemon Connection */}
                   <div className="sushi-geta p-5">
                     <div className="flex items-center gap-2 mb-1">

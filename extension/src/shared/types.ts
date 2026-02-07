@@ -169,7 +169,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   saveErrorLogs: true,
   maxErrorLogs: 100,
   // Privacy defaults
-  logPromptContent: false,
+  logPromptContent: true,
 };
 
 // ============================================================
