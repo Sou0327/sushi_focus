@@ -10,11 +10,11 @@ export default function DemoTerminal() {
   const characterImage = theme === 'dark' ? '/sushi_jiro.webp' : '/sushi_taro.webp';
   const demoLines = [
     { type: 'command', text: t('demo.terminal.command') },
-    { type: 'output', text: t('demo.terminal.starting') },
-    { type: 'output', text: `📂 ${t('demo.terminal.analyzing')}` },
-    { type: 'output', text: t('demo.terminal.foundIssue') },
-    { type: 'output', text: `✏️  ${t('demo.terminal.implementing')}` },
-    { type: 'output', text: t('demo.terminal.testsPassing') },
+    { type: 'info', text: t('demo.terminal.starting') },
+    { type: 'info', text: `📂 ${t('demo.terminal.analyzing')}` },
+    { type: 'info', text: t('demo.terminal.foundIssue') },
+    { type: 'info', text: `✏️  ${t('demo.terminal.implementing')}` },
+    { type: 'success', text: t('demo.terminal.testsPassing') },
     { type: 'success', text: `🎉 ${t('demo.terminal.complete')}` },
     { type: 'focus', text: `🍣 ${t('common.sushiFocus')}: ${t('demo.terminal.focusReturn')}` },
   ] as const;

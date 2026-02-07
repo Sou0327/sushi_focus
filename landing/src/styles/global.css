@@ -450,6 +450,10 @@ body::before {
   color: #8BA86A;
 }
 
+.terminal-line.info {
+  color: #C4B8A8;
+}
+
 .terminal-line.success {
   color: #8BA86A;
   font-weight: 500;
