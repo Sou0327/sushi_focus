@@ -44,6 +44,17 @@
           }
         ]
       }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/need-input -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\":\"claude-code-session\",\"question\":\"Permission required\",\"choices\":[]}' > /dev/null 2>&1 || true",
+            "timeout": 5000
+          }
+        ]
+      }
     ]
   }
 }
