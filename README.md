@@ -200,10 +200,10 @@ The hooks and scripts automatically include the `Authorization: Bearer` header w
 
 ### Order Ready! (done)
 
-- When browsing distraction sites (YouTube, etc.) and `/agent/done` arrives:
-  1. 1.5-second countdown displays
+- When `/agent/done` arrives:
+  1. Countdown displays (default 1.5s, configurable)
   2. Automatically returns focus to IDE unless "Cancel" is pressed
-- When on development sites, only shows notification (no auto-return)
+- By default, auto-return triggers regardless of the current site (`alwaysFocusOnDone` is on)
 
 ## Kitchen API (Daemon)
 
@@ -268,21 +268,30 @@ Control auto-focus to IDE window. Set initial values in `.env`.
 ```bash
 # .env example
 FOCUS_ENABLED=true         # Enable/disable focus feature
-FOCUS_APP=Cursor           # Target app (Code, Cursor, Terminal, iTerm)
+FOCUS_APP=Cursor           # Target app (Code, Cursor, Terminal, iTerm, Warp, etc.)
 FOCUS_ON_NEED_INPUT=true   # Auto-focus on need-input
 FOCUS_ON_DONE=true         # Auto-focus on done
 ```
+
+### Context Bridge API (In Development)
+
+Send browser page context to Claude Code via the daemon.
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/context` | POST | Send page context from extension (`{url, title, content, selectedText?, strategy?}`) |
+| `/context` | GET | Drain context queue (consumed by Claude Code hook) |
 
 ### WebSocket Event Types
 
 Events broadcast by kitchen via `ws://127.0.0.1:41593/ws`.
 
 ```typescript
-type KitchenEvent =
-  | { type: 'task.started',    taskId: string, repoId: string, startedAt: number, hasImage?: boolean }
+type DaemonEvent =
+  | { type: 'task.started',    taskId: string, repoId: string, startedAt: number, prompt?: string, hasImage?: boolean }
   | { type: 'task.log',        taskId: string, level: string, message: string }
   | { type: 'task.need_input', taskId: string, question: string, choices: {id: string, label: string}[] }
-  | { type: 'task.done',       taskId: string, summary: string, meta?: { changedFiles?: number, tests?: string } }
+  | { type: 'task.done',       taskId: string, summary: string, meta?: { changedFiles?: number, tests?: 'passed' | 'failed' | 'not_run' } }
   | { type: 'task.error',      taskId: string, message: string, details?: string }
   | { type: 'task.progress',   taskId: string, current: number, total: number, label?: string }
 ```
@@ -333,15 +342,21 @@ sushi_focus/
 │   │   ├── background/ # Service Worker (Kitchen Manager)
 │   │   ├── sidepanel/  # Dashboard (Counter Seat)
 │   │   ├── popup/      # Service Style Selector
-│   │   ├── options/    # House Rules
-│   │   └── shared/     # Shared type definitions
+│   │   ├── options/    # House Rules (Settings UI)
+│   │   ├── shared/     # Shared type definitions & components
+│   │   ├── i18n/       # Internationalization (en/ja)
+│   │   ├── theme/      # Theme system (dark/light)
+│   │   └── utils/      # Utilities (pageCapture, etc.)
 │   └── dist/           # Build output
 ├── daemon/             # Local server (Itamae/Kitchen)
 │   └── src/
 │       ├── server/     # Express + WebSocket
-│       └── task/       # Order management
+│       ├── task/       # Order management
+│       └── utils/      # Auth & validation utilities
+├── claude-plugin/      # Claude Code plugin (auto-start daemon)
 ├── scripts/            # Integration scripts
 │   ├── sushi-focus-notify.sh  # Order notification script
+│   ├── focus-ide.sh           # IDE focus script (macOS)
 │   └── claude-code-hooks.json # Claude Code hooks example
 └── package.json        # Workspace config
 ```

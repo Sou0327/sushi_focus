@@ -204,10 +204,10 @@ hooks とスクリプトは `SUSHI_FOCUS_SECRET` が設定されている場合�
 
 ### へい、お待ち！（done）
 
-- 脱線サイト（YouTube等）を見ている時に `/agent/done` が来ると：
-  1. 1.5秒のカウントダウンが表示される
+- `/agent/done` が来ると：
+  1. カウントダウンが表示される（デフォルト1.5秒、設定で変更可能）
   2. 「キャンセル」を押さなければ自動でIDEにフォーカスが戻る
-- 開発サイトを見ている時は通知のみ（自動復帰なし）
+- デフォルトではどのサイトを見ていても自動復帰（`alwaysFocusOnDone` が有効）
 
 ## 厨房API（Daemon）
 
@@ -272,21 +272,30 @@ hooks とスクリプトは `SUSHI_FOCUS_SECRET` が設定されている場合�
 ```bash
 # .env 設定例
 FOCUS_ENABLED=true         # フォーカス機能の有効/無効
-FOCUS_APP=Cursor           # フォーカス対象アプリ（Code, Cursor, Terminal, iTerm）
+FOCUS_APP=Cursor           # フォーカス対象アプリ（Code, Cursor, Terminal, iTerm, Warp 等）
 FOCUS_ON_NEED_INPUT=true   # お呼び時に自動フォーカスするか
 FOCUS_ON_DONE=true         # 完了時に自動フォーカスするか
 ```
+
+### Context Bridge API（開発中）
+
+ブラウザで開いているページの内容を Daemon 経由で Claude Code に送信する機能。
+
+| エンドポイント | メソッド | 説明 |
+| -------------- | -------- | ---- |
+| `/context` | POST | ページコンテンツを受信（`{url, title, content, selectedText?, strategy?}`） |
+| `/context` | GET | コンテキストキューを取得（Claude Code フックで消費） |
 
 ### WebSocketイベント型
 
 厨房が `ws://127.0.0.1:41593/ws` を通じてブロードキャストするイベント。
 
 ```typescript
-type KitchenEvent =
-  | { type: 'task.started',    taskId: string, repoId: string, startedAt: number, hasImage?: boolean }
+type DaemonEvent =
+  | { type: 'task.started',    taskId: string, repoId: string, startedAt: number, prompt?: string, hasImage?: boolean }
   | { type: 'task.log',        taskId: string, level: string, message: string }
   | { type: 'task.need_input', taskId: string, question: string, choices: {id: string, label: string}[] }
-  | { type: 'task.done',       taskId: string, summary: string, meta?: { changedFiles?: number, tests?: string } }
+  | { type: 'task.done',       taskId: string, summary: string, meta?: { changedFiles?: number, tests?: 'passed' | 'failed' | 'not_run' } }
   | { type: 'task.error',      taskId: string, message: string, details?: string }
   | { type: 'task.progress',   taskId: string, current: number, total: number, label?: string }
 ```
@@ -337,15 +346,21 @@ sushi_focus/
 │   │   ├── background/ # Service Worker (厨房マネージャー)
 │   │   ├── sidepanel/  # ダッシュボード (カウンター席)
 │   │   ├── popup/      # おもてなしスタイル選択
-│   │   ├── options/    # 店のルール
-│   │   └── shared/     # 共有型定義
+│   │   ├── options/    # 店のルール（設定画面）
+│   │   ├── shared/     # 共有型定義・コンポーネント
+│   │   ├── i18n/       # 多言語対応 (en/ja)
+│   │   ├── theme/      # テーマシステム (dark/light)
+│   │   └── utils/      # ユーティリティ (pageCapture 等)
 │   └── dist/           # ビルド出力
 ├── daemon/             # ローカル常駐サーバー (板前さん/厨房)
 │   └── src/
 │       ├── server/     # Express + WebSocket
-│       └── task/       # 注文管理
+│       ├── task/       # 注文管理
+│       └── utils/      # 認証・バリデーション
+├── claude-plugin/      # Claude Code プラグイン（Daemon 自動起動）
 ├── scripts/            # 連携スクリプト
 │   ├── sushi-focus-notify.sh  # 注文通知スクリプト
+│   ├── focus-ide.sh           # IDE フォーカススクリプト (macOS)
 │   └── claude-code-hooks.json # Claude Code hooks例
 └── package.json        # ワークスペース設定
 ```
