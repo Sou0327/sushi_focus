@@ -1,5 +1,5 @@
 {
-  "description": "Sushi Focus daemon auto-starter - starts the daemon on session start",
+  "description": "Sushi Focus daemon auto-starter and context bridge",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,39 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/start-daemon.js\"",
             "timeout": 60000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/fetch-context.js\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/need-input -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\":\"claude-code-session\",\"question\":\"User input required\",\"choices\":[]}' > /dev/null 2>&1 || true",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/done -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\":\"claude-code-session\",\"summary\":\"Session ended\"}' > /dev/null 2>&1 || true",
+            "timeout": 5000
           }
         ]
       }
