@@ -59,11 +59,12 @@ export default function App() {
       alwaysFocusOnDone: true,
       enabled: true,
       language: 'en',
-      theme: 'dark',
+      theme: 'light',
       logVerbosity: 'normal',
+      daemonAuthToken: '',
     });
     setLanguage('en');
-    setTheme('dark');
+    setTheme('light');
   };
 
   const handleLanguageChange = (lang: Language) => {
@@ -423,6 +424,25 @@ export default function App() {
                         }`} />
                       </button>
                     </div>
+                  </div>
+
+                  {/* Daemon Auth Token */}
+                  <div className="sushi-geta p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">🔑</span>
+                      <div className="font-bold text-heading">{t('options.general.daemonAuthToken')}</div>
+                    </div>
+                    <div className="text-sm text-muted mb-4 ml-8">
+                      {t('options.general.daemonAuthTokenDesc')}
+                    </div>
+                    <input
+                      type="password"
+                      value={settings.daemonAuthToken ?? ''}
+                      onChange={(e) => saveSettings({ daemonAuthToken: e.target.value })}
+                      placeholder={t('options.general.daemonAuthTokenPlaceholder')}
+                      className="ml-8 input w-[calc(100%-2rem)] text-sm"
+                      autoComplete="off"
+                    />
                   </div>
 
                   {/* Daemon Connection */}

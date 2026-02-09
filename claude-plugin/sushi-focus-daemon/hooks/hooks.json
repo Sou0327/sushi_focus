@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:41593/agent/need-input -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\":\"claude-code-session\",\"question\":\"User input required\",\"choices\":[]}' > /dev/null 2>&1 || true",
+            "command": "curl -s -X POST http://127.0.0.1:41593/focus/now ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} > /dev/null 2>&1 || true",
             "timeout": 5000
           }
         ]
@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:41593/agent/need-input -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\":\"claude-code-session\",\"question\":\"Permission required\",\"choices\":[]}' > /dev/null 2>&1 || true",
+            "command": "jq -re 'select(.permission_mode == \"bypassPermissions\")' > /dev/null 2>&1 || curl -s -X POST http://127.0.0.1:41593/focus/now ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} > /dev/null 2>&1 || true",
             "timeout": 5000
           }
         ]

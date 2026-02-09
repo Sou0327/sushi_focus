@@ -119,6 +119,17 @@ export interface ChoiceRequest {
   choiceId: string;
 }
 
+export type ExtractionStrategy = 'selection' | 'semantic' | 'density' | 'fallback';
+
+export interface BrowserContext {
+  url: string;
+  title: string;
+  content: string;
+  selectedText?: string;
+  timestamp: number;
+  strategy?: ExtractionStrategy;
+}
+
 export interface ApiResponse {
   ok: boolean;
   error?: string;

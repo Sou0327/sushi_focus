@@ -1,6 +1,6 @@
 {
   "name": "sushi-focus",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "description": "Chrome extension + local daemon for distraction-aware development 🍣",
   "workspaces": [

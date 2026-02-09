@@ -2,6 +2,7 @@ import type { DaemonEvent, ExtensionSettings, BackgroundTaskState, ErrorLogEntry
 import { DEFAULT_SETTINGS } from '@/shared/types';
 import { isDaemonEvent, isHealthResponse } from '@/utils/typeGuards';
 import { isHostOnDistractionDomain, shouldTriggerFocus } from '@/utils/focusLogic';
+import { capturePageContent } from '@/utils/pageCapture';
 import en from '@/i18n/locales/en.json';
 import ja from '@/i18n/locales/ja.json';
 
@@ -394,6 +395,15 @@ function validateSettings(stored: unknown): ValidationResult {
       sanitized.daemonHttpUrl = s.daemonHttpUrl;
     } else {
       errors.push(`Invalid daemonHttpUrl: ${s.daemonHttpUrl}`);
+    }
+  }
+
+  // Validate auth token (string, max 256 chars)
+  if (s.daemonAuthToken !== undefined) {
+    if (typeof s.daemonAuthToken === 'string' && s.daemonAuthToken.length <= 256) {
+      sanitized.daemonAuthToken = s.daemonAuthToken;
+    } else {
+      errors.push(`Invalid daemonAuthToken: must be a string of 256 chars or less`);
     }
   }
 
@@ -965,6 +975,53 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         }
         sendResponse({ ok: true });
         break;
+
+      case 'capture_and_send': {
+        try {
+          // Pre-check: restricted pages where scripting is not allowed
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          console.log('[Context] Active tab:', tab?.id, tab?.url?.slice(0, 80));
+          if (!tab?.id || !tab.url) {
+            sendResponse({ ok: false, error: 'No active tab' });
+            break;
+          }
+
+          const restrictedPrefixes = ['chrome://', 'chrome-extension://', 'about:', 'edge://', 'brave://'];
+          if (restrictedPrefixes.some(prefix => tab.url!.startsWith(prefix))) {
+            sendResponse({ ok: false, error: 'Cannot capture this page' });
+            break;
+          }
+
+          const captured = await capturePageContent();
+          console.log('[Context] Strategy:', captured.strategy);
+
+          const httpUrl = settings.daemonHttpUrl ?? DEFAULT_SETTINGS.daemonHttpUrl;
+          console.log('[Context] Sending to:', `${httpUrl}/context`);
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (settings.daemonAuthToken) {
+            headers['Authorization'] = `Bearer ${settings.daemonAuthToken}`;
+          }
+          const resp = await fetch(`${httpUrl}/context`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              url: captured.url,
+              title: captured.title,
+              content: captured.content,
+              selectedText: captured.selectedText,
+              strategy: captured.strategy,
+            }),
+          });
+          const data = await resp.json();
+          console.log('[Context] Daemon response:', JSON.stringify(data));
+          sendResponse({ ok: data.ok });
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          console.error('[Context] Error:', errorMessage);
+          sendResponse({ ok: false, error: errorMessage });
+        }
+        break;
+      }
 
       case 'reconnect':
         connectWebSocket();

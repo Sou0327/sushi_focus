@@ -70,6 +70,10 @@ const MAX_PROMPT_LENGTH = 10000;
 const MAX_TASK_ID_LENGTH = 100;
 const MAX_MESSAGE_LENGTH = 5000;
 const MAX_SUMMARY_LENGTH = 2000;
+const MAX_CONTEXT_CONTENT_LENGTH = 10000;
+const MAX_CONTEXT_QUEUE_SIZE = 10;
+// Context bridge queue (browser → Claude Code)
+const contextQueue = [];
 // IDE Focus Settings (loaded from .env)
 const focusSettings = {
     enabled: process.env.FOCUS_ENABLED !== 'false',
@@ -142,6 +146,8 @@ app.use((req, res, next) => {
 const AUTH_EXEMPT_ROUTES = ['/health', '/repos', '/agent/cancel'];
 // GET-only exempt: reading is safe, but writes require auth when secret is set
 const AUTH_EXEMPT_GET_ROUTES = ['/focus/settings'];
+// No POST routes are auth-exempt; /context requires Bearer auth when SECRET is set
+const AUTH_EXEMPT_POST_ROUTES = [];
 const AUTH_EXEMPT_PREFIXES = ['/tasks/'];
 function authMiddleware(req, res, next) {
     // Skip auth if no secret is configured (local development mode)
@@ -151,7 +157,8 @@ function authMiddleware(req, res, next) {
     // Skip auth for extension-only routes (local trusted origin)
     if (AUTH_EXEMPT_ROUTES.includes(req.path) ||
         AUTH_EXEMPT_PREFIXES.some(prefix => req.path.startsWith(prefix)) ||
-        (req.method === 'GET' && AUTH_EXEMPT_GET_ROUTES.includes(req.path))) {
+        (req.method === 'GET' && AUTH_EXEMPT_GET_ROUTES.includes(req.path)) ||
+        (req.method === 'POST' && AUTH_EXEMPT_POST_ROUTES.includes(req.path))) {
         return next();
     }
     const authHeader = req.headers.authorization;
@@ -544,6 +551,68 @@ app.post('/focus/settings', (req, res) => {
         focusSettings.focusOnDone = body.focusOnDone;
     console.log('[Focus] Settings updated:', focusSettings);
     res.json({ ok: true, settings: focusSettings });
+});
+// ============================================================
+// Context Bridge API (browser → Claude Code)
+// ============================================================
+// Receive page context from browser extension
+const VALID_STRATEGIES = ['selection', 'semantic', 'density', 'fallback'];
+// POST /context is now protected by authMiddleware (Bearer token required when SECRET is set).
+// The extension must configure daemonAuthToken in its settings to match SUSHI_FOCUS_SECRET.
+app.post('/context', (req, res) => {
+    const body = req.body;
+    const urlError = validateString(body.url, 'url', 2000);
+    if (urlError) {
+        return res.status(400).json({ ok: false, error: urlError });
+    }
+    try {
+        const parsed = new URL(body.url);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return res.status(400).json({ ok: false, error: 'url must use http or https protocol' });
+        }
+    }
+    catch {
+        return res.status(400).json({ ok: false, error: 'url must be a valid URL' });
+    }
+    const contentError = validateString(body.content, 'content', MAX_CONTEXT_CONTENT_LENGTH);
+    if (contentError) {
+        return res.status(400).json({ ok: false, error: contentError });
+    }
+    const titleError = validateOptionalString(body.title, 'title', 500);
+    if (titleError) {
+        return res.status(400).json({ ok: false, error: titleError });
+    }
+    const selectedTextError = validateOptionalString(body.selectedText, 'selectedText', MAX_CONTEXT_CONTENT_LENGTH);
+    if (selectedTextError) {
+        return res.status(400).json({ ok: false, error: selectedTextError });
+    }
+    // Validate strategy enum (optional)
+    if (body.strategy !== undefined) {
+        if (typeof body.strategy !== 'string' || !VALID_STRATEGIES.includes(body.strategy)) {
+            return res.status(400).json({ ok: false, error: `strategy must be one of: ${VALID_STRATEGIES.join(', ')}` });
+        }
+    }
+    const context = {
+        url: body.url,
+        title: body.title || '',
+        content: body.content,
+        selectedText: body.selectedText || undefined,
+        timestamp: Date.now(),
+        ...(body.strategy && { strategy: body.strategy }),
+    };
+    contextQueue.push(context);
+    // Evict oldest if queue exceeds limit
+    while (contextQueue.length > MAX_CONTEXT_QUEUE_SIZE) {
+        contextQueue.shift();
+    }
+    console.log(`[Context] Received: ${context.title || context.url}${context.strategy ? ` [${context.strategy}]` : ''}`);
+    res.json({ ok: true });
+});
+// Drain context queue (consumed by Claude Code hook)
+app.get('/context', (_req, res) => {
+    const contexts = [...contextQueue];
+    contextQueue.length = 0;
+    res.json({ contexts });
 });
 // Manual focus trigger
 app.post('/focus/now', (_req, res) => {

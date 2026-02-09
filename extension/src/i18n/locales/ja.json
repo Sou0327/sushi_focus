@@ -1,7 +1,7 @@
 {
   "common": {
     "sushiFocus": "寿司フォーカス 🍣",
-    "loading": "シャリ準備中...",
+    "loading": "シャリ準備中…",
     "settings": "お品書き",
     "saving": "握り中...",
     "saved": "へい、お待ち！",
@@ -62,6 +62,9 @@
       "logVerbosityDesc": "厨房からどれくらい詳しく聞こえるか",
       "logPromptContent": "プロンプト内容を表示",
       "logPromptContentDesc": "ユーザーのプロンプトを厨房ビューに表示（プライバシーに注意）",
+      "daemonAuthToken": "厨房パス（認証トークン）",
+      "daemonAuthTokenDesc": "デーモンとの認証トークン（SUSHI_FOCUS_SECRET と一致させてください）",
+      "daemonAuthTokenPlaceholder": "SUSHI_FOCUS_SECRET をここに貼り付け",
       "logLevel": {
         "minimal": "禅",
         "normal": "並",
@@ -105,7 +108,11 @@
   "header": {
     "connected": "営業中",
     "offline": "準備中",
-    "daemonName": "板前さん"
+    "daemonName": "板前さん",
+    "sendToClaude": "Claude に送信",
+    "sending": "送信中...",
+    "sent": "送信完了！",
+    "sendError": "送信失敗"
   },
   "taskInput": {
     "placeholder": "ご注文をどうぞ、またはプリセットを選択...",

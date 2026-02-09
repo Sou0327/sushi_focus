@@ -47,7 +47,7 @@ function getAllLogs(tasks: Map<string, TaskUIState>): (TaskLog & { taskId?: stri
 // Get tasks waiting for input, sorted by startedAt
 function getPendingInputTasks(tasks: Map<string, TaskUIState>): TaskUIState[] {
   return Array.from(tasks.values())
-    .filter(t => t.status === 'waiting_input' && t.inputQuestion)
+    .filter(t => t.status === 'waiting_input' && t.inputQuestion && t.inputChoices.length > 0)
     .sort((a, b) => a.startedAt - b.startedAt);
 }
 
@@ -93,7 +93,6 @@ export default function App() {
     chrome.runtime.sendMessage({ type: 'get_task_status' }, (response) => {
       if (response?.tasks && response.tasks.length > 0) {
         // Restore from multi-task array
-        const tasksToRemove: string[] = [];
         setState(s => {
           const newTasks = new Map(s.tasks);
           for (const bgTask of response.tasks as BackgroundTaskState[]) {
@@ -111,23 +110,9 @@ export default function App() {
               progress: null,
               startedAt: bgTask.startedAt,
             });
-            // Schedule removal for done/error tasks
-            if (bgTask.status === 'done' || bgTask.status === 'error') {
-              tasksToRemove.push(bgTask.taskId);
-            }
           }
           return { ...s, tasks: newTasks };
         });
-        // Set removal timers for done/error tasks
-        for (const taskId of tasksToRemove) {
-          setTimeout(() => {
-            setState(s => {
-              const newTasks = new Map(s.tasks);
-              newTasks.delete(taskId);
-              return { ...s, tasks: newTasks };
-            });
-          }, 5000);
-        }
       } else if (response?.taskId) {
         // Backward compatibility with single-task response
         const prompt = response.prompt || 'External task';
@@ -150,16 +135,6 @@ export default function App() {
           });
           return { ...s, tasks: newTasks };
         });
-        // Schedule removal for done/error tasks
-        if (status === 'done' || status === 'error') {
-          setTimeout(() => {
-            setState(s => {
-              const newTasks = new Map(s.tasks);
-              newTasks.delete(response.taskId);
-              return { ...s, tasks: newTasks };
-            });
-          }, 5000);
-        }
       }
     });
   }, []);
@@ -205,6 +180,12 @@ export default function App() {
           const prompt = (event as DaemonEvent & { prompt?: string }).prompt || 'External task';
           setState(s => {
             const newTasks = new Map(s.tasks);
+            // Clean up completed/errored tasks when a new task starts
+            for (const [id, task] of newTasks) {
+              if (task.status === 'done' || task.status === 'error') {
+                newTasks.delete(id);
+              }
+            }
             newTasks.set(event.taskId, {
               taskId: event.taskId,
               status: 'running',
@@ -338,14 +319,6 @@ export default function App() {
             }
             return { ...s, tasks: newTasks };
           });
-          // Remove task after delay (matches background's 5s delay)
-          setTimeout(() => {
-            setState(s => {
-              const newTasks = new Map(s.tasks);
-              newTasks.delete(event.taskId);
-              return { ...s, tasks: newTasks };
-            });
-          }, 5000);
           break;
         }
 
@@ -379,14 +352,6 @@ export default function App() {
             }
             return { ...s, tasks: newTasks };
           });
-          // Remove task after delay (matches background's 5s delay)
-          setTimeout(() => {
-            setState(s => {
-              const newTasks = new Map(s.tasks);
-              newTasks.delete(event.taskId);
-              return { ...s, tasks: newTasks };
-            });
-          }, 5000);
           break;
         }
       }
@@ -409,8 +374,6 @@ export default function App() {
 
         // Sync from multi-task response
         if (response?.tasks && response.tasks.length > 0) {
-          // Track tasks that need removal timers (status changed to done/error via polling)
-          const tasksNeedingRemovalTimer: string[] = [];
 
           setState(s => {
             const newTasks = new Map(s.tasks);
@@ -443,13 +406,6 @@ export default function App() {
                 JSON.stringify(localTask.inputChoices) !== JSON.stringify(bgTask.inputChoices)
               );
 
-              // Detect if task needs removal timer:
-              // 1. Status changed to done/error (event was received but we're syncing)
-              // 2. Task first observed via polling already in done/error (event was dropped)
-              const needsRemovalTimer =
-                (bgTask.status === 'done' || bgTask.status === 'error') &&
-                (!localTask || (localTask.status !== 'done' && localTask.status !== 'error'));
-
               if (!localTask || hasNewLogs || hasStatusChange || hasInputChange) {
                 const prompt = bgTask.prompt || localTask?.prompt || 'External task';
                 // Preserve local synthetic logs (marked with SYNTHETIC_LOG_MARKER)
@@ -472,10 +428,6 @@ export default function App() {
                   hasSyntheticDoneLog: localTask?.hasSyntheticDoneLog,
                 });
 
-                // Schedule removal timer if task is done/error and doesn't already have one
-                if (needsRemovalTimer && !localTask?.hasSyntheticDoneLog) {
-                  tasksNeedingRemovalTimer.push(bgTask.taskId);
-                }
               }
             }
 
@@ -492,16 +444,6 @@ export default function App() {
             return { ...s, tasks: newTasks };
           });
 
-          // Schedule removal timers for tasks that changed to done/error via polling
-          for (const taskId of tasksNeedingRemovalTimer) {
-            setTimeout(() => {
-              setState(s => {
-                const newTasks = new Map(s.tasks);
-                newTasks.delete(taskId);
-                return { ...s, tasks: newTasks };
-              });
-            }, 5000);
-          }
         } else if (!response?.taskId) {
           // No active tasks in background, clear local state
           setState(s => {
@@ -587,27 +529,6 @@ export default function App() {
     setState(s => ({ ...s, doneCountdown: null }));
   };
 
-  const handleCancelTask = async (taskId: string) => {
-    if (!taskId) return;
-
-    try {
-      await fetch(`${DAEMON_API_URL}/agent/cancel`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId }),
-      });
-
-      // Remove the specific task
-      setState(s => {
-        const newTasks = new Map(s.tasks);
-        newTasks.delete(taskId);
-        return { ...s, tasks: newTasks };
-      });
-    } catch (error) {
-      console.error('Failed to cancel task:', error);
-    }
-  };
-
   // 寿司パーティクル生成
   const sushiEmojis = ['🍣', '🍱', '🍙', '🥢', '🍵', '🍶', '🐟', '🦐', '🥒', '🥑'];
   const sushiParticles = Array.from({ length: 15 }, (_, i) => ({
@@ -678,7 +599,6 @@ export default function App() {
           question={firstPendingTask.inputQuestion!}
           choices={firstPendingTask.inputChoices}
           onChoice={(choiceId) => handleChoice(firstPendingTask.taskId, choiceId)}
-          onCancel={() => handleCancelTask(firstPendingTask.taskId)}
           progress={firstPendingTask.progress}
           pendingCount={pendingInputTasks.length}
         />

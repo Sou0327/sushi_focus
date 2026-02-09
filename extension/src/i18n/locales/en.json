@@ -62,6 +62,9 @@
       "logVerbosityDesc": "How much detail from the kitchen",
       "logPromptContent": "Show Prompt Content",
       "logPromptContentDesc": "Display user prompts in kitchen view (privacy sensitive)",
+      "daemonAuthToken": "Kitchen Pass (Auth Token)",
+      "daemonAuthTokenDesc": "Token to authenticate with the daemon (must match SUSHI_FOCUS_SECRET)",
+      "daemonAuthTokenPlaceholder": "Paste your SUSHI_FOCUS_SECRET here",
       "logLevel": {
         "minimal": "Zen",
         "normal": "Regular",
@@ -105,7 +108,11 @@
   "header": {
     "connected": "OPEN",
     "offline": "CLOSED",
-    "daemonName": "Itamae (Master Chef)"
+    "daemonName": "Itamae (Master Chef)",
+    "sendToClaude": "Send to Claude",
+    "sending": "Sending...",
+    "sent": "Sent!",
+    "sendError": "Failed to send"
   },
   "taskInput": {
     "placeholder": "Place your order or pick a preset...",

@@ -135,6 +135,8 @@ export interface ExtensionSettings {
   maxErrorLogs: number;
   // Privacy
   logPromptContent: boolean;
+  // Auth token for daemon API (must match SUSHI_FOCUS_SECRET when set)
+  daemonAuthToken: string;
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -170,6 +172,8 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   maxErrorLogs: 100,
   // Privacy defaults
   logPromptContent: true,
+  // Auth token default (empty = no auth sent)
+  daemonAuthToken: '',
 };
 
 // ============================================================
@@ -244,4 +248,19 @@ export interface TaskStatusResponse {
   // New multi-task fields
   tasks: BackgroundTaskState[];
   completedTasks: BackgroundTaskState[];
+}
+
+// ============================================================
+// Context Bridge Types
+// ============================================================
+
+export type ExtractionStrategy = 'selection' | 'semantic' | 'density' | 'fallback';
+
+export interface BrowserContext {
+  url: string;
+  title: string;
+  content: string;
+  selectedText?: string;
+  timestamp: number;
+  strategy?: ExtractionStrategy;
 }

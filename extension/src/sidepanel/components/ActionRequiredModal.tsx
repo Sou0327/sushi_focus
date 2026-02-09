@@ -8,7 +8,6 @@ interface ActionRequiredModalProps {
   question: string;
   choices: Choice[];
   onChoice: (choiceId: string) => void;
-  onCancel: () => void;
   progress: { current: number; total: number; label?: string } | null;
   pendingCount: number;
 }
@@ -19,7 +18,6 @@ export function ActionRequiredModal({
   question,
   choices,
   onChoice,
-  onCancel,
   progress,
   pendingCount,
 }: ActionRequiredModalProps) {
@@ -29,11 +27,6 @@ export function ActionRequiredModal({
 
   // Focus trap implementation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onCancel();
-      return;
-    }
-
     if (e.key !== 'Tab') return;
 
     const modal = modalRef.current;
@@ -56,7 +49,7 @@ export function ActionRequiredModal({
         firstElement?.focus();
       }
     }
-  }, [onCancel]);
+  }, []);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -138,13 +131,6 @@ export function ActionRequiredModal({
             </div>
           )}
 
-          <button
-            className="w-full mt-3 text-center text-sm text-red-400 hover:text-red-300 transition-colors py-2"
-            onClick={onCancel}
-            aria-label={t('actionRequired.cancelTask')}
-          >
-            {t('actionRequired.cancelTask')}
-          </button>
         </div>
 
         {/* Session Progress */}
