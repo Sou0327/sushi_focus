@@ -29,6 +29,10 @@ function bgTranslate(key: string): string {
 const KEEP_ALIVE_ALARM = 'sushi-focus-keepalive';
 const KEEP_ALIVE_INTERVAL_MINUTES = 0.4; // 24 seconds
 
+const CLEANUP_ALARM = 'sushi-focus-cleanup';
+const CLEANUP_INTERVAL_MINUTES = 5;
+const MAX_DONE_TASK_AGE_MS = 30 * 60 * 1000; // 30 minutes
+
 async function setupKeepAlive(): Promise<void> {
   // Clear existing alarm
   await chrome.alarms.clear(KEEP_ALIVE_ALARM);
@@ -49,7 +53,37 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       connectWebSocket();
     }
   }
+
+  if (alarm.name === CLEANUP_ALARM) {
+    cleanupStaleDoneTasks();
+  }
 });
+
+function cleanupStaleDoneTasks(): void {
+  const now = Date.now();
+  let cleaned = 0;
+  for (const [taskId, task] of tasks) {
+    if (
+      (task.status === 'done' || task.status === 'error') &&
+      task.completedAt &&
+      now - task.completedAt > MAX_DONE_TASK_AGE_MS
+    ) {
+      tasks.delete(taskId);
+      cleaned++;
+    }
+  }
+  if (cleaned > 0) {
+    console.log(`[BG] Cleaned up ${cleaned} stale done task(s)`);
+    persistTasks();
+  }
+}
+
+async function setupCleanup(): Promise<void> {
+  await chrome.alarms.clear(CLEANUP_ALARM);
+  chrome.alarms.create(CLEANUP_ALARM, {
+    periodInMinutes: CLEANUP_INTERVAL_MINUTES,
+  });
+}
 
 // ============================================================
 // State
@@ -143,7 +177,18 @@ function getOrCreateTask(taskId: string): BackgroundTaskState {
     if (existing.status === 'running' || existing.status === 'waiting_input') {
       return existing;
     }
-    // Otherwise, create a new task with unique suffix
+    // Reactivate done/error tasks — preserve logs!
+    if (existing.status === 'done' || existing.status === 'error') {
+      existing.status = 'running';
+      existing.completedAt = null;
+      existing.summary = null;
+      existing.errorMessage = null;
+      existing.inputQuestion = null;
+      existing.inputChoices = [];
+      persistTasks();
+      return existing;
+    }
+    // Fallthrough: unknown status → collision-avoidant ID (safety net)
     const uniqueId = `${taskId}-${Date.now()}`;
     console.log(`[BG] Task ID collision detected, using: ${uniqueId}`);
     taskId = uniqueId;
@@ -190,8 +235,8 @@ function completeTask(taskId: string, summary: string | null, errorMessage: stri
     }
   }
 
-  // Remove from active tasks
-  tasks.delete(taskId);
+  // Keep in active tasks for potential reactivation (log persistence)
+  // Task stays with 'done' status until reactivated or cleaned up
   persistTasks();
 }
 
@@ -672,6 +717,7 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
       if (task.logs.length > 100) {
         task.logs = task.logs.slice(-100);
       }
+      persistTasks();
       break;
     }
 
@@ -686,8 +732,13 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
     }
 
     case 'task.done': {
-      // Auto-create task if not exists (handles SW restart)
-      const task = getOrCreateTask(event.taskId);
+      // Use existing task directly to avoid reactivation cycle on duplicate task.done events
+      // (both scripts/claude-code-hooks.json and plugin hooks send /agent/done on Stop)
+      const task = tasks.get(event.taskId) ?? getOrCreateTask(event.taskId);
+      if (task.status === 'done') {
+        // Already completed — skip duplicate processing
+        break;
+      }
       task.status = 'done';
       await handleDone(event.taskId, event.summary, event.summaryKey);
       // Move to completed history (preserves task for user review)
@@ -696,8 +747,11 @@ async function handleDaemonEvent(event: DaemonEvent): Promise<void> {
     }
 
     case 'task.error': {
-      // Auto-create task if not exists (handles SW restart)
-      const task = getOrCreateTask(event.taskId);
+      // Use existing task directly to avoid reactivation cycle on duplicate events
+      const task = tasks.get(event.taskId) ?? getOrCreateTask(event.taskId);
+      if (task.status === 'error') {
+        break;
+      }
       task.status = 'error';
       const errorMsg = event.messageKey ? bgTranslate(event.messageKey) : event.message;
       await showNotification(`🔴 ${bgTranslate('notification.taskFailed')}`, errorMsg);
@@ -1059,6 +1113,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   await loadTasks();
   await loadErrorLogs();
   await setupKeepAlive();
+  await setupCleanup();
   connectWebSocket();
 });
 
@@ -1068,6 +1123,7 @@ chrome.runtime.onStartup.addListener(async () => {
   await loadTasks();
   await loadErrorLogs();
   await setupKeepAlive();
+  await setupCleanup();
   connectWebSocket();
 });
 
@@ -1076,5 +1132,6 @@ loadSettings().then(async () => {
   await loadTasks();
   await loadErrorLogs();
   await setupKeepAlive();
+  await setupCleanup();
   connectWebSocket();
 });

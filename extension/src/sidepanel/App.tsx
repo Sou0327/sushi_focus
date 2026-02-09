@@ -213,9 +213,16 @@ export default function App() {
             const newTasks = new Map(s.tasks);
             const task = newTasks.get(event.taskId);
             if (task) {
+              const isReactivating = task.status === 'done' || task.status === 'error';
+              // Remove synthetic done/error logs when reactivating (session is still active)
+              const baseLogs = isReactivating
+                ? task.logs.filter(l => !l.message.startsWith(SYNTHETIC_LOG_MARKER))
+                : task.logs;
               newTasks.set(event.taskId, {
                 ...task,
-                logs: [...task.logs, logEntry],
+                status: isReactivating ? 'running' : task.status,
+                hasSyntheticDoneLog: isReactivating ? false : task.hasSyntheticDoneLog,
+                logs: [...baseLogs, logEntry],
               });
             } else {
               // Create stub task for unknown taskId (event arrived before task.started)
@@ -294,6 +301,10 @@ export default function App() {
           setState(s => {
             const newTasks = new Map(s.tasks);
             const task = newTasks.get(event.taskId);
+            // Skip duplicate task.done (two Stop hooks both send /agent/done)
+            if (task?.status === 'done' && task.hasSyntheticDoneLog) {
+              return s;
+            }
             // Use marker prefix for synthetic logs to distinguish from daemon logs
             const syntheticLog = { level: 'info' as const, message: `${SYNTHETIC_LOG_MARKER}✅ ${doneSummary}`, ts: Date.now() };
             if (task) {
@@ -327,6 +338,10 @@ export default function App() {
           setState(s => {
             const newTasks = new Map(s.tasks);
             const task = newTasks.get(event.taskId);
+            // Skip duplicate task.error
+            if (task?.status === 'error' && task.hasSyntheticDoneLog) {
+              return s;
+            }
             // Use marker prefix for synthetic logs to distinguish from daemon logs
             const syntheticLog = { level: 'error' as const, message: `${SYNTHETIC_LOG_MARKER}❌ ${errorText}`, ts: Date.now() };
             if (task) {
