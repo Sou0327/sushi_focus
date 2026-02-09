@@ -1,5 +1,5 @@
 {
-  "description": "Sushi Focus daemon auto-starter and context bridge",
+  "description": "Sushi Focus: daemon auto-start, context bridge, tool logging, and focus control",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,15 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/start-daemon.js\"",
             "timeout": 60000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/start -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\": \"claude-code-session\", \"prompt\": \"Claude Code session started\"}' > /dev/null 2>&1 || true",
+            "timeout": 5000
           }
         ]
       }
@@ -21,6 +30,37 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -c '{taskId: \"claude-code-session\", level: \"info\", message: (\"[USER] \" + ((.prompt // \"?\")[0:500]))}' | curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d @- > /dev/null 2>&1 || true",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/need-input -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\": \"claude-code-session\", \"question\": \"User input required\", \"choices\": []}' > /dev/null 2>&1 || true",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob|Grep|Edit|Write|Bash|Task|WebSearch|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/tool-log.js\"",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "Notification": [
@@ -28,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://127.0.0.1:41593/focus/now ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} > /dev/null 2>&1 || true",
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/need-input -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\": \"claude-code-session\", \"question\": \"Notification\", \"choices\": []}' > /dev/null 2>&1 || true",
             "timeout": 5000
           }
         ]
@@ -50,7 +90,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -re 'select(.permission_mode == \"bypassPermissions\")' > /dev/null 2>&1 || curl -s -X POST http://127.0.0.1:41593/focus/now ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} > /dev/null 2>&1 || true",
+            "command": "jq -re 'select(.permission_mode == \"bypassPermissions\")' > /dev/null 2>&1 || curl -s -X POST http://127.0.0.1:41593/agent/need-input -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\": \"claude-code-session\", \"question\": \"Permission required\", \"choices\": []}' > /dev/null 2>&1 || true",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://127.0.0.1:41593/agent/log -H 'Content-Type: application/json' ${SUSHI_FOCUS_SECRET:+-H \"Authorization: Bearer $SUSHI_FOCUS_SECRET\"} -d '{\"taskId\": \"claude-code-session\", \"level\": \"warn\", \"message\": \"⚠️ Compacting context...\"}' > /dev/null 2>&1 || true",
             "timeout": 5000
           }
         ]
