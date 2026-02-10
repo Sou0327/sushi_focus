@@ -33,14 +33,9 @@ interface AppState {
 }
 
 // Get all logs from all tasks, sorted by timestamp
-function getAllLogs(tasks: Map<string, TaskUIState>): (TaskLog & { taskId?: string; taskPrompt?: string })[] {
-  const showTaskId = tasks.size > 1;
+function getAllLogs(tasks: Map<string, TaskUIState>): TaskLog[] {
   return Array.from(tasks.values())
-    .flatMap(t => t.logs.map(log => ({
-      ...log,
-      taskId: showTaskId ? t.taskId : undefined,
-      taskPrompt: showTaskId ? t.prompt ?? undefined : undefined,
-    })))
+    .flatMap(t => t.logs)
     .sort((a, b) => a.ts - b.ts);
 }
 
@@ -584,7 +579,6 @@ export default function App() {
           <TerminalOutput
             logs={allLogs}
             theme={theme}
-            showTaskId={state.tasks.size > 1}
           />
           <div ref={logsEndRef} />
         </div>

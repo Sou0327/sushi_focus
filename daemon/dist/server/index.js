@@ -14,7 +14,7 @@ const PROJECT_ROOT = resolve(__dirname, '../../..');
 config({ path: resolve(PROJECT_ROOT, '.env') });
 const FOCUS_SCRIPT = resolve(PROJECT_ROOT, 'scripts/focus-ide.sh');
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 41593;
-const VERSION = '0.1.0';
+const VERSION = '0.3.2';
 // ============================================================
 // Security Configuration
 // ============================================================

@@ -97,95 +97,88 @@ export function TaskCompleteModal({
     >
       <div
         ref={modalRef}
-        className="max-w-md w-full mx-4 sushi-geta overflow-hidden"
+        className="max-w-md w-full mx-4 bg-sushi-surface border border-sushi-border rounded-lg overflow-hidden shadow-xl"
       >
-        {/* 🏮 暖簾風ヘッダー */}
-        <div className="noren px-6 py-4 relative">
-          <div className="absolute bottom-0 left-0 right-0 flex justify-around">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="w-5 h-2 bg-gradient-to-b from-transparent to-black/30 rounded-b-full"
-              />
-            ))}
-          </div>
-          <div className="text-center relative z-10">
-            <div className="text-4xl mb-2 animate-bounce">🎉</div>
-            <h2 id={titleId} className="text-xl font-bold text-white drop-shadow-lg">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[var(--noren-top)] to-[var(--noren-bottom)] px-6 py-4">
+          <div className="text-center">
+            <div className="text-3xl mb-1 animate-bounce">🎉</div>
+            <h2 id={titleId} className="text-lg font-bold text-white">
               {t('taskComplete.title')}
             </h2>
           </div>
         </div>
 
-        {/* 木のカウンター縁 */}
-        <div className="h-2 bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark" />
+        {/* Wood counter edge */}
+        <div className="h-1 bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark" />
 
-        {/* 📋 注文票コンテンツ */}
-        <div className="p-6 bg-sushi-surface">
-          {/* お品書き風サマリー */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sushi-wasabi/20 rounded-lg border-2 border-dashed border-sushi-wasabi/40">
-              <span className="text-xl">✅</span>
-              <span className="text-sushi-wasabi font-bold">{summary}</span>
+        {/* Content */}
+        <div className="p-6">
+          {/* Summary */}
+          <div className="text-center mb-5">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sushi-wasabi/10 rounded-lg border border-sushi-wasabi/30">
+              <span className="text-sushi-wasabi font-medium text-sm">{summary}</span>
             </div>
           </div>
 
-          {/* 🍣 寿司太郎アニメーション */}
-          <div className="flex justify-center gap-2 mb-6">
-            {[0, 1, 2, 3, 4].map((i) => (
+          {/* SushiTaro animation - 3 characters */}
+          <div className="flex justify-center gap-2 mb-5">
+            {[0, 1, 2].map((i) => (
               <SushiTaro
                 key={i}
                 size="lg"
                 className="animate-pulse"
-                style={{ animationDelay: `${i * 0.15}s` } as React.CSSProperties}
+                style={{ animationDelay: `${i * 0.2}s` } as React.CSSProperties}
                 theme={theme}
               />
             ))}
           </div>
 
-          {/* カウントダウン表示 */}
+          {/* Countdown display */}
           <div className="text-center mb-4">
             <p className="text-subtle text-sm mb-2" aria-live="polite">
               {t('taskComplete.returningToIde')}
             </p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sushi-bg rounded-lg">
-              <span className="text-lg">⏱️</span>
-              <span className="font-mono font-bold text-2xl text-sushi-salmon">
+            <div className="inline-flex items-center gap-2">
+              <span className="text-sm">⏱️</span>
+              <span className="font-mono font-bold text-xl text-sushi-salmon">
                 {(remaining / 1000).toFixed(1)}
               </span>
-              <span className="text-muted text-sm">{t('common.seconds')}</span>
+              <span className="text-muted text-xs">{t('common.seconds')}</span>
             </div>
           </div>
 
-          {/* プログレスバー - わさびグリーン */}
-          <div className="h-3 bg-sushi-bg rounded-full overflow-hidden mb-6 border border-sushi-border">
+          {/* Progress bar */}
+          <div className="h-2 bg-sushi-bg rounded-full overflow-hidden mb-6 border border-sushi-border">
             <div
-              className="h-full bg-gradient-to-r from-sushi-wasabi to-sushi-wasabiDark rounded-full transition-all duration-100"
-              style={{ width: `${progressPercent}%` }}
+              className="h-full bg-sushi-wasabi rounded-full transition-all duration-100"
+              style={{
+                width: `${progressPercent}%`,
+                boxShadow: '0 0 8px rgba(124,179,66,0.4)',
+              }}
             />
           </div>
 
-          {/* キャンセルボタン - 寿司プレート風 */}
+          {/* Cancel button */}
           <button
             ref={cancelButtonRef}
             onClick={onCancel}
-            className="w-full btn-danger py-4 flex items-center justify-center gap-3"
+            className="w-full py-3 bg-sushi-bg border border-sushi-border text-subtle font-medium rounded-lg transition-colors hover:bg-sushi-border flex items-center justify-center gap-2"
             aria-label={t('taskComplete.stayHere')}
           >
-            <span className="text-xl">🛑</span>
-            <span className="font-bold">{t('taskComplete.stayHere')}</span>
+            <span>{t('taskComplete.stayHere')}</span>
           </button>
 
-          <p className="text-center text-xs text-muted mt-4">
-            <kbd className="px-2 py-1 bg-sushi-bg rounded border border-sushi-border font-mono text-xs">
+          <p className="text-center text-xs text-muted mt-3">
+            <kbd className="px-2 py-0.5 bg-sushi-bg rounded border border-sushi-border font-mono text-[10px]">
               {t('taskComplete.escKey')}
             </kbd>
             {' '}{t('taskComplete.toCancel')}
           </p>
         </div>
 
-        {/* 木の台座 */}
-        <div className="h-3 bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark" />
+        {/* Wood base */}
+        <div className="h-1 bg-gradient-to-r from-sushi-woodDark via-sushi-wood to-sushi-woodDark" />
       </div>
     </div>
   );

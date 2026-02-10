@@ -79,22 +79,22 @@ export function Header({ connected }: HeaderProps) {
 
   return (
     <header className="relative overflow-hidden header-glass">
-      {/* 暖簾 Style Header */}
+      {/* Noren Style Header */}
       <div className="noren-refined px-4 py-4">
-        {/* 暖簾の垂れ下がり部分 */}
+        {/* Noren flaps - 3 flaps, compact */}
         <div className="absolute bottom-0 left-0 right-0 flex justify-around pointer-events-none">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <div
               key={i}
               className="noren-flap-refined"
-              style={{ animationDelay: `${i * 0.2}s` }}
+              style={{ animationDelay: `${i * 0.3}s` }}
             />
           ))}
         </div>
 
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
-            {/* 寿司キャラステータスインジケーター */}
+            {/* Sushi character status indicator */}
             <div className="status-orb-container">
               <div className={`
                 status-orb overflow-hidden !w-14 !h-14
@@ -112,15 +112,11 @@ export function Header({ connected }: HeaderProps) {
             </div>
 
             <div className="flex flex-col">
-              <span className={`
-                status-label
-                ${connected ? 'status-label-connected' : 'status-label-offline'}
-              `}>
+              <span className={`text-[11px] font-medium ${connected ? 'text-green-300' : 'text-white/50'}`}>
                 {connected ? t('header.connected') : t('header.offline')}
               </span>
               <span className="header-title">
                 {t('header.daemonName')}
-                {connected && <span className="ml-1 sparkle-mini">✨</span>}
               </span>
             </div>
           </div>
@@ -168,7 +164,7 @@ export function Header({ connected }: HeaderProps) {
         </div>
       </div>
 
-      {/* 木のカウンター */}
+      {/* Wood counter */}
       <div className="wood-counter-refined" />
     </header>
   );

@@ -5,10 +5,10 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
-   🍣 SUSHI FOCUS - 狂気の回転寿司 × サイバーパンク居酒屋
+   SUSHI FOCUS - Professional Sushi Theme
    ═══════════════════════════════════════════════════════════════ */
 
-/* 🫘 Dark theme (醤油モード - Soy Sauce Mode) */
+/* Dark theme (醤油モード) */
 .dark {
   --sushi-primary: #E85D4C;
   --sushi-secondary: #7CB342;
@@ -36,7 +36,7 @@
   --lantern-glow: rgba(232, 93, 76, 0.6);
 }
 
-/* 🍚 Light theme (シャリモード - Rice Mode) */
+/* Light theme (シャリモード) */
 :root:not(.dark) {
   --sushi-primary: #C84B3D;
   --sushi-secondary: #558B2F;
@@ -65,7 +65,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🎨 BASE STYLES
+   BASE STYLES
    ═══════════════════════════════════════════════════════════════ */
 
 body {
@@ -88,7 +88,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🍣 FLOATING SUSHI BACKGROUND
+   FLOATING SUSHI BACKGROUND
    ═══════════════════════════════════════════════════════════════ */
 
 .sushi-bg-particles {
@@ -102,30 +102,28 @@ body::before {
 .sushi-particle {
   position: absolute;
   font-size: 1.5rem;
-  opacity: 0.15;
+  opacity: 0.08;
   animation: float-sushi 20s infinite ease-in-out;
 }
 
 @keyframes float-sushi {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-30px) rotate(10deg); }
-  50% { transform: translateY(-10px) rotate(-5deg); }
-  75% { transform: translateY(-40px) rotate(15deg); }
+  25% { transform: translateY(-30px) rotate(4deg); }
+  50% { transform: translateY(-10px) rotate(-2deg); }
+  75% { transform: translateY(-40px) rotate(6deg); }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🏮 暖簾 (NOREN) HEADER
+   NOREN HEADER
    ═══════════════════════════════════════════════════════════════ */
 
 .noren {
   background: linear-gradient(180deg, var(--noren-top) 0%, var(--noren-bottom) 100%);
   @apply text-white font-bold relative;
-  box-shadow:
-    0 4px 20px var(--lantern-glow),
-    inset 0 -10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 12px var(--lantern-glow);
 }
 
-/* 暖簾の垂れ下がり（波打ちアニメーション） */
+/* 暖簾の垂れ下がり */
 .noren-flap {
   @apply bg-gradient-to-b from-transparent to-black/30 rounded-b-full;
   animation: noren-wave 3s ease-in-out infinite;
@@ -138,7 +136,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🏮 提灯 (LANTERN) EFFECTS
+   LANTERN EFFECTS
    ═══════════════════════════════════════════════════════════════ */
 
 .lantern {
@@ -167,7 +165,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🍣 SUSHI CONVEYOR BELT
+   SUSHI CONVEYOR BELT
    ═══════════════════════════════════════════════════════════════ */
 
 .conveyor-container {
@@ -200,7 +198,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🎌 のぼり旗 (NOBORI FLAG)
+   NOBORI FLAG
    ═══════════════════════════════════════════════════════════════ */
 
 .nobori {
@@ -223,7 +221,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ✨ NEON TEXT EFFECTS
+   NEON TEXT EFFECTS
    ═══════════════════════════════════════════════════════════════ */
 
 .neon-text {
@@ -256,7 +254,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🍵 STEAM EFFECTS
+   STEAM EFFECTS
    ═══════════════════════════════════════════════════════════════ */
 
 .steam-container {
@@ -278,7 +276,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🎊 CELEBRATION EFFECTS
+   CELEBRATION EFFECTS
    ═══════════════════════════════════════════════════════════════ */
 
 .celebrate {
@@ -310,7 +308,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🪵 WOOD TEXTURE & GETA
+   WOOD TEXTURE & CARD
    ═══════════════════════════════════════════════════════════════ */
 
 .wood-counter {
@@ -324,38 +322,19 @@ body::before {
   50% { background-position: 100% 50%; }
 }
 
-/* 🍣 寿司下駄スタイル - 超立体的 */
+/* Clean card style */
 .sushi-geta {
-  @apply bg-sushi-surface border-2 border-sushi-border rounded-lg relative;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(139, 90, 43, 0.03) 2px,
-      rgba(139, 90, 43, 0.03) 4px
-    ),
-    var(--sushi-surface);
-  box-shadow:
-    inset 0 2px 4px rgba(255,255,255,0.1),
-    inset 0 -4px 0 0 rgba(139, 90, 43, 0.3),
-    0 6px 0 0 var(--wood-accent),
-    0 8px 15px rgba(0,0,0,0.3);
-  transform: translateY(-2px);
-  transition: all 0.15s ease;
+  @apply bg-sushi-surface border border-sushi-border rounded-lg relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: box-shadow 0.15s ease;
 }
 
 .sushi-geta:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    inset 0 2px 4px rgba(255,255,255,0.1),
-    inset 0 -4px 0 0 rgba(139, 90, 43, 0.3),
-    0 8px 0 0 var(--wood-accent),
-    0 12px 25px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   📜 SCROLLBAR - 竹スタイル
+   SCROLLBAR
    ═══════════════════════════════════════════════════════════════ */
 
 ::-webkit-scrollbar {
@@ -366,30 +345,24 @@ body::before {
 ::-webkit-scrollbar-track {
   background: var(--scrollbar-bg);
   border-radius: 5px;
-  border: 1px solid var(--sushi-border);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #7CB342 0%, #558B2F 100%);
+  background: var(--sushi-border);
   border-radius: 5px;
   border: 2px solid var(--scrollbar-bg);
-  box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #8FFF00 0%, #7CB342 100%);
+  background: var(--text-muted);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   📋 LOG ENTRIES - 注文票スタイル
+   LOG ENTRIES
    ═══════════════════════════════════════════════════════════════ */
 
 .log-entry {
-  @apply font-mono text-sm leading-relaxed transition-all duration-200;
-}
-
-.log-entry:hover {
-  @apply transform scale-[1.01];
+  @apply font-mono text-sm leading-relaxed transition-colors duration-150;
 }
 
 .log-entry.info { color: var(--text-primary); }
@@ -397,41 +370,40 @@ body::before {
 .log-entry.error { @apply text-sushi-error; }
 .log-entry.debug { @apply text-muted; }
 
+.log-entry-appear {
+  animation: log-appear 0.25s ease-out;
+}
+
+@keyframes log-appear {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ═══════════════════════════════════════════════════════════════
-   🏷️ STATUS BADGES - 寿司ネタ札風
+   STATUS BADGES
    ═══════════════════════════════════════════════════════════════ */
 
 .status-badge {
-  @apply px-4 py-1.5 rounded-full text-xs font-black tracking-wider uppercase;
-  box-shadow:
-    0 2px 0 0 rgba(0,0,0,0.2),
-    inset 0 1px 0 0 rgba(255,255,255,0.2);
+  @apply px-3 py-1 rounded-full text-[11px] font-medium;
   transition: all 0.2s ease;
 }
 
-.status-badge:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 4px 0 0 rgba(0,0,0,0.2),
-    inset 0 1px 0 0 rgba(255,255,255,0.2);
-}
-
 .status-badge.idle {
-  @apply bg-sushi-bamboo/40 text-sushi-wood border-2 border-sushi-bamboo/60;
+  @apply bg-sushi-bamboo/40 text-sushi-wood border border-sushi-bamboo/60;
 }
 
 .status-badge.running {
-  @apply bg-sushi-salmon/30 text-sushi-salmonGlow border-2 border-sushi-salmon/50;
+  @apply bg-sushi-salmon/30 text-sushi-salmonGlow border border-sushi-salmon/50;
   animation: running-pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes running-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(232, 93, 76, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(232, 93, 76, 0); }
+  50% { box-shadow: 0 0 0 6px rgba(232, 93, 76, 0); }
 }
 
 .status-badge.waiting_input {
-  @apply bg-sushi-wasabi/30 text-sushi-wasabiNeon border-2 border-sushi-wasabi/50;
+  @apply bg-sushi-wasabi/30 text-sushi-wasabiNeon border border-sushi-wasabi/50;
   animation: waiting-flash 0.8s ease-in-out infinite;
 }
 
@@ -441,15 +413,15 @@ body::before {
 }
 
 .status-badge.done {
-  @apply bg-sushi-wasabi/40 text-sushi-wasabiDark border-2 border-sushi-wasabi/60;
+  @apply bg-sushi-wasabi/40 text-sushi-wasabiDark border border-sushi-wasabi/60;
 }
 
 .status-badge.error {
-  @apply bg-sushi-tuna/30 text-sushi-tuna border-2 border-sushi-tuna/50;
+  @apply bg-sushi-tuna/30 text-sushi-tuna border border-sushi-tuna/50;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🚪 OVERLAY & MODAL - 暖簾をくぐる
+   OVERLAY & MODAL
    ═══════════════════════════════════════════════════════════════ */
 
 .overlay {
@@ -466,137 +438,97 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🔘 BUTTONS - 湯呑み/お皿風
+   BUTTONS
    ═══════════════════════════════════════════════════════════════ */
 
 .btn {
-  @apply px-5 py-2.5 rounded-xl font-black transition-all duration-150;
+  @apply px-5 py-2.5 rounded-lg font-semibold transition-all duration-150;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
   --tw-ring-offset-color: var(--sushi-bg);
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,0.2),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
-
-.btn:hover::before {
-  left: 100%;
 }
 
 .btn-primary {
-  @apply btn bg-gradient-to-br from-sushi-salmon to-sushi-tuna text-white;
-  @apply hover:from-sushi-salmonGlow hover:to-sushi-salmon;
+  @apply btn bg-sushi-salmon text-white;
+  @apply hover:bg-sushi-salmonGlow;
   @apply focus:ring-sushi-salmon;
-  box-shadow:
-    0 4px 0 0 #8B2500,
-    0 6px 20px rgba(232, 93, 76, 0.4);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 3px rgba(232, 93, 76, 0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 2px 8px rgba(232, 93, 76, 0.4);
 }
 
 .btn-primary:active {
-  box-shadow: 0 2px 0 0 #8B2500, 0 3px 10px rgba(232, 93, 76, 0.3);
-  transform: translateY(2px);
+  box-shadow: 0 1px 2px rgba(232, 93, 76, 0.2);
+  transform: translateY(1px);
 }
 
 .btn-secondary {
-  @apply btn bg-sushi-surface border-2 border-sushi-border;
+  @apply btn bg-sushi-surface border border-sushi-border;
   @apply hover:border-sushi-salmon;
   @apply focus:ring-sushi-border;
   color: var(--text-primary);
-  box-shadow: 0 4px 0 0 var(--wood-accent);
-}
-
-.btn-secondary:hover {
-  background-color: rgba(var(--sushi-surface-rgb, 42, 42, 42), 0.8);
 }
 
 .btn-secondary:active {
-  box-shadow: 0 2px 0 0 var(--wood-accent);
-  transform: translateY(2px);
+  transform: translateY(1px);
 }
 
 .btn-success {
-  @apply btn bg-gradient-to-br from-sushi-wasabi to-sushi-wasabiDark text-white;
-  @apply hover:from-sushi-wasabiNeon hover:to-sushi-wasabi;
+  @apply btn bg-sushi-wasabi text-white;
+  @apply hover:bg-sushi-wasabiNeon;
   @apply focus:ring-sushi-wasabi;
-  box-shadow: 0 4px 0 0 #3D6420, 0 6px 20px rgba(124, 179, 66, 0.3);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 3px rgba(124, 179, 66, 0.3);
 }
 
 .btn-warning {
-  @apply btn bg-gradient-to-br from-sushi-tamago to-sushi-uni text-black;
-  @apply hover:from-sushi-tamagoLight hover:to-sushi-tamago;
+  @apply btn bg-sushi-tamago text-black;
+  @apply hover:bg-sushi-tamagoLight;
   @apply focus:ring-yellow-500;
-  box-shadow: 0 4px 0 0 #B8860B;
 }
 
 .btn-danger {
-  @apply btn bg-gradient-to-br from-sushi-tuna to-sushi-tunaDeep text-white;
-  @apply hover:from-sushi-salmon hover:to-sushi-tuna;
+  @apply btn bg-sushi-tuna text-white;
+  @apply hover:bg-sushi-salmon;
   @apply focus:ring-sushi-tuna;
-  box-shadow: 0 4px 0 0 #5B0F0F, 0 6px 20px rgba(200, 75, 61, 0.3);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 3px rgba(200, 75, 61, 0.3);
+}
+
+.btn-danger:active {
+  transform: translateY(1px);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   📝 INPUT STYLES - 和紙風
+   INPUT STYLES
    ═══════════════════════════════════════════════════════════════ */
 
 .input {
-  @apply w-full px-4 py-3 rounded-xl;
-  @apply border-2 border-sushi-border;
+  @apply w-full px-4 py-3 rounded-lg;
+  @apply border border-sushi-border;
   @apply placeholder-muted;
   @apply focus:outline-none focus:ring-2 focus:ring-sushi-salmon focus:border-sushi-salmon;
-  background:
-    linear-gradient(180deg, var(--sushi-bg) 0%, var(--sushi-surface) 100%);
+  background: var(--sushi-surface);
   color: var(--text-primary);
-  box-shadow:
-    inset 0 2px 4px rgba(0,0,0,0.1),
-    0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
   transition: all 0.2s ease;
 }
 
 .input:focus {
-  background: var(--sushi-surface);
   box-shadow:
-    inset 0 2px 4px rgba(0,0,0,0.05),
-    0 0 0 4px rgba(232, 93, 76, 0.1);
+    inset 0 1px 2px rgba(0,0,0,0.05),
+    0 0 0 3px rgba(232, 93, 76, 0.1);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   📊 PROGRESS BARS - わさびグリーン
+   PROGRESS BARS
    ═══════════════════════════════════════════════════════════════ */
 
 .countdown-bar {
-  @apply h-3 rounded-full transition-all duration-100 relative overflow-hidden;
+  @apply h-2 rounded-full transition-all duration-100 relative overflow-hidden;
   background: linear-gradient(90deg, #7CB342 0%, #8FFF00 50%, #7CB342 100%);
   background-size: 200% 100%;
   animation: progress-shimmer 2s linear infinite;
-}
-
-.countdown-bar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%);
-  border-radius: inherit;
+  box-shadow: 0 0 8px rgba(124,179,66,0.4);
 }
 
 @keyframes progress-shimmer {
@@ -605,29 +537,8 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🌟 SPECIAL EFFECTS
+   SPECIAL EFFECTS
    ═══════════════════════════════════════════════════════════════ */
-
-/* キラキラエフェクト */
-.sparkle {
-  @apply relative;
-}
-
-.sparkle::before,
-.sparkle::after {
-  content: '✨';
-  position: absolute;
-  animation: sparkle-float 2s ease-in-out infinite;
-  font-size: 0.75rem;
-}
-
-.sparkle::before { top: -10px; left: -5px; animation-delay: 0s; }
-.sparkle::after { top: -5px; right: -5px; animation-delay: 0.5s; }
-
-@keyframes sparkle-float {
-  0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
-  50% { opacity: 1; transform: translateY(-5px) scale(1); }
-}
 
 /* 回転する寿司 */
 .spinning-sushi {
@@ -651,39 +562,15 @@ body::before {
   50% { transform: translateY(-20px); }
 }
 
-/* グラデーションボーダー */
-.gradient-border {
-  position: relative;
-  background: var(--sushi-surface);
-  z-index: 1;
-}
-
-.gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  background: linear-gradient(45deg, #E85D4C, #7CB342, #FFD700, #E85D4C);
-  background-size: 400% 400%;
-  border-radius: inherit;
-  z-index: -1;
-  animation: gradient-rotate 4s linear infinite;
-}
-
-@keyframes gradient-rotate {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 /* ═══════════════════════════════════════════════════════════════
-   🔔 NOTIFICATION BADGE
+   NOTIFICATION BADGE
    ═══════════════════════════════════════════════════════════════ */
 
 .notification-badge {
   @apply absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center;
-  @apply text-xs font-black text-white;
+  @apply text-xs font-bold text-white;
   background: linear-gradient(135deg, #FF6B5B 0%, #C84B3D 100%);
-  box-shadow: 0 2px 8px rgba(232, 93, 76, 0.5);
+  box-shadow: 0 2px 6px rgba(232, 93, 76, 0.4);
   animation: badge-pulse 2s ease-in-out infinite;
 }
 
@@ -693,10 +580,9 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🎮 INTERACTIVE ELEMENTS
+   INTERACTIVE ELEMENTS
    ═══════════════════════════════════════════════════════════════ */
 
-/* ホバーで寿司が回る */
 .hover-spin:hover {
   animation: quick-spin 0.5s ease-in-out;
 }
@@ -706,7 +592,6 @@ body::before {
   to { transform: rotate(360deg); }
 }
 
-/* クリックでぽよん */
 .click-bounce:active {
   animation: click-squish 0.2s ease-out;
 }
@@ -718,25 +603,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🌙 DARK MODE SPECIFIC
-   ═══════════════════════════════════════════════════════════════ */
-
-.dark .sushi-geta {
-  box-shadow:
-    inset 0 2px 4px rgba(255,255,255,0.05),
-    inset 0 -4px 0 0 rgba(139, 90, 43, 0.4),
-    0 6px 0 0 #5D3A1A,
-    0 8px 20px rgba(0,0,0,0.5);
-}
-
-.dark .btn-primary {
-  box-shadow:
-    0 4px 0 0 #5B0F0F,
-    0 6px 25px rgba(232, 93, 76, 0.5);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   📱 RESPONSIVE
+   RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 400px) {
@@ -750,7 +617,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🎬 LOADING STATES
+   LOADING STATES
    ═══════════════════════════════════════════════════════════════ */
 
 .loading-sushi {
@@ -764,7 +631,6 @@ body::before {
   100% { transform: translateX(100%) rotate(360deg); }
 }
 
-/* 読み込み中の寿司ドット */
 .loading-dots span {
   @apply inline-block mx-1 text-2xl;
   animation: dot-bounce 1.4s ease-in-out infinite;
@@ -780,17 +646,14 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🎌 REFINED HEADER STYLES - 洗練された暖簾
+   REFINED HEADER STYLES
    ═══════════════════════════════════════════════════════════════ */
 
 .header-glass {
-  background: linear-gradient(
-    180deg,
-    var(--noren-top) 0%,
-    color-mix(in srgb, var(--noren-bottom) 90%, transparent) 100%
-  );
-  backdrop-filter: blur(12px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, var(--noren-top) 0%, var(--noren-bottom) 100%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: none;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.2);
 }
 
 .noren-refined {
@@ -803,14 +666,14 @@ body::before {
 }
 
 .noren-flap-refined {
-  width: 12px;
-  height: 8px;
+  width: 10px;
+  height: 6px;
   background: linear-gradient(
     180deg,
     rgba(0, 0, 0, 0.2) 0%,
     rgba(0, 0, 0, 0.4) 100%
   );
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 5px 5px;
   animation: noren-flap-sway 3s ease-in-out infinite;
 }
 
@@ -820,7 +683,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🟢 STATUS ORB - ステータス表示オーブ
+   STATUS ORB
    ═══════════════════════════════════════════════════════════════ */
 
 .status-orb-container {
@@ -845,13 +708,11 @@ body::before {
 .status-orb-connected {
   background: radial-gradient(
     circle at 30% 30%,
-    rgba(124, 179, 66, 0.4) 0%,
-    rgba(124, 179, 66, 0.2) 50%,
-    rgba(124, 179, 66, 0.1) 100%
+    rgba(124, 179, 66, 0.3) 0%,
+    rgba(124, 179, 66, 0.15) 50%,
+    rgba(124, 179, 66, 0.05) 100%
   );
-  box-shadow:
-    0 0 20px rgba(124, 179, 66, 0.4),
-    inset 0 0 15px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 8px rgba(124, 179, 66, 0.3);
 }
 
 .status-orb-offline {
@@ -865,19 +726,19 @@ body::before {
 
 .status-pulse-ring {
   position: absolute;
-  inset: -4px;
+  inset: -3px;
   border-radius: 50%;
-  border: 2px solid rgba(124, 179, 66, 0.6);
-  animation: status-pulse 2s ease-out infinite;
+  border: 1.5px solid rgba(124, 179, 66, 0.4);
+  animation: status-pulse 2.5s ease-out infinite;
 }
 
 @keyframes status-pulse {
   0% {
     transform: scale(1);
-    opacity: 1;
+    opacity: 0.8;
   }
   100% {
-    transform: scale(1.5);
+    transform: scale(1.4);
     opacity: 0;
   }
 }
@@ -893,85 +754,50 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   📝 STATUS LABELS - ステータスラベル
+   HEADER TITLE & STATUS
    ═══════════════════════════════════════════════════════════════ */
-
-.status-label {
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  display: inline-block;
-}
-
-.status-label-connected {
-  background: rgba(124, 179, 66, 0.3);
-  color: #b8ff6b;
-  border: 1px solid rgba(124, 179, 66, 0.5);
-}
-
-.status-label-offline {
-  background: rgba(150, 150, 150, 0.2);
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(150, 150, 150, 0.3);
-}
 
 .header-title {
   font-family: 'Dela Gothic One', 'Zen Maru Gothic', sans-serif;
   font-size: 1.1rem;
   font-weight: 900;
   color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.05em;
 }
 
-.sparkle-mini {
-  display: inline-block;
-  animation: sparkle-twinkle 1.5s ease-in-out infinite;
-}
-
-@keyframes sparkle-twinkle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-/* 📤 Send Context Button - コンテキスト送信ボタン */
+/* Send Context Button */
 .send-context-btn {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   font-family: 'Zen Maru Gothic', sans-serif;
   letter-spacing: 0.02em;
   border: 1.5px solid transparent;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   cursor: pointer;
   white-space: nowrap;
-  position: relative;
-  overflow: hidden;
 }
 
 .send-context-idle {
   background: linear-gradient(135deg, var(--sushi-primary), #F97316);
   color: #fff;
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(232, 93, 76, 0.4), 0 0 0 0 rgba(232, 93, 76, 0);
-  animation: send-btn-glow 2.5s ease-in-out infinite;
+  box-shadow: 0 2px 8px rgba(232, 93, 76, 0.3);
 }
 
 .send-context-idle:hover {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 4px 16px rgba(232, 93, 76, 0.5), 0 0 20px rgba(232, 93, 76, 0.2);
-  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(232, 93, 76, 0.4);
+  filter: brightness(1.08);
 }
 
 .send-context-idle:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0);
   box-shadow: 0 1px 4px rgba(232, 93, 76, 0.3);
 }
 
@@ -987,7 +813,7 @@ body::before {
   background: linear-gradient(135deg, var(--sushi-success), #4ADE80);
   color: #fff;
   border-color: rgba(124, 179, 66, 0.3);
-  box-shadow: 0 2px 12px rgba(124, 179, 66, 0.4);
+  box-shadow: 0 2px 8px rgba(124, 179, 66, 0.3);
 }
 
 .send-context-error {
@@ -1014,13 +840,8 @@ body::before {
   to { transform: rotate(360deg); }
 }
 
-@keyframes send-btn-glow {
-  0%, 100% { box-shadow: 0 2px 8px rgba(232, 93, 76, 0.4), 0 0 0 0 rgba(232, 93, 76, 0); }
-  50% { box-shadow: 0 2px 12px rgba(232, 93, 76, 0.5), 0 0 16px rgba(232, 93, 76, 0.15); }
-}
-
 /* ═══════════════════════════════════════════════════════════════
-   🌿 GIT BADGE - Git ブランチバッジ
+   GIT BADGE
    ═══════════════════════════════════════════════════════════════ */
 
 .git-badge {
@@ -1028,16 +849,15 @@ body::before {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   transition: all 0.2s ease;
 }
 
 .git-badge:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .git-icon {
@@ -1046,7 +866,7 @@ body::before {
 
 .git-branch {
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 600;
   color: white;
   font-family: 'SF Mono', 'Monaco', monospace;
   max-width: 100px;
@@ -1056,7 +876,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🏮 LANTERN & WOOD - 提灯と木のカウンター
+   LANTERN & WOOD
    ═══════════════════════════════════════════════════════════════ */
 
 .lantern-gentle {
@@ -1069,53 +889,41 @@ body::before {
 }
 
 .wood-counter-refined {
-  height: 4px;
+  height: 3px;
   background: linear-gradient(
     90deg,
     var(--wood-accent) 0%,
     color-mix(in srgb, var(--wood-accent) 70%, white) 50%,
     var(--wood-accent) 100%
   );
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   📋 TERMINAL CONTAINER - ターミナルコンテナ
+   TERMINAL CONTAINER
    ═══════════════════════════════════════════════════════════════ */
 
 .terminal-container {
-  background: var(--terminal-bg);
-  border: 1px solid var(--sushi-border);
-  border-radius: 12px;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  @apply bg-sushi-surface border border-sushi-border rounded-lg;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .terminal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px dashed var(--sushi-border);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    transparent 100%
-  );
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--sushi-border);
 }
 
 .terminal-header-title {
   font-size: 0.85rem;
-  font-weight: 900;
+  font-weight: 600;
   color: var(--text-heading);
-  letter-spacing: 0.05em;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   💤 IDLE STATE - 待機状態スタイル
+   IDLE STATE
    ═══════════════════════════════════════════════════════════════ */
 
 .idle-state {
@@ -1146,38 +954,8 @@ body::before {
   }
 }
 
-/* スパークルドット */
-.sparkle-dot {
-  position: absolute;
-  font-size: 0.875rem;
-  animation: sparkle-dot-anim 2s ease-in-out infinite;
-}
-
-.sparkle-dot-1 {
-  top: -5px;
-  left: -10px;
-  animation-delay: 0s;
-}
-
-.sparkle-dot-2 {
-  bottom: 5px;
-  right: -15px;
-  animation-delay: 0.5s;
-}
-
-@keyframes sparkle-dot-anim {
-  0%, 100% {
-    opacity: 0;
-    transform: scale(0.5) rotate(0deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1) rotate(180deg);
-  }
-}
-
 /* ═══════════════════════════════════════════════════════════════
-   ⏳ LOADING DOTS REFINED - 洗練されたローディング
+   LOADING DOTS REFINED
    ═══════════════════════════════════════════════════════════════ */
 
 .loading-dots-refined {
@@ -1207,7 +985,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   📟 CURSOR BLINK - カーソル点滅
+   CURSOR BLINK
    ═══════════════════════════════════════════════════════════════ */
 
 .animate-cursor-blink {
@@ -1220,7 +998,7 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ♿ REDUCED MOTION - アクセシビリティ
+   REDUCED MOTION - Accessibility
    ═══════════════════════════════════════════════════════════════ */
 
 @media (prefers-reduced-motion: reduce) {

@@ -133,7 +133,7 @@
     "itemCount": "{count} 件",
     "nextOrder": "お次のご注文をどうぞ...",
     "logLevel": {
-      "info": "注文",
+      "info": "仕込み",
       "warn": "確認",
       "error": "問題",
       "debug": "メモ",
