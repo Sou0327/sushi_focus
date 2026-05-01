@@ -212,42 +212,232 @@ export function extractContentInPage(maxLen: number): {
     };
   }
 
-  // Tier 3: Text-density scoring on div/section containers (cap at 100 to avoid heavy DOM walks).
-  // Avoid innerHTML / innerText on every candidate — both allocate large
-  // strings or force layout on huge subtrees. Use the cheap live descendant
-  // count as a markup-size proxy and bounded streaming for text length.
+  // Tier 3: Text-density scoring on div/section containers.
+  //
+  // Two-stage approach to balance correctness and performance:
+  //   Stage 1 — Cheap pass over all candidates (capped at 100 iterations).
+  //     Score with `descendantCount * 30` as a markup-size estimate; this
+  //     avoids allocating large innerHTML strings on every candidate and
+  //     produces a coarse ranking.
+  //   Stage 2 — Accurate re-ranking on a shortlist using the actual
+  //     `innerHTML.length`, with `<script>/<style>/<noscript>/<template>`
+  //     content subtracted out so the markup denominator matches the
+  //     noise-filtered textLen numerator. The shortlist is the union of
+  //     "top K by quickDensity" and "top K by textLen" — the second axis
+  //     guarantees a long body candidate isn't squeezed out by several
+  //     compact text-only cards that score marginally higher in Stage 1.
+  //
+  // Together, two-stage + union shortlist + noise-aware markup measurement
+  // lets Tier 3 reliably pick realistic medium-length bodies (~1.5–2 KB,
+  // 60–150 descendants) over compact cards on SPA dashboards.
+  // Phase 1: truly cheap prepass over EVERY div/section candidate. Per
+  // element we only do constant- or text-bounded work (tagName, closest,
+  // children.length, textContent.length). No descendant walking, no DOM
+  // scoring. This guarantees the real body container is observed even on
+  // SPAs where it sits past 1000+ chrome wrappers in DOM order.
+  //
+  // We then shortlist candidates via the UNION of two cheap axes so that
+  // bodies which lose one axis still survive on the other:
+  //   - children.length: paragraph-rich bodies with many direct children win
+  //   - textContent.length: text-rich bodies wrapped in a single inner
+  //     container (children=1) or pure text-only bodies still win
   const candidates = document.querySelectorAll('div, section');
-  const maxCandidates = 100;
-  const DENSITY_TEXT_BUDGET = 2000;
-  let bestEl: HTMLElement | null = null;
-  let bestScore = 0;
+  const DENSITY_TEXT_BUDGET = 10_000;
+  const ESTIMATED_TAG_OVERHEAD = 30;
+  // Saturate size bonus at 3K chars (vs the original 1K). With textLen capped
+  // at DENSITY_TEXT_BUDGET this prevents pure text-only cards (ratio ≈ 1.0)
+  // from outranking long bodies whose ratio is naturally lower.
+  const SIZE_SATURATION = 3000;
+  // Phase 2 inner shortlist size per axis. Larger than the original 5 so
+  // realistic SPAs (with many ties on quickDensity / textLen proxies) don't
+  // drop the true body before accurate innerHTML.length re-ranking. 32
+  // matches a band-style cutoff: any candidate within the top ~32 on either
+  // axis gets the expensive accurate measurement.
+  const SHORTLIST_PER_AXIS = 32;
+  // Per-axis cap for the Phase 1 shortlist; union of two axes yields up to
+  // 2x candidates entering Phase 2. Realistic pages stay far below this.
+  const PHASE1_PER_AXIS = 100;
+  // Hard upper bound for cap-saturated candidates (text-axis saturation
+  // alone gives no ordering signal among them). Beyond this we tie-break
+  // by depth, keeping the deepest first so the actual body wins ties.
+  // 300 is far above any realistic page's substantive container count
+  // while still bounding the worst-case Phase 2 work.
+  const PHASE1_SATURATED_HARD_CAP = 300;
+  // Bound for the cheap Phase 1 text sampler: walked through the same
+  // noise-filtered TreeWalker as the later tiers, so SSR hydration JSON in
+  // <script> tags can't inflate quickTextLen and squeeze the real body out
+  // of the byText shortlist. 2000 is enough to differentiate substantive
+  // bodies from minimal cards while keeping per-candidate work bounded.
+  const PHASE1_TEXT_CAP = 2000;
 
-  for (let i = 0; i < Math.min(candidates.length, maxCandidates); i++) {
+  // Cheap DOM depth (parent-chain length). When many candidates saturate
+  // PHASE1_TEXT_CAP, deeper candidates are body-favoring tie-breakers because
+  // the actual content container tends to sit deeper than its ancestor
+  // wrappers in the DOM.
+  const depthOf = (e: Element): number => {
+    let depth = 0;
+    let p: Element | null = e.parentElement;
+    while (p) {
+      depth++;
+      p = p.parentElement;
+    }
+    return depth;
+  };
+
+  type Survivor = {
+    el: HTMLElement;
+    childrenCount: number;
+    quickTextLen: number;
+    depth: number;
+  };
+  const survivors: Survivor[] = [];
+  for (let i = 0; i < candidates.length; i++) {
     const el = candidates[i] as HTMLElement;
-
-    // Skip nav, header, footer, aside containers
     const tag = el.tagName.toLowerCase();
     if (tag === 'nav' || tag === 'header' || tag === 'footer' || tag === 'aside') continue;
-    // Skip elements inside nav/header/footer/aside
     if (el.closest('nav, header, footer, aside')) continue;
+    survivors.push({
+      el,
+      childrenCount: el.children.length,
+      quickTextLen: streamTextUntilMax(el, PHASE1_TEXT_CAP).length,
+      depth: depthOf(el),
+    });
+  }
+  // Union of two cheap rankings.
+  //   byChildren: tie-break by depth so ancestor-wrapper ties favor deeper
+  //     (more specific) bodies.
+  //   byText: cap-saturated candidates ALL pass through (text alone gives no
+  //     ordering signal among them, so don't truncate by DOM order). Below
+  //     the cap, take top-N by quickTextLen with depth tie-break.
+  // Deduping later via the phase2Map keeps total candidates bounded by
+  // unique elements rather than per-axis count.
+  const byChildren = [...survivors]
+    .sort((a, b) => {
+      if (b.childrenCount !== a.childrenCount) return b.childrenCount - a.childrenCount;
+      return b.depth - a.depth;
+    })
+    .slice(0, PHASE1_PER_AXIS);
+  // Cap-saturated candidates carry no text-ordering signal, so sort them
+  // by depth (deeper = more body-favoring) and bound to PHASE1_SATURATED_HARD_CAP.
+  const saturatedSorted = survivors
+    .filter((s) => s.quickTextLen >= PHASE1_TEXT_CAP)
+    .sort((a, b) => b.depth - a.depth)
+    .slice(0, PHASE1_SATURATED_HARD_CAP);
+  const unsaturatedTop = survivors
+    .filter((s) => s.quickTextLen < PHASE1_TEXT_CAP)
+    .sort((a, b) => {
+      if (b.quickTextLen !== a.quickTextLen) return b.quickTextLen - a.quickTextLen;
+      return b.depth - a.depth;
+    })
+    .slice(0, PHASE1_PER_AXIS);
+  const byText: Survivor[] = [...saturatedSorted, ...unsaturatedTop];
+  const phase2Map = new Map<HTMLElement, Survivor>();
+  for (const s of byChildren) phase2Map.set(s.el, s);
+  for (const s of byText) phase2Map.set(s.el, s);
+  const phase2 = Array.from(phase2Map.values());
 
-    // Skip candidates whose subtree is too large to extract efficiently.
-    const descendantCount = el.getElementsByTagName('*').length;
-    if (descendantCount > MAX_SUBTREE_ELEMENTS) continue;
+  // Phase 2: only on the shortlisted candidates do we incur per-element
+  // streamTextUntilMax + descendantCount + the later innerHTML measurement.
+  type Cand = {
+    el: HTMLElement;
+    textLen: number;
+    descendantCount: number;
+    quickDensity: number;
+  };
+  const allCandidates: Cand[] = [];
+  for (let i = 0; i < phase2.length; i++) {
+    const el = phase2[i].el;
 
-    // Bounded text extraction for scoring; cap at DENSITY_TEXT_BUDGET so we
-    // don't traverse an entire long <article> repeatedly across candidates.
     const text = streamTextUntilMax(el, DENSITY_TEXT_BUDGET);
     const textLen = text.length;
     if (textLen < 200) continue;
 
-    // density = text-per-descendant * size bonus. Text-only elements have
-    // descendantCount === 0, so the denominator is floored at 1.
-    const density = (textLen / Math.max(descendantCount, 1)) * Math.min(textLen / 1000, 1);
+    const descendantCount = el.getElementsByTagName('*').length;
+    const estimatedMarkup = textLen + descendantCount * ESTIMATED_TAG_OVERHEAD;
+    const quickDensity =
+      (textLen / estimatedMarkup) * Math.min(textLen / SIZE_SATURATION, 1);
+    allCandidates.push({ el, textLen, descendantCount, quickDensity });
+  }
 
-    if (density > bestScore) {
-      bestScore = density;
-      bestEl = el;
+  // Build shortlist: union of top-K by quickDensity and top-K by textLen.
+  // Tie-break textLen by quickDensity so that on pages with deeply nested
+  // wrappers (each ancestor mirroring its descendant's text), the tighter
+  // (deeper, fewer-descendants) wrapper survives the shortlist instead of
+  // being filled by outer ancestors in DOM order.
+  // Using a Map keyed on the element ref dedupes overlapping picks.
+  const byDensity = [...allCandidates]
+    .sort((a, b) => b.quickDensity - a.quickDensity)
+    .slice(0, SHORTLIST_PER_AXIS);
+  const byTextLen = [...allCandidates]
+    .sort((a, b) => {
+      if (b.textLen !== a.textLen) return b.textLen - a.textLen;
+      return b.quickDensity - a.quickDensity;
+    })
+    .slice(0, SHORTLIST_PER_AXIS);
+  const shortlistMap = new Map<HTMLElement, Cand>();
+  for (const c of byDensity) shortlistMap.set(c.el, c);
+  for (const c of byTextLen) shortlistMap.set(c.el, c);
+  const shortlist = Array.from(shortlistMap.values());
+
+  // Stage 2: accurate re-ranking on shortlist. Compute noise-free markup
+  // length (innerHTML minus outerHTML of script/style/noscript/template
+  // descendants) so the ratio is symmetric with the noise-filtered textLen.
+  // For pathologically huge subtrees (>MAX_SUBTREE_ELEMENTS) we fall back to
+  // quickDensity to avoid allocating multi-megabyte HTML strings.
+  let bestEl: HTMLElement | null = null;
+  let bestScore = 0;
+  // For huge subtrees full innerHTML serialization could allocate megabytes,
+  // so we sample the first SAMPLE_SIZE descendants and compute their average
+  // tag overhead (open + close tag chars including attributes) to extrapolate
+  // estimated markup length. This avoids both the over-scoring of a fixed
+  // ratio floor and the cost of full serialization, while remaining fair to
+  // text-rich legitimate bodies that happen to have many descendants.
+  const SAMPLE_SIZE = 100;
+
+  for (const cand of shortlist) {
+    let score: number;
+    if (cand.descendantCount > MAX_SUBTREE_ELEMENTS) {
+      const walker = document.createTreeWalker(cand.el, NodeFilter.SHOW_ELEMENT);
+      let sampledOverhead = 0;
+      let sampledCount = 0;
+      let elNode: Node | null;
+      while ((elNode = walker.nextNode()) !== null && sampledCount < SAMPLE_SIZE) {
+        const e = elNode as HTMLElement;
+        const t = e.tagName;
+        if (t === 'SCRIPT' || t === 'STYLE' || t === 'NOSCRIPT' || t === 'TEMPLATE') {
+          continue;
+        }
+        const tagNameLen = t.length;
+        let openLen = tagNameLen + 2; // <tag>
+        for (let a = 0; a < e.attributes.length; a++) {
+          const attr = e.attributes[a];
+          openLen += 1 + attr.name.length + 3 + attr.value.length; // ' name="value"'
+        }
+        const closeLen = tagNameLen + 3; // </tag>
+        sampledOverhead += openLen + closeLen;
+        sampledCount++;
+      }
+      const avgOverhead =
+        sampledCount > 0 ? sampledOverhead / sampledCount : ESTIMATED_TAG_OVERHEAD;
+      const estimatedMarkup = cand.textLen + cand.descendantCount * avgOverhead;
+      score =
+        (cand.textLen / Math.max(estimatedMarkup, 1)) *
+        Math.min(cand.textLen / SIZE_SATURATION, 1);
+    } else {
+      const rawHtmlLen = cand.el.innerHTML.length;
+      if (rawHtmlLen === 0) continue;
+      let noiseLen = 0;
+      const noise = cand.el.querySelectorAll(NOISE_TAG_SELECTOR);
+      for (let j = 0; j < noise.length; j++) {
+        noiseLen += (noise[j] as HTMLElement).outerHTML.length;
+      }
+      const cleanHtmlLen = Math.max(rawHtmlLen - noiseLen, 1);
+      score =
+        (cand.textLen / cleanHtmlLen) * Math.min(cand.textLen / SIZE_SATURATION, 1);
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestEl = cand.el;
     }
   }
 
