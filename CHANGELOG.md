@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-04-22
+
+### Fixed
+- Context Bridge: density tier (Tier 3) regression on SPA pages where only
+  the header card was extracted instead of the article body. The 0.3.3
+  formula `(textLen / descendantCount) * sizeBonus` favored inline-heavy
+  compact cards over paragraph-heavy bodies. Re-architected as a two-phase
+  scorer: a cheap union-axis prepass (children + noise-filtered text +
+  DOM depth) builds a shortlist, then accurate `innerHTML.length` minus
+  noise-tag `outerHTML.length` is used for final ranking. Verified end-to-
+  end on the original Immunefi bug-report URL.
+
+### Changed
+- Density tier internals: drop the DOM-order 100-candidate cap; replace
+  `innerHTML.length` cost with sampled tag-overhead estimation for huge
+  subtrees; raise size-bonus saturation from 1K to 3K chars.
+
 ## [0.3.3] - 2026-04-21
 
 ### Added
@@ -60,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added origin validation for CORS
 - Input sanitization on all API endpoints
 
-[Unreleased]: https://github.com/Sou0327/sushi_focus/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/Sou0327/sushi_focus/compare/v0.3.4...HEAD
+[0.3.4]: https://github.com/Sou0327/sushi_focus/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/Sou0327/sushi_focus/compare/v0.3.2...v0.3.3
 [0.1.0]: https://github.com/Sou0327/sushi_focus/releases/tag/v0.1.0
